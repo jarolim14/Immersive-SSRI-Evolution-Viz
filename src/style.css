@@ -1,0 +1,68 @@
+#nodeInfoDiv {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    color: white;
+    padding: 10px;
+    font-family: monospace; /* Or your preferred font */
+    text-align: left; /* To center the text */
+    display: none; /* Initially hide the div */
+}
+#legendDiv {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.8); /* Semi-transparent background */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: white; /* White text color */
+  font-family: monospace; /* Or your preferred font */
+  font-size: 16px; /* Increase the font size */
+}
+
+.legend-item {
+  margin: 5px 0;
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.legend-item span {
+  color: white; /* White text color for labels */
+}
+.legend-item-container {
+  display: flex;
+  align-items: center;
+}
+
+.fold-indicator {
+  cursor: pointer;
+  margin-right: 5px;
+}
+.legend-color {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+
+.legend-toggle {
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.legend-subtree {
+  margin-left: 20px;
+  display: none;
+}
+.legend-subtree .legend-item {
+  margin-left: 10px;
+}
+
+
+
+

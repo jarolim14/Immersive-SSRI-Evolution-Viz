@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pharmaceuticals and Publications</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <!-- Canvas for WebGL rendering -->
+    <canvas class="webgl"></canvas>
+
+    <!-- Your custom JavaScript code -->
+    <script type="module" src="./script.js"></script>
+
+    <!-- Vertex Shader -->
+    <script type="x-shader/x-vertex" id="vertexshader">
+      attribute float size;
+      attribute vec4 clusterColor;
+      varying vec4 vColor;
+      void main() {
+        vColor = clusterColor;
+        vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+        gl_PointSize = size * ( 300.0 / -mvPosition.z );
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    </script>
+
+    <!-- Fragment Shader -->
+    <script type="x-shader/x-fragment" id="fragmentshader">
+      uniform vec3 color;
+      uniform sampler2D nodeTexture;
+      varying vec4 vColor;
+      void main() {
+        vec4 outColor = texture2D( nodeTexture, gl_PointCoord );
+        if ( outColor.a < 0.5 ) discard;
+        gl_FragColor = outColor * vec4( color * vColor.xyz, 1.0 );
+        float depth = gl_FragCoord.z / gl_FragCoord.w;
+        const vec3 fogColor = vec3( 0.0 );
+        float fogFactor = smoothstep( 2000.0, 60000000.0, depth );
+        // float fogFactor = 0;
+        // gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
+      }
+    </script>
+
+    <!-- Load jQuery from CDN -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <!-- color map -->
+
+    <!-- Add the node id div element -->
+    <div id="nodeInfoDiv">Selected Node:</div>
+    <!-- Add legend to top right corner -->
+    <div id="legendDiv"></div>
+  </body>
+</html>

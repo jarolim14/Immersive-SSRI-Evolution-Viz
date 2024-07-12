@@ -1,0 +1,26 @@
+# any data folder
+data/
+# any log folder
+log/
+# any temp folder
+temp/
+# node_modules folder
+node_modules/
+
+# Build artifacts
+build/
+dist/
+
+# Editor files
+.vscode/
+.idea/
+
+# Compiled output
+*.js
+
+# Logs and databases
+*.log
+*.sqlite
+
+# Miscellaneous
+.DS_Store
