@@ -7,7 +7,7 @@
     color: white;
     padding: 10px;
     font-family: monospace; /* Or your preferred font */
-    text-align: left; /* To center the text */
+    text-align: center; /* To center the text */
     display: none; /* Initially hide the div */
 }
 #legendDiv {
@@ -63,6 +63,28 @@
   margin-left: 10px;
 }
 
+#colorLegendDiv {
+  position: absolute;
+  top: 10px; /* Adjust top position as needed */
+  right: 10px; /* Adjust right position as needed */
+  background-color: transparent;
+  display: flex;
+  flex-wrap: wrap;
+}
 
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-right: 10px; /* Adjust margin as needed */
+}
 
+.color-box {
+  width: 20px;
+  height: 20px;
+  margin-right: 5px;
+}
 
+#colorLegendDiv * {
+  color: white;
+  font-family: monospace;
+}
