@@ -1,3 +1,22 @@
+/**
+ * Data Loading and Processing Module
+ *
+ * This module handles the loading and processing of node data for a 3D visualization.
+ * It includes functions for:
+ * - Initializing buffer arrays for node positions, colors, and sizes
+ * - Loading JSON data from URLs
+ * - Loading and processing cluster color and label maps
+ * - Parsing and processing node data, including position calculations and rotations
+ * - Updating node data in the buffer arrays
+ * - Providing access to the processed node data
+ *
+ * The module uses Three.js for 3D calculations and relies on a CONFIG object for settings.
+ *
+ * @author Lukas Westphal
+ * @version 1.0
+ * @date 16.07.24
+ */
+
 import * as THREE from "three";
 import { CONFIG } from "./config.js";
 

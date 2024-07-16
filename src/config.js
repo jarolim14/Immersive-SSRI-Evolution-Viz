@@ -24,6 +24,7 @@ export const CONFIG = {
   // Controls Configuration
   controlsMinDistance: 100, // Minimum distance the camera can be from the origin
   controlsMaxDistance: 5000, // Maximum distance the camera can be from the origin
+  zoomToNode: true, // Zoom to node or only towards 0,0,0
   // Node Configuration
   nodeTextureUrl: "textures/standard_node.png",
   coordinateMultiplier: 25, // Multiplier for the node coordinates

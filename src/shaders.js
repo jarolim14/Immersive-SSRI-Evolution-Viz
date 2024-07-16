@@ -39,3 +39,22 @@ export const fragmentShaderNode = `
     // gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
   }
 `;
+
+export const vertexShaderSpotlight = `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `;
+
+export const fragmentShaderSpotlight = `
+      uniform sampler2D spotlightTexture;
+      uniform vec3 color;
+      uniform float brightness;
+      varying vec2 vUv;
+      void main() {
+        vec4 texColor = texture2D(spotlightTexture, vUv);
+        gl_FragColor = vec4(texColor.rgb * color * brightness, texColor.a);
+      }
+    `;
