@@ -1,6 +1,7 @@
-import * as THREE from "three";
+// local imports
 // get configs
 import { CONFIG } from "./config";
+// data loading functions
 import {
   initializeBuffers,
   loadClusterColorMap,
@@ -8,20 +9,21 @@ import {
   loadNodeData,
   getNodeData,
 } from "./dataLoader.js";
+// node creation functions
 import { createNodes } from "./nodeCreation.js";
-import { createScene, handleResize } from "./sceneCreation.js";
-import { handleScroll } from "./orbitControls.js";
-import { initializeLegend, getLegendSelectedLeafKeys } from "./legend.js";
+// scene creation functions
+import { createScene } from "./sceneCreation.js";
+// event handling functions - single node selection
 import {
   raycaster,
   mouse,
   initializeSelectionMesh,
-  updateVisualSelection,
-  handleMouseDown,
-  handleMouseUp,
-  handleLongClick,
-  updateNodeInfo,
 } from "./singleNodeSelection.js";
+// legend functions
+import { initializeLegend, getLegendSelectedLeafKeys } from "./legend.js";
+// rendering functions
+import { startRendering } from "./renderer.js";
+import { addEventListeners } from "./eventListeners.js";
 
 // Global Variables
 const canvas = document.querySelector("canvas.webgl");
@@ -53,7 +55,7 @@ async function initializeScene() {
     initializeSelectionMesh(scene);
 
     await initializeLegend(CONFIG.legendDataUrl);
-    // const legendSelectedLeafKeys = getLegendSelectedLeafKeys();
+    const legendSelectedLeafKeys = getLegendSelectedLeafKeys();
     //console.log("Initial selected leaf keys:", legendSelectedLeafKeys);
 
     addEventListeners(
@@ -72,42 +74,10 @@ async function initializeScene() {
     const loadTime = (endTime - startTime) / 1000;
     console.log(`Total load time: ${loadTime.toFixed(2)} seconds`);
 
-    tick();
+    startRendering(scene, camera, controls, renderer);
   } catch (error) {
     console.error("Error in initializeScene:", error);
   }
-}
-
-function addEventListeners(
-  nodes,
-  positions,
-  camera,
-  renderer,
-  controls,
-  raycaster,
-  mouse,
-  scene,
-  canvas
-) {
-  window.addEventListener("resize", () => handleResize(camera, renderer));
-  canvas.addEventListener(
-    "wheel",
-    (event) =>
-      handleScroll(event, camera, controls, raycaster, mouse, scene, canvas),
-    { passive: false }
-  );
-  canvas.addEventListener("mousedown", (event) =>
-    handleMouseDown(event, canvas)
-  );
-  canvas.addEventListener("mouseup", (event) =>
-    handleMouseUp(event, nodes, positions, canvas, camera, scene)
-  );
-}
-
-function tick() {
-  controls.update();
-  renderer.render(scene, camera);
-  requestAnimationFrame(tick);
 }
 
 document.addEventListener("DOMContentLoaded", function () {
