@@ -12,7 +12,7 @@
  * Note: These shaders are designed to work with Three.js and assume certain attributes and uniforms are provided.
  */
 
-export const vertexShader = `
+export const vertexShaderNode = `
   attribute float size;
   attribute vec4 clusterColor;
   varying vec4 vColor;
@@ -24,7 +24,7 @@ export const vertexShader = `
   }
 `;
 
-export const fragmentShader = `
+export const fragmentShaderNode = `
   uniform vec3 color;
   uniform sampler2D nodeTexture;
   varying vec4 vColor;

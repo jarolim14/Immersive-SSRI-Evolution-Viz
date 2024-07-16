@@ -1,28 +1,8 @@
 import * as THREE from "three";
+// get configs
+import { CONFIG } from "./config";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-
-// Configuration
-const CONFIG = {
-  percentageOfDataToLoad: 1,
-  loadClusterSubset: false,
-  clustersToLoad: Array.from({ length: 3 }, () =>
-    Math.floor(Math.random() * 15)
-  ),
-  multiplier: 50,
-  cameraNearPlane: 1, // Near clipping plane
-  cameraFarPlane: 1000000,
-  cameraFOV: 28, // Field of view in degrees
-  controlsMinDistance: 100,
-  controlsMaxDistance: 1000000,
-  nodeTextureUrl: "textures/standard_node.png",
-  // handleScroll
-  zoomSpeed: 0.1,
-  minZoom: 100,
-  maxZoom: 10000,
-  maxNodes: 45000,
-  CLICK_DURATION_THRESHOLD: 5, // 500 ms = 0.5 seconds
-  CLICK_DISTANCE_THRESHOLD: 5, // pixels
-};
+import { vertexShaderNode, fragmentShaderNode } from "./shaders";
 
 // Global Variables
 const windowSizes = { width: window.innerWidth, height: window.innerHeight };
@@ -59,10 +39,10 @@ async function initializeScene() {
   initializeBuffers();
   initializeSelectionMesh(); // Add this line here
   await Promise.all([
-    loadClusterColorMap("data/cluster_color_dict.json"),
-    loadClusterLabelMap("data/cluster_label_dict.json"),
-    loadNodeData("/data/2d_with_color.json", CONFIG.percentageOfDataToLoad),
-    initializeLegend("data/legend_tree.json"),
+    loadClusterColorMap(CONFIG.clusterColorMapUrl),
+    loadClusterLabelMap(CONFIG.clusterLabelMapUrl),
+    loadNodeData(CONFIG.nodeDataUrl, CONFIG.percentageOfDataToLoad),
+    initializeLegend(CONFIG.legendDataUrl),
   ]);
   createNodes();
   addEventListeners();
@@ -88,10 +68,13 @@ function createCamera() {
 }
 
 function createRenderer() {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: CONFIG.rendererAntialias,
+  });
   renderer.setSize(windowSizes.width, windowSizes.height);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
-  renderer.autoClearColor = true;
+  renderer.setPixelRatio(CONFIG.devicePixelRatio);
+  renderer.autoClearColor = CONFIG.rendererAutoClearColor;
   return renderer;
 }
 
@@ -106,12 +89,18 @@ function createControls() {
   return controls;
 }
 
-function initScene() {
-  scene.background = new THREE.Color(0x050507);
-  const axesHelper = new THREE.AxesHelper(1000);
+function addHelpers() {
+  const axesHelper = new THREE.AxesHelper(CONFIG.axesHelperSize);
   scene.add(axesHelper);
-  const gridHelper = new THREE.GridHelper(1000, 10);
+  const gridHelper = new THREE.GridHelper(
+    CONFIG.gridHelperSize,
+    CONFIG.gridHelperDivisions
+  );
   scene.add(gridHelper);
+}
+function initScene() {
+  scene.background = new THREE.Color(CONFIG.backgroundColor);
+  if (CONFIG.addAxesHelper) addHelpers();
 }
 
 async function loadJSONData(url) {
@@ -168,9 +157,9 @@ function parseJSONData(data, percentage) {
     }
     const nodeId = node.node_id;
     const centrality = parseFloat(node.centrality.toFixed(5));
-    let x = node.x * CONFIG.multiplier;
-    let y = node.y * CONFIG.multiplier;
-    let z = centrality * -100;
+    let x = node.x * CONFIG.coordinateMultiplier;
+    let y = node.y * CONFIG.coordinateMultiplier;
+    let z = centrality * CONFIG.zCoordinateShift;
 
     // Apply rotation
     const rotatedPosition = new THREE.Vector3(x, y, z).applyAxisAngle(
@@ -241,8 +230,8 @@ function createNodeMaterial() {
 
   return new THREE.ShaderMaterial({
     uniforms: uniforms,
-    vertexShader: document.getElementById("vertexshader").textContent,
-    fragmentShader: document.getElementById("fragmentshader").textContent,
+    vertexShader: vertexShaderNode,
+    fragmentShader: fragmentShaderNode,
     alphaTest: 1,
     transparent: true,
     depthWrite: false, // Prevent flickering
@@ -436,7 +425,7 @@ function initializeSelectionMesh() {
 
   // Load texture once
   const textureLoader = new THREE.TextureLoader();
-  textureLoader.load("textures/spotlight2.png", (texture) => {
+  textureLoader.load(CONFIG.spotlightTextureUrl, (texture) => {
     selectionMaterial.uniforms.spotlight2.value = texture;
   });
 }
@@ -462,8 +451,8 @@ function handleMouseUp(event) {
   console.log("Click Distance:", clickDistance);
 
   if (
-    clickDuration >= CONFIG.CLICK_DURATION_THRESHOLD &&
-    clickDistance < CONFIG.CLICK_DISTANCE_THRESHOLD
+    clickDuration >= CONFIG.clickDurationThreshold &&
+    clickDistance < CONFIG.clickDistanceThreshold
   ) {
     console.log("Long click detected!");
     handleLongClick(event);
@@ -477,7 +466,7 @@ function handleLongClick(event) {
   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
   raycaster.setFromCamera(mouse, camera);
-  raycaster.params.Points.threshold = 5; // Reduced threshold
+  raycaster.params.Points.threshold = CONFIG.nodeSelectionAccuracyThreshold;
   const points = scene.getObjectByName("points");
   intersects.length = 0;
   raycaster.intersectObject(points, false, intersects);
