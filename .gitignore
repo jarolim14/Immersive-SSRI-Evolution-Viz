@@ -15,9 +15,6 @@ dist/
 .vscode/
 .idea/
 
-# Compiled output
-*.js
-
 # Logs and databases
 *.log
 *.sqlite

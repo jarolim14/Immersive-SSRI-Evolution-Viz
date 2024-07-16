@@ -1,0 +1,41 @@
+/**
+ * Shader Definitions for Pharmaceutical Network Visualization
+ *
+ * This file contains the vertex and fragment shaders used in our Three.js application
+ *
+ * Vertex Shader: Handles the size and color of each node (point) in the network.
+ * It calculates the point size based on the camera distance and passes the cluster color to the fragment shader.
+ *
+ * Fragment Shader: Determines the final color of each pixel in the nodes.
+ * It applies the node texture, handles transparency, and implements a depth-based fog effect.
+ *
+ * Note: These shaders are designed to work with Three.js and assume certain attributes and uniforms are provided.
+ */
+
+export const vertexShader = `
+  attribute float size;
+  attribute vec4 clusterColor;
+  varying vec4 vColor;
+  void main() {
+    vColor = clusterColor;
+    vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+    gl_PointSize = size * ( 300.0 / -mvPosition.z );
+    gl_Position = projectionMatrix * mvPosition;
+  }
+`;
+
+export const fragmentShader = `
+  uniform vec3 color;
+  uniform sampler2D nodeTexture;
+  varying vec4 vColor;
+  void main() {
+    vec4 outColor = texture2D( nodeTexture, gl_PointCoord );
+    if ( outColor.a < 0.5 ) discard;
+    gl_FragColor = outColor * vec4( color * vColor.xyz, 1.0 );
+    float depth = gl_FragCoord.z / gl_FragCoord.w;
+    const vec3 fogColor = vec3( 0.0 );
+    float fogFactor = smoothstep( 2000.0, 60000000.0, depth );
+    // float fogFactor = 0;
+    // gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
+  }
+`;

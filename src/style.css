@@ -1,3 +1,18 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.webgl {
+  position: fixed;
+  top: 0;
+  left: 0;
+  outline: none;
+}
+
 #nodeInfoDiv {
     position: fixed;
     bottom: 0;
@@ -65,26 +80,22 @@
 
 #colorLegendDiv {
   position: absolute;
-  top: 10px; /* Adjust top position as needed */
-  right: 10px; /* Adjust right position as needed */
+  top: 10px;
+  right: 10px;
   background-color: transparent;
   display: flex;
   flex-wrap: wrap;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  margin-right: 10px; /* Adjust margin as needed */
+  font-family: monospace;
 }
 
 .color-box {
   width: 20px;
   height: 20px;
+  display: inline-block;
   margin-right: 5px;
 }
 
-#colorLegendDiv * {
-  color: white;
-  font-family: monospace;
-}
+.pharmacology { background-color: blue; }
+.indications { background-color: red; }
+.safety { background-color: green; }
+.other { background-color: purple; }

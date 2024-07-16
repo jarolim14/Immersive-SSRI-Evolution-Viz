@@ -9,10 +9,6 @@
   <body>
     <!-- Canvas for WebGL rendering -->
     <canvas class="webgl"></canvas>
-
-    <!-- Your custom JavaScript code -->
-    <script type="module" src="main.js"></script>
-
     <!-- Vertex Shader -->
     <script type="x-shader/x-vertex" id="vertexshader">
       attribute float size;
@@ -25,7 +21,6 @@
         gl_Position = projectionMatrix * mvPosition;
       }
     </script>
-
     <!-- Fragment Shader -->
     <script type="x-shader/x-fragment" id="fragmentshader">
       uniform vec3 color;
@@ -42,29 +37,28 @@
         // gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
       }
     </script>
-
     <!-- Add the node id div element -->
     <div id="nodeInfoDiv">Selected Node:</div>
-
     <!-- Add legend to top right corner -->
     <div id="legendDiv"></div>
     <div id="colorLegendDiv">
       <div class="legend-item">
-        <div class="color-box" style="background-color: blue"></div>
+        <div class="color-box pharmacology"></div>
         <span>Pharmacology</span>
       </div>
       <div class="legend-item">
-        <div class="color-box" style="background-color: red"></div>
+        <div class="color-box indications"></div>
         <span>Indications</span>
       </div>
       <div class="legend-item">
-        <div class="color-box" style="background-color: green"></div>
+        <div class="color-box safety"></div>
         <span>Safety</span>
       </div>
       <div class="legend-item">
-        <div class="color-box" style="background-color: purple"></div>
+        <div class="color-box other"></div>
         <span>Other</span>
       </div>
     </div>
+    <script type="module" src="script.js"></script>
   </body>
 </html>
