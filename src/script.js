@@ -2,10 +2,17 @@ import * as THREE from "three";
 // get configs
 import { CONFIG } from "./config";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { vertexShaderNode, fragmentShaderNode } from "./shaders";
+import {
+  loadJSONData,
+  initializeBuffers,
+  loadClusterColorMap,
+  loadClusterLabelMap,
+  loadNodeData,
+  getNodeData,
+} from "./dataLoader.js";
+import { createNodes } from "./nodeCreation.js";
 
 // Global Variables
-const windowSizes = { width: window.innerWidth, height: window.innerHeight };
 const canvas = document.querySelector("canvas.webgl");
 const scene = new THREE.Scene();
 const camera = createCamera();
@@ -15,9 +22,6 @@ const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 const intersects = [];
 const nodeInfoDiv = document.getElementById("nodeInfoDiv");
-let positions, colors, sizes;
-const clusterColorMap = {};
-const clusterLabelMap = {};
 
 // Legend Variables
 let selections = {};
@@ -28,37 +32,48 @@ let selectionMaterial;
 let mouseDownTime = 0;
 let mouseDownPosition = new THREE.Vector2();
 
-// Node Data
-let nodes = new Map();
-
 // Main Execution
 async function initializeScene() {
-  // At the start of your initializeScene function
-  const startTime = performance.now();
-  initScene();
-  initializeBuffers();
-  initializeSelectionMesh(); // Add this line here
-  await Promise.all([
-    loadClusterColorMap(CONFIG.clusterColorMapUrl),
-    loadClusterLabelMap(CONFIG.clusterLabelMapUrl),
-    loadNodeData(CONFIG.nodeDataUrl, CONFIG.percentageOfDataToLoad),
-    initializeLegend(CONFIG.legendDataUrl),
-  ]);
-  createNodes();
-  addEventListeners();
-  // At the end of your initializeScene function, just before calling tick()
-  const endTime = performance.now();
-  const loadTime = (endTime - startTime) / 1000; // Convert to seconds
-  console.log(`Total load time: ${loadTime.toFixed(2)} seconds`);
-  tick();
-}
+  try {
+    const startTime = performance.now();
 
-initializeScene();
+    initializeBuffers(CONFIG.maxNodes);
+
+    const [clusterColorMap, clusterLabelMap] = await Promise.all([
+      loadClusterColorMap(CONFIG.clusterColorMapUrl),
+      loadClusterLabelMap(CONFIG.clusterLabelMapUrl),
+    ]);
+
+    await loadNodeData(CONFIG.nodeDataUrl, CONFIG.percentageOfDataToLoad);
+    const nodeData = getNodeData();
+    const { points, nodes, positions, colors, sizes } = createNodes(nodeData);
+    if (points) {
+      scene.add(points);
+    } else {
+      console.error("Failed to create nodes");
+    }
+
+    initScene();
+    initializeSelectionMesh();
+
+    await Promise.all([initializeLegend(CONFIG.legendDataUrl)]);
+
+    addEventListeners(nodes, positions);
+
+    const endTime = performance.now();
+    const loadTime = (endTime - startTime) / 1000;
+    console.log(`Total load time: ${loadTime.toFixed(2)} seconds`);
+
+    tick();
+  } catch (error) {
+    console.error("Error in initializeScene:", error);
+  }
+}
 
 function createCamera() {
   const camera = new THREE.PerspectiveCamera(
     CONFIG.cameraFOV,
-    windowSizes.width / windowSizes.height,
+    CONFIG.windowSizes.width / CONFIG.windowSizes.height,
     CONFIG.cameraNearPlane,
     CONFIG.cameraFarPlane
   );
@@ -72,7 +87,7 @@ function createRenderer() {
     canvas,
     antialias: CONFIG.rendererAntialias,
   });
-  renderer.setSize(windowSizes.width, windowSizes.height);
+  renderer.setSize(CONFIG.windowSizes.width, CONFIG.windowSizes.height);
   renderer.setPixelRatio(CONFIG.devicePixelRatio);
   renderer.autoClearColor = CONFIG.rendererAutoClearColor;
   return renderer;
@@ -101,141 +116,6 @@ function addHelpers() {
 function initScene() {
   scene.background = new THREE.Color(CONFIG.backgroundColor);
   if (CONFIG.addAxesHelper) addHelpers();
-}
-
-async function loadJSONData(url) {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error(`Error fetching data from ${url}:`, error);
-    throw error;
-  }
-}
-
-async function loadClusterColorMap(url) {
-  try {
-    const data = await loadJSONData(url);
-    for (const [key, value] of Object.entries(data)) {
-      clusterColorMap[key] = new THREE.Color(value);
-    }
-  } catch (error) {
-    console.error("Error loading cluster color map:", error);
-  }
-}
-
-async function loadClusterLabelMap(url) {
-  try {
-    const data = await loadJSONData(url);
-    Object.assign(clusterLabelMap, data);
-  } catch (error) {
-    console.error("Error loading cluster label map:", error);
-  }
-}
-
-function initializeBuffers() {
-  positions = new Float32Array(CONFIG.maxNodes * 3);
-  colors = new Float32Array(CONFIG.maxNodes * 3);
-  sizes = new Float32Array(CONFIG.maxNodes);
-  nodes = new Map();
-}
-
-function parseJSONData(data, percentage) {
-  const totalNodes = data.length;
-  const nodesToLoad = Math.floor(totalNodes * percentage);
-  console.log(`Loading ${nodesToLoad} out of ${totalNodes} nodes`);
-  for (let i = 0; i < nodesToLoad; i++) {
-    const node = data[i];
-    if (
-      CONFIG.loadClusterSubset &&
-      !CONFIG.clustersToLoad.includes(node.cluster)
-    ) {
-      continue;
-    }
-    const nodeId = node.node_id;
-    const centrality = parseFloat(node.centrality.toFixed(5));
-    let x = node.x * CONFIG.coordinateMultiplier;
-    let y = node.y * CONFIG.coordinateMultiplier;
-    let z = centrality * CONFIG.zCoordinateShift;
-
-    // Apply rotation
-    const rotatedPosition = new THREE.Vector3(x, y, z).applyAxisAngle(
-      new THREE.Vector3(1, 0, 0),
-      Math.PI / 2
-    );
-
-    const size = Math.max(50, 200 * Math.log(centrality + 1));
-    const color = clusterColorMap[node.cluster];
-    nodes.set(nodeId, {
-      index: i,
-      cluster: node.cluster,
-      clusterLabel: clusterLabelMap[node.cluster],
-      year: node.year,
-      title: node.title,
-      centrality: centrality,
-    });
-    updateNodeData(
-      i,
-      rotatedPosition.x,
-      rotatedPosition.y,
-      rotatedPosition.z,
-      color.r,
-      color.g,
-      color.b,
-      size
-    );
-  }
-  console.log(`Number of nodes loaded: ${nodes.size}`);
-}
-async function loadNodeData(url, percentage = 1) {
-  try {
-    const data = await loadJSONData(url);
-    parseJSONData(data, percentage);
-  } catch (error) {
-    console.error("Error loading node data:", error);
-  }
-}
-function updateNodeData(index, x, y, z, r, g, b, size) {
-  const i3 = index * 3;
-  positions[i3] = x;
-  positions[i3 + 1] = y;
-  positions[i3 + 2] = z;
-  colors[i3] = r;
-  colors[i3 + 1] = g;
-  colors[i3 + 2] = b;
-  sizes[index] = size;
-}
-
-function createNodes() {
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute("clusterColor", new THREE.BufferAttribute(colors, 3));
-  geometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
-  const material = createNodeMaterial();
-  const points = new THREE.Points(geometry, material);
-  points.name = "points";
-  scene.add(points);
-}
-
-function createNodeMaterial() {
-  const uniforms = {
-    color: { value: new THREE.Color(0xffffff) },
-    nodeTexture: {
-      value: new THREE.TextureLoader().load(CONFIG.nodeTextureUrl),
-    },
-  };
-
-  return new THREE.ShaderMaterial({
-    uniforms: uniforms,
-    vertexShader: vertexShaderNode,
-    fragmentShader: fragmentShaderNode,
-    alphaTest: 1,
-    transparent: true,
-    depthWrite: false, // Prevent flickering
-  });
 }
 
 // Legend Functions
@@ -391,7 +271,7 @@ function initializeSelectionMesh() {
   const geometry = new THREE.PlaneGeometry(1, 1);
   selectionMaterial = new THREE.ShaderMaterial({
     uniforms: {
-      spotlight2: { value: null },
+      spotlightTexture: { value: null },
       color: { value: new THREE.Color(0xffd700) },
       brightness: { value: 2 },
     },
@@ -403,12 +283,12 @@ function initializeSelectionMesh() {
       }
     `,
     fragmentShader: `
-      uniform sampler2D spotlight2;
+      uniform sampler2D spotlightTexture;
       uniform vec3 color;
       uniform float brightness;
       varying vec2 vUv;
       void main() {
-        vec4 texColor = texture2D(spotlight2, vUv);
+        vec4 texColor = texture2D(spotlightTexture, vUv);
         gl_FragColor = vec4(texColor.rgb * color * brightness, texColor.a);
       }
     `,
@@ -426,7 +306,7 @@ function initializeSelectionMesh() {
   // Load texture once
   const textureLoader = new THREE.TextureLoader();
   textureLoader.load(CONFIG.spotlightTextureUrl, (texture) => {
-    selectionMaterial.uniforms.spotlight2.value = texture;
+    selectionMaterial.uniforms.spotlightTexture.value = texture;
   });
 }
 
@@ -437,7 +317,7 @@ function handleMouseDown(event) {
   console.log("Mouse Down at:", mouseDownPosition);
 }
 
-function handleMouseUp(event) {
+function handleMouseUp(event, nodes, positions) {
   const rect = canvas.getBoundingClientRect();
   const clickDuration = performance.now() - mouseDownTime;
   const mouseUpPosition = new THREE.Vector2(
@@ -451,17 +331,17 @@ function handleMouseUp(event) {
   console.log("Click Distance:", clickDistance);
 
   if (
-    clickDuration >= CONFIG.clickDurationThreshold &&
+    clickDuration <= CONFIG.clickDurationThreshold &&
     clickDistance < CONFIG.clickDistanceThreshold
   ) {
-    console.log("Long click detected!");
-    handleLongClick(event);
+    console.log("Selection click detected!");
+    handleLongClick(event, nodes, positions);
   } else {
-    console.log("Not a long click.");
+    console.log("Not a selection click.");
   }
 }
 
-function handleLongClick(event) {
+function handleLongClick(event, nodes, positions) {
   const rect = canvas.getBoundingClientRect();
   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -471,39 +351,44 @@ function handleLongClick(event) {
   intersects.length = 0;
   raycaster.intersectObject(points, false, intersects);
   console.log("Intersects:", intersects);
-  updateNodeInfo(intersects[0]);
+
+  // Pass nodes and positions to updateNodeInfo
+  updateNodeInfo(intersects[0], nodes, positions);
 }
 
-function updateNodeInfo(intersection) {
-  if (intersection) {
-    const selectedNodeId = Array.from(nodes.keys())[intersection.index];
+function updateNodeInfo(intersection, nodes, positions) {
+  if (intersection && nodes && positions) {
+    const nodeIds = Array.from(nodes.keys());
+    const selectedNodeId = nodeIds[intersection.index];
     const selectedNode = nodes.get(selectedNodeId);
 
-    const i3 = intersection.index * 3;
-    let nodePosition = new THREE.Vector3(
-      positions[i3],
-      positions[i3 + 1],
-      positions[i3 + 2]
-    );
+    if (selectedNode) {
+      const i3 = intersection.index * 3;
+      let nodePosition = new THREE.Vector3(
+        positions[i3],
+        positions[i3 + 1],
+        positions[i3 + 2]
+      );
 
-    nodeInfoDiv.textContent = `
-      Cluster Label: ${selectedNode.clusterLabel}
-      Title: ${selectedNode.title}
-      Year: ${selectedNode.year}
-      Cluster: ${selectedNode.cluster}
-      Centrality: ${selectedNode.centrality}
-      Node ID: ${selectedNodeId}
-    `;
-    nodeInfoDiv.style.whiteSpace = "pre-line";
-    nodeInfoDiv.style.display = "block";
+      nodeInfoDiv.textContent = `
+        Cluster Label: ${selectedNode.clusterLabel}
+        Title: ${selectedNode.title}
+        Year: ${selectedNode.year}
+        Cluster: ${selectedNode.cluster}
+        Centrality: ${selectedNode.centrality}
+        Node ID: ${selectedNodeId}
+      `;
+      nodeInfoDiv.style.whiteSpace = "pre-line";
+      nodeInfoDiv.style.display = "block";
 
-    updateVisualSelection(
-      nodePosition.x,
-      nodePosition.y,
-      nodePosition.z,
-      150,
-      5
-    );
+      updateVisualSelection(
+        nodePosition.x,
+        nodePosition.y,
+        nodePosition.z,
+        150,
+        5
+      );
+    }
   } else {
     nodeInfoDiv.style.display = "none";
     if (selectionMesh) selectionMesh.visible = false;
@@ -520,11 +405,11 @@ function updateVisualSelection(x, y, z, height, width, scaleFactor = 4) {
 }
 
 function handleResize() {
-  windowSizes.width = window.innerWidth;
-  windowSizes.height = window.innerHeight;
-  camera.aspect = windowSizes.width / windowSizes.height;
+  CONFIG.windowSizes.width = window.innerWidth;
+  CONFIG.windowSizes.height = window.innerHeight;
+  camera.aspect = CONFIG.windowSizes.width / CONFIG.windowSizes.height;
   camera.updateProjectionMatrix();
-  renderer.setSize(windowSizes.width, windowSizes.height);
+  renderer.setSize(CONFIG.windowSizes.width, CONFIG.windowSizes.height);
 }
 
 function handleScroll(event) {
@@ -569,12 +454,13 @@ function updateOrbitControlsTarget(event) {
   }
 }
 
-function addEventListeners() {
+function addEventListeners(nodes, positions) {
   window.addEventListener("resize", handleResize);
   canvas.addEventListener("wheel", handleScroll, { passive: false });
-  // canvas.addEventListener("click", handleCanvasClick);
   canvas.addEventListener("mousedown", handleMouseDown);
-  canvas.addEventListener("mouseup", handleMouseUp);
+  canvas.addEventListener("mouseup", (event) =>
+    handleMouseUp(event, nodes, positions)
+  );
 }
 
 function tick() {
@@ -582,3 +468,9 @@ function tick() {
   renderer.render(scene, camera);
   requestAnimationFrame(tick);
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+  initializeScene().catch((error) => {
+    console.error("Error initializing scene:", error);
+  });
+});
