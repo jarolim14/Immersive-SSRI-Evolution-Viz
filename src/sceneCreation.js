@@ -39,6 +39,8 @@ export function createScene(canvas) {
   const camera = createCamera();
   const renderer = createRenderer(canvas);
   const controls = createControls(camera, canvas);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
 
   initScene(scene);
 

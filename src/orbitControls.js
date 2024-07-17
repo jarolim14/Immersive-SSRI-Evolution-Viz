@@ -13,16 +13,29 @@ export function handleScroll(
   event.preventDefault();
   const zoomAmount = event.deltaY * CONFIG.zoomSpeed;
   const currentDistance = camera.position.length();
-  // Calculate new distance using logarithmic scaling
-  let newDistance = currentDistance * Math.pow(1.1, zoomAmount);
+
+  // Use exponential interpolation for smoother zooming
+  const targetDistance = currentDistance * Math.pow(0.95, zoomAmount);
+  const newDistance = THREE.MathUtils.lerp(
+    currentDistance,
+    targetDistance,
+    0.1
+  );
+
   // Clamp the new distance within the defined bounds
-  newDistance = Math.max(CONFIG.minZoom, Math.min(CONFIG.maxZoom, newDistance));
+  const clampedDistance = Math.max(
+    CONFIG.minZoom,
+    Math.min(CONFIG.maxZoom, newDistance)
+  );
+
   // Calculate zoom direction vector
   const zoomDirection = camera.position.clone().normalize();
+
   // Set new camera position
-  camera.position.copy(zoomDirection.multiplyScalar(newDistance));
+  camera.position.copy(zoomDirection.multiplyScalar(clampedDistance));
+
   // Update the orbit controls target if needed
-  if (CONFIG.zoomToNode) {
+  if (CONFIG.zoomToCursor) {
     updateOrbitControlsTarget(
       event,
       camera,
@@ -33,7 +46,8 @@ export function handleScroll(
       canvas
     );
   }
-  // Update the camera
+
+  // Update the camera and controls
   camera.updateProjectionMatrix();
   controls.update();
 }
@@ -51,9 +65,13 @@ function updateOrbitControlsTarget(
   const rect = canvas.getBoundingClientRect();
   mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
   raycaster.setFromCamera(mouse, camera);
   const intersects = raycaster.intersectObjects(scene.children, true);
+
   if (intersects.length > 0) {
-    controls.target.copy(intersects[0].point);
+    const targetPosition = intersects[0].point;
+    // Smoothly interpolate the controls target
+    controls.target.lerp(targetPosition, 0.1);
   }
 }

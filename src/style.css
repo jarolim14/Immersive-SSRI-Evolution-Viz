@@ -78,6 +78,61 @@ body, html {
   margin-left: 10px;
 }
 
+/* Base button styles */
+.update-button {
+  background-color: rgba(225, 200, 116, 0.8); /* Golden background with transparency */
+  border: none;
+  color: rgb(0, 0, 0);
+  padding: 6px 18px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  font-weight: bold;
+  margin: 4px 2px;
+  transition: transform 0.4s, box-shadow 0.4s;
+  cursor: pointer;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(255, 255, 255, 0.3), 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover effect */
+.update-button:hover {
+  background-color: rgba(225, 200, 116, 1); /* Solid golden background */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2), 0 12px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Active state */
+.update-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 6px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Focus state */
+.update-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+}
+
+/* Shine effect */
+.update-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.8) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: skewX(-25deg);
+  transition: left 0.5s ease;
+}
+
+.update-button:hover::before {
+  left: 150%;
+}
 #colorLegendDiv {
   position: absolute;
   top: 10px;
@@ -99,3 +154,6 @@ body, html {
 .indications { background-color: red; }
 .safety { background-color: green; }
 .other { background-color: purple; }
+
+
+

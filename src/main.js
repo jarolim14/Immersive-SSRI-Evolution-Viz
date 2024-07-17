@@ -1,6 +1,6 @@
 // local imports
 // get configs
-import { CONFIG } from "./config";
+import { CONFIG } from "./config.js";
 // data loading functions
 import {
   initializeBuffers,
@@ -24,6 +24,10 @@ import { initializeLegend, getLegendSelectedLeafKeys } from "./legend.js";
 // rendering functions
 import { startRendering } from "./renderer.js";
 import { addEventListeners } from "./eventListeners.js";
+import {
+  initializeUpdateNodeVisibility,
+  updateNodeVisibilityBasedOnSelection,
+} from "./updateNodeVisibility.js";
 
 // Global Variables
 const canvas = document.querySelector("canvas.webgl");
@@ -33,7 +37,7 @@ let scene, camera, renderer, controls;
 async function initializeScene() {
   try {
     const startTime = performance.now();
-    ({ scene, camera, renderer, controls } = createScene(canvas));
+    ({ scene, camera, renderer, controls = {} } = createScene(canvas));
     // Make sure the camera is properly set
     camera.isPerspectiveCamera = true;
     initializeBuffers(CONFIG.maxNodes);

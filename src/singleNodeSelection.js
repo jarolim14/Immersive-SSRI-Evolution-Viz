@@ -1,3 +1,38 @@
+/**
+ * @file singleNodeSelection.js
+ *
+ * This module handles the selection and highlighting of individual nodes within a Three.js scene.
+ * It provides functionality for initializing selection meshes, handling mouse events for node selection,
+ * and displaying information about the selected node.
+ *
+ * The key components of this module are:
+ *
+ * - Global Variables:
+ *   - `selectionMesh`: A mesh used to visually highlight selected nodes.
+ *   - `selectionMaterial`: The material applied to the selection mesh, using custom shaders.
+ *   - `mouseDownTime` and `mouseDownPosition`: Track the time and position of mouse down events.
+ *   - `raycaster` and `mouse`: Three.js objects used for detecting intersections between the mouse and scene objects.
+ *   - `intersects`: An array to store intersection results from the raycaster.
+ *   - `nodeInfoDiv`: A DOM element to display information about the selected node.
+ *
+ * - Functions:
+ *   - `initializeSelectionMesh(scene)`: Sets up the selection mesh and loads the spotlight texture.
+ *   - `updateVisualSelection(x, y, z, height, width, scaleFactor)`: Updates the visual representation of the selection mesh.
+ *   - `handleMouseDown(event, canvas)`: Records the mouse down event position and time.
+ *   - `handleMouseUp(event, nodes, positions, canvas, camera, scene)`: Detects a click event, checks for a valid selection, and invokes `handleLongClick` if a selection is made.
+ *   - `handleLongClick(event, nodes, positions, canvas, camera, scene)`: Processes the intersection of the raycaster with the nodes and updates node information.
+ *   - `updateNodeInfo(intersection, nodes, positions)`: Displays the information of the selected node and updates the visual selection mesh.
+ *
+ * Configuration:
+ * The module uses settings from the `CONFIG` object imported from `config.js`, including:
+ *   - `CONFIG.spotlightTextureUrl`: URL of the texture used for the selection spotlight.
+ *   - `CONFIG.clickDurationThreshold`: Maximum duration (in milliseconds) for a mouse click to be considered a selection click.
+ *   - `CONFIG.clickDistanceThreshold`: Maximum distance (in pixels) for mouse movement to be considered a selection click.
+ *   - `CONFIG.nodeSelectionAccuracyThreshold`: Accuracy threshold for the raycaster when detecting node intersections.
+ *
+ * This modular approach allows for easy integration and reuse of the node selection logic across different parts of the application.
+ */
+
 import * as THREE from "three";
 import { vertexShaderSpotlight, fragmentShaderSpotlight } from "./shaders.js";
 import { CONFIG } from "./config.js";
