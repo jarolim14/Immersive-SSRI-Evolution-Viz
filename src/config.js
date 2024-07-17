@@ -27,12 +27,14 @@ export const CONFIG = {
   nodeTextureUrl: "textures/standard_node.png",
   coordinateMultiplier: 25, // Multiplier for the node coordinates
   zCoordinateShift: -100, // multiplier for the centrality which functions as z dimension
+  brightness: { default: 1.5, selected: 2.0, unselected: 0.2 },
+  singleNodeSelectionBrightness: 0.001, // 50% more brightness for single node selection
   // Interaction Configuration
   clickDurationThreshold: 200, // in milliseconds. long clicks are ignored (bc they drag)
   clickDistanceThreshold: 5, // in pixels
   nodeSelectionAccuracyThreshold: 10, //pixels; how accurate the click
   zoomSpeed: 0.05, // scroll speed
-  minZoom: 100,
+  minZoom: 75,
   maxZoom: 5000,
   // Performance Configuration
   maxNodes: 45000,

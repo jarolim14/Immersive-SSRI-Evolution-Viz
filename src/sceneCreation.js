@@ -77,7 +77,8 @@ function createControls(camera, canvas) {
   controls.screenSpacePanning = false;
   controls.minDistance = CONFIG.controlsMinDistance;
   controls.maxDistance = CONFIG.controlsMaxDistance;
-  controls.maxPolarAngle = Math.PI / 2;
+  controls.maxPolarAngle = (Math.PI * 2) / 4; // 3 for 120 degrees in radians; /2 for 90 degrees; /3.5 for 100 degrees ; /4 for 80 degrees
+  controls.target.set(0, 0, 0);
   return controls;
 }
 

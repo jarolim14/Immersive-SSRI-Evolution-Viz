@@ -27,20 +27,11 @@ export async function initializeLegend(url) {
     const legendResult = createLegendTree(data);
     legendSelections = legendResult.legendSelections;
     legendSelectedLeafKeys = legendResult.legendSelectedLeafKeys;
-    const updateButton = document.getElementById("updateVisibility");
-    updateButton.addEventListener("click", updateNodeVisibility);
-    console.log("Initial legendSelections:", legendSelections);
-    console.log("Initial selected leaf keys:", legendSelectedLeafKeys);
+    //console.log("Initial legendSelections:", legendSelections);
+    // console.log("Initial selected leaf keys:", legendSelectedLeafKeys);
   } catch (error) {
     console.error("Error initializing legend:", error);
   }
-}
-
-function updateNodeVisibility() {
-  const selectedLeafKeys = getLegendSelectedLeafKeys();
-  console.log("Legend button clicked");
-  // Call the global function that we set in the main file
-  window.updateNodeVisibilityBasedOnSelection(selectedLeafKeys);
 }
 
 export function createLegendTree(data) {

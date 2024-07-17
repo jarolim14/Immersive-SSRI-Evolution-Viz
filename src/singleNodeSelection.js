@@ -131,17 +131,29 @@ export function handleLongClick(
   const points = scene.getObjectByName("points");
   intersects.length = 0;
   raycaster.intersectObject(points, false, intersects);
-  console.log("Intersects:", intersects);
+  // console.log("Intersects:", intersects);
 
   // Pass nodes and positions to updateNodeInfo
-  updateNodeInfo(intersects[0], nodes, positions);
+  updateNodeInfo(intersects[0], nodes, positions, scene);
 }
 
-export function updateNodeInfo(intersection, nodes, positions) {
+export function updateNodeInfo(intersection, nodes, positions, scene) {
+  // console.log("updateNodeInfo called", {
+  //  intersection,
+  //  nodesSize: nodes.size,
+  //  positionsLength: positions.length,
+  //});
+
   if (intersection && nodes && positions) {
     const nodeIds = Array.from(nodes.keys());
     const selectedNodeId = nodeIds[intersection.index];
     const selectedNode = nodes.get(selectedNodeId);
+    const points = scene.getObjectByName("points");
+
+    if (!points) {
+      console.error("Points object not found in the scene");
+      return;
+    }
 
     if (selectedNode) {
       const i3 = intersection.index * 3;
@@ -151,14 +163,27 @@ export function updateNodeInfo(intersection, nodes, positions) {
         positions[i3 + 2]
       );
 
+      if (points.geometry.attributes.selected) {
+        const selectedAttribute = points.geometry.attributes.selected;
+        // console.log("Before update:", selectedAttribute.array);
+
+        selectedAttribute.array.fill(0); // Reset all
+        selectedAttribute.array[intersection.index] = 1; // Set selected node
+        selectedAttribute.needsUpdate = true;
+
+        // console.log("After update:", selectedAttribute.array);
+      } else {
+        console.error("Selected attribute not found in points geometry");
+      }
+
       nodeInfoDiv.textContent = `
-          Cluster Label: ${selectedNode.clusterLabel}
-          Title: ${selectedNode.title}
-          Year: ${selectedNode.year}
-          Cluster: ${selectedNode.cluster}
-          Centrality: ${selectedNode.centrality}
-          Node ID: ${selectedNodeId}
-        `;
+        Cluster Label: ${selectedNode.clusterLabel}
+        Title: ${selectedNode.title}
+        Year: ${selectedNode.year}
+        Cluster: ${selectedNode.cluster}
+        Centrality: ${selectedNode.centrality}
+        Node ID: ${selectedNodeId}
+      `;
       nodeInfoDiv.style.whiteSpace = "pre-line";
       nodeInfoDiv.style.display = "block";
 
@@ -169,8 +194,14 @@ export function updateNodeInfo(intersection, nodes, positions) {
         150,
         5
       );
+    } else {
+      console.error("Selected node not found", {
+        selectedNodeId,
+        intersectionIndex: intersection.index,
+      });
     }
   } else {
+    console.log("No intersection or missing data, hiding node info");
     nodeInfoDiv.style.display = "none";
     if (selectionMesh) selectionMesh.visible = false;
   }

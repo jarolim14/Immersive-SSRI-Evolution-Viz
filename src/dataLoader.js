@@ -26,10 +26,11 @@ let clusterLabelMap = {};
 let nodes = new Map();
 let positions, colors, sizes;
 
-export function initializeBuffers(maxNodes) {
-  positions = new Float32Array(maxNodes * 3);
-  colors = new Float32Array(maxNodes * 3);
-  sizes = new Float32Array(maxNodes);
+function initializeDefaultNodeAttributes(numberOfNodes) {
+  console.log(`Initializing buffers for ${numberOfNodes} nodes`);
+  positions = new Float32Array(numberOfNodes * 3);
+  colors = new Float32Array(numberOfNodes * 3);
+  sizes = new Float32Array(numberOfNodes);
 }
 
 export async function loadJSONData(url) {
@@ -45,30 +46,14 @@ export async function loadJSONData(url) {
   }
 }
 
-export async function loadClusterColorMap(url) {
-  try {
-    const data = await loadJSONData(url);
-    for (const [key, value] of Object.entries(data)) {
-      clusterColorMap[key] = new THREE.Color(value);
-    }
-  } catch (error) {
-    console.error("Error loading cluster color map:", error);
-  }
-}
-
-export async function loadClusterLabelMap(url) {
-  try {
-    const data = await loadJSONData(url);
-    Object.assign(clusterLabelMap, data);
-  } catch (error) {
-    console.error("Error loading cluster label map:", error);
-  }
-}
-
-function parseJSONData(data, percentage) {
+function parseNodesData(data, percentage) {
   const totalNodes = data.length;
   const nodesToLoad = Math.floor(totalNodes * percentage);
   console.log(`Loading ${nodesToLoad} out of ${totalNodes} nodes`);
+  initializeDefaultNodeAttributes(nodesToLoad);
+  console.log("Default Node Attributes initialized");
+
+  let loadedNodes = 0;
   for (let i = 0; i < nodesToLoad; i++) {
     const node = data[i];
     if (
@@ -90,7 +75,7 @@ function parseJSONData(data, percentage) {
     const size = Math.max(50, 200 * Math.log(centrality + 1));
     const color = clusterColorMap[node.cluster];
     nodes.set(nodeId, {
-      index: i,
+      index: loadedNodes,
       cluster: node.cluster,
       clusterLabel: clusterLabelMap[node.cluster],
       year: node.year,
@@ -98,17 +83,26 @@ function parseJSONData(data, percentage) {
       centrality: centrality,
     });
     updateNodeData(
-      i,
+      loadedNodes,
       rotatedPosition.x,
       rotatedPosition.y,
       rotatedPosition.z,
       color.r,
       color.g,
       color.b,
-      size
+      size,
+      CONFIG.brightness.default // Add default brightness
     );
+    loadedNodes++;
   }
-  // console.log(`Number of nodes loaded: ${nodes.size}`);
+  console.log(`Number of nodes loaded: ${nodes.size}`);
+
+  // Trim arrays to actual size if fewer nodes were loaded
+  if (loadedNodes < nodesToLoad) {
+    positions = positions.slice(0, loadedNodes * 3);
+    colors = colors.slice(0, loadedNodes * 3);
+    sizes = sizes.slice(0, loadedNodes);
+  }
 }
 
 function updateNodeData(index, x, y, z, r, g, b, size) {
@@ -125,17 +119,37 @@ function updateNodeData(index, x, y, z, r, g, b, size) {
 export async function loadNodeData(url, percentage = 1) {
   try {
     const data = await loadJSONData(url);
-    parseJSONData(data, percentage);
+    parseNodesData(data, percentage);
   } catch (error) {
     console.error("Error loading node data:", error);
   }
 }
 
-export function getNodeData() {
+export function getInitialNodeData() {
   return {
     nodes,
     positions,
     colors,
     sizes,
   };
+}
+
+export async function loadClusterColorMap(url) {
+  try {
+    const data = await loadJSONData(url);
+    for (const [key, value] of Object.entries(data)) {
+      clusterColorMap[key] = new THREE.Color(value);
+    }
+  } catch (error) {
+    console.error("Error loading cluster color map:", error);
+  }
+}
+
+export async function loadClusterLabelMap(url) {
+  try {
+    const data = await loadJSONData(url);
+    Object.assign(clusterLabelMap, data);
+  } catch (error) {
+    console.error("Error loading cluster label map:", error);
+  }
 }

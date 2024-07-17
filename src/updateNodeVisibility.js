@@ -1,57 +1,68 @@
 /**
- * updateNodeVisibility - Updates the visibility of a node based on the selection in the legend.
- * 
- * 
-
+ * Node Visibility Module
+ *
+ * This module handles updating the visibility (brightness) of nodes
+ * based on the selection in the legend.
  */
 
-let scene, nodeData;
+import { getLegendSelectedLeafKeys } from "./legend.js";
+import { getFullNodeData } from "./nodeCreation.js";
+import { CONFIG } from "./config.js";
+let nodes, brightness;
 
-export function initializeUpdateNodeVisibility(sceneObj, nodeDataObj) {
-  scene = sceneObj;
-  nodeData = nodeDataObj;
+// Initialize the module with the current node data
+export function initNodeVisibility() {
+  const data = getFullNodeData(["nodes", "brightness"]);
+  nodes = data.nodes;
+  brightness = data.brightness;
 }
 
-export function updateNodeVisibilityBasedOnSelection(selectedLeafKeys) {
-  if (!scene || !nodeData) {
-    console.error(
-      "Scene or nodeData not initialized. Call initializeUpdateNodeVisibility first."
-    );
-    return;
+export function updateNodeVisibility() {
+  console.log("Updating node visibility");
+  const selectedClusters = getLegendSelectedLeafKeys();
+  updateNodeVisibilityBasedOnSelection(selectedClusters);
+  // Trigger an update in your main file or wherever you handle Three.js updates
+  window.dispatchEvent(new CustomEvent("nodeVisibilityUpdated"));
+}
+
+function updateNodeVisibilityBasedOnSelection(selectedClusters) {
+  const {
+    default: defaultBrightness,
+    selected: selectedBrightness,
+    unselected: unselectedBrightness,
+  } = CONFIG.brightness;
+  // Check if brightness array exists and initialize it if not
+  if (!brightness || brightness.length !== nodes.size) {
+    console.warn("Brightness array not initialized or size mismatch");
+    brightness = new Float32Array(nodes.size).fill(defaultBrightness);
   }
+  nodes.forEach((node) => {
+    const isSelected = selectedClusters.includes(node.cluster);
+    let newBrightness;
 
-  const points = scene.children.find((child) => child.type === "Points");
-  if (!points) {
-    console.error("Points object not found in the scene.");
-    return;
-  }
+    if (selectedClusters.length === 0) {
+      // If no clusters are selected, use the default brightness
+      newBrightness = defaultBrightness;
+    } else {
+      // Otherwise, use selected or unselected brightness based on the node's cluster
+      newBrightness = isSelected ? selectedBrightness : unselectedBrightness; // Ternary operator like if else
+    }
 
-  const { geometry } = points;
-  const positions = geometry.attributes.position.array;
-  const colors = geometry.attributes.color.array;
-  const sizes = geometry.attributes.size.array;
+    brightness[node.index] = newBrightness;
+  });
+}
 
-  for (let i = 0; i < nodeData.length; i++) {
-    const cluster = nodeData[i].cluster;
-    const isSelected = selectedLeafKeys.includes(cluster);
+export function getUpdatedBrightness() {
+  return brightness;
+}
 
-    // Update color (make non-selected nodes more transparent)
-    colors[i * 4 + 3] = isSelected ? 1.0 : 0.2; // Alpha channel
-
-    // Update size (make selected nodes larger)
-    sizes[i] = isSelected ? 5.0 : 3.0; // Adjust these values as needed
-
-    // You could also adjust the position if you want to separate selected nodes
-    // positions[i * 3 + 1] += isSelected ? 10 : 0;  // Move selected nodes up by 10 units
-  }
-
-  // Mark attributes as needing update
-  geometry.attributes.color.needsUpdate = true;
-  geometry.attributes.size.needsUpdate = true;
-  // geometry.attributes.position.needsUpdate = true;  // Uncomment if you modify positions
-
-  // Trigger a render update
-  if (scene.userData.renderCallback) {
-    scene.userData.renderCallback();
+export function updateNodeBrightnessInScene(brightness, scene) {
+  const points = scene.getObjectByName("points");
+  if (points && points.geometry.attributes.brightness) {
+    const brightnessAttribute = points.geometry.attributes.brightness;
+    brightnessAttribute.array.set(brightness);
+    brightnessAttribute.needsUpdate = true;
+  } else {
+    console.warn("Points object or brightness attribute not found");
   }
 }
