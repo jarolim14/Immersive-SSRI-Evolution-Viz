@@ -21,6 +21,7 @@ export function updateNodeVisibility() {
   console.log("Updating node visibility");
   const selectedClusters = getLegendSelectedLeafKeys();
   updateNodeVisibilityBasedOnSelection(selectedClusters);
+  collapseLegend(); // Add this line
   // Trigger an update in your main file or wherever you handle Three.js updates
   window.dispatchEvent(new CustomEvent("nodeVisibilityUpdated"));
 }
@@ -65,4 +66,16 @@ export function updateNodeBrightnessInScene(brightness, scene) {
   } else {
     console.warn("Points object or brightness attribute not found");
   }
+}
+
+function collapseLegend() {
+  const legendItems = document.querySelectorAll(".legend-subtree");
+  legendItems.forEach((item) => {
+    item.style.display = "none";
+  });
+
+  const foldIndicators = document.querySelectorAll(".fold-indicator");
+  foldIndicators.forEach((indicator) => {
+    indicator.textContent = "▶";
+  });
 }
