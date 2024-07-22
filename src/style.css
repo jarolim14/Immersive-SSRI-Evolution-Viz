@@ -1,4 +1,11 @@
-body, html {
+:root {
+  --main-font: "Exo 2", sans-serif;
+  --header-font: "Orbitron", sans-serif;
+  --body-font: "Rajdhani", sans-serif;
+}
+
+body,
+html {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -14,16 +21,18 @@ body, html {
 }
 
 #nodeInfoDiv {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
-    color: white;
-    padding: 10px;
-    font-family: monospace; /* Or your preferred font */
-    text-align: center; /* To center the text */
-    display: none; /* Initially hide the div */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+  color: white;
+  padding: 10px;
+  font-family: var(--body-font), sans-serif; /* Or your preferred font */
+  font-weight: 100; /* Light font weight */
+  font-size: 16px; /* Increase the font size */
+  text-align: center; /* To center the text */
+  display: none; /* Initially hide the div */
 }
 #legendDiv {
   position: absolute;
@@ -36,8 +45,9 @@ body, html {
   max-height: 90vh;
   overflow-y: auto;
   color: white; /* White text color */
-  font-family: monospace; /* Or your preferred font */
-  font-size: 16px; /* Increase the font size */
+  font-family: var(--body-font), sans-serif;
+  font-weight: 100; /* Light font weight */
+  font-size: 14px; /* Increase the font size */
 }
 
 .legend-item {
@@ -80,7 +90,12 @@ body, html {
 
 /* Base button styles */
 .update-button {
-  background-color: rgba(225, 200, 116, 0.8); /* Golden background with transparency */
+  background-color: rgba(
+    225,
+    200,
+    116,
+    0.8
+  ); /* Golden background with transparency */
   border: none;
   color: rgb(0, 0, 0);
   padding: 6px 18px;
@@ -96,6 +111,8 @@ body, html {
   position: relative;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(255, 255, 255, 0.3), 0 8px 15px rgba(0, 0, 0, 0.1);
+  font-family: var(--body-font), sans-serif;
+  font-weight: 100; /* Light font weight */
 }
 
 /* Hover effect */
@@ -119,13 +136,18 @@ body, html {
 
 /* Shine effect */
 .update-button::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -75%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.8) 50%, rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.8) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
   transform: skewX(-25deg);
   transition: left 0.5s ease;
 }
@@ -140,7 +162,7 @@ body, html {
   background-color: transparent;
   display: flex;
   flex-wrap: wrap;
-  font-family: monospace;
+  font-family: var(--body-font), sans-serif;
 }
 
 .color-box {
@@ -150,10 +172,15 @@ body, html {
   margin-right: 5px;
 }
 
-.pharmacology { background-color: blue; }
-.indications { background-color: red; }
-.safety { background-color: green; }
-.other { background-color: purple; }
-
-
-
+.pharmacology {
+  background-color: blue;
+}
+.indications {
+  background-color: red;
+}
+.safety {
+  background-color: green;
+}
+.other {
+  background-color: purple;
+}
