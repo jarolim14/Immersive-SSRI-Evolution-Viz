@@ -21,13 +21,12 @@ import * as THREE from "three";
 import { CONFIG } from "./config.js";
 
 // Declare these at the top of your module
-let clusterColorMap = {};
-let clusterLabelMap = {};
+
 let nodes = new Map();
 let positions, colors, sizes;
 
 function initializeDefaultNodeAttributes(numberOfNodes) {
-  console.log(`Initializing buffers for ${numberOfNodes} nodes`);
+  //console.log(`Initializing buffers for ${numberOfNodes} nodes`);
   positions = new Float32Array(numberOfNodes * 3);
   colors = new Float32Array(numberOfNodes * 3);
   sizes = new Float32Array(numberOfNodes);
@@ -46,12 +45,21 @@ export async function loadJSONData(url) {
   }
 }
 
-function parseNodesData(data, percentage) {
+function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
   const totalNodes = data.length;
   const nodesToLoad = Math.floor(totalNodes * percentage);
   console.log(`Loading ${nodesToLoad} out of ${totalNodes} nodes`);
   initializeDefaultNodeAttributes(nodesToLoad);
   console.log("Default Node Attributes initialized");
+
+  // Find max and min centrality for normalization
+  let maxCentrality = -Infinity;
+  let minCentrality = Infinity;
+  for (let i = 0; i < nodesToLoad; i++) {
+    const centrality = parseFloat(data[i].centrality);
+    maxCentrality = Math.max(maxCentrality, centrality);
+    minCentrality = Math.min(minCentrality, centrality);
+  }
 
   let loadedNodes = 0;
   for (let i = 0; i < nodesToLoad; i++) {
@@ -64,15 +72,27 @@ function parseNodesData(data, percentage) {
     }
     const nodeId = node.node_id;
     const centrality = parseFloat(node.centrality.toFixed(5));
+    // Normalize centrality
+    const normalizedCentrality =
+      (centrality - minCentrality) / (maxCentrality - minCentrality);
+
     let x = node.x * CONFIG.coordinateMultiplier;
     let y = node.y * CONFIG.coordinateMultiplier;
-    let z = centrality * CONFIG.zCoordinateShift;
+
+    let z = node.z * CONFIG.zCoordinateShift; // * CONFIG.coordinateMultiplier; // centrality; // // from old
     // Apply rotation
     const rotatedPosition = new THREE.Vector3(x, y, z).applyAxisAngle(
       new THREE.Vector3(1, 0, 0),
       Math.PI / 2
     );
-    const size = Math.max(50, 200 * Math.log(centrality + 1));
+
+    // Calculate size using a power function
+    const minSize = CONFIG.nodeSize.min;
+    const maxSize = CONFIG.nodeSize.max;
+    const sizePower = CONFIG.nodeSize.power || 2; // Default to square if not specified
+    const size =
+      minSize + (maxSize - minSize) * Math.pow(normalizedCentrality, sizePower);
+
     const color = clusterColorMap[node.cluster];
     nodes.set(nodeId, {
       index: loadedNodes,
@@ -95,7 +115,7 @@ function parseNodesData(data, percentage) {
     );
     loadedNodes++;
   }
-  console.log(`Number of nodes loaded: ${nodes.size}`);
+  // console.log(`Number of nodes loaded: ${nodes.size}`);
 
   // Trim arrays to actual size if fewer nodes were loaded
   if (loadedNodes < nodesToLoad) {
@@ -116,10 +136,15 @@ function updateNodeData(index, x, y, z, r, g, b, size) {
   sizes[index] = size;
 }
 
-export async function loadNodeData(url, percentage = 1) {
+export async function loadNodeData(
+  url,
+  percentage,
+  clusterLabelMap,
+  clusterColorMap
+) {
   try {
     const data = await loadJSONData(url);
-    parseNodesData(data, percentage);
+    parseNodesData(data, percentage, clusterLabelMap, clusterColorMap);
   } catch (error) {
     console.error("Error loading node data:", error);
   }
@@ -132,24 +157,4 @@ export function getInitialNodeData() {
     colors,
     sizes,
   };
-}
-
-export async function loadClusterColorMap(url) {
-  try {
-    const data = await loadJSONData(url);
-    for (const [key, value] of Object.entries(data)) {
-      clusterColorMap[key] = new THREE.Color(value);
-    }
-  } catch (error) {
-    console.error("Error loading cluster color map:", error);
-  }
-}
-
-export async function loadClusterLabelMap(url) {
-  try {
-    const data = await loadJSONData(url);
-    Object.assign(clusterLabelMap, data);
-  } catch (error) {
-    console.error("Error loading cluster label map:", error);
-  }
 }

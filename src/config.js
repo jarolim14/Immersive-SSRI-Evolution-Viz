@@ -26,9 +26,20 @@ export const CONFIG = {
   // Node Configuration
   nodeTextureUrl: "textures/standard_node.png",
   coordinateMultiplier: 25, // Multiplier for the node coordinates
-  zCoordinateShift: -100, // multiplier for the centrality which functions as z dimension
+  zCoordinateShift: 5, // multiplier for the centrality which functions as z dimension
+  nodeSize: {
+    min: 50,
+    max: 500,
+    power: 1.5, // Adjust this to change how quickly size increases with centrality
+  },
   brightness: { default: 1.5, selected: 2.0, unselected: 0.2 },
   singleNodeSelectionBrightness: 0.001, // 50% more brightness for single node selection
+  // Edge Configuration
+  edgeTextureUrl: "textures/standard_edge.png",
+  edgeTextureWidth: 1,
+  edgeDefaultColor: 0x000000,
+  edgeOpacity: 0.5,
+  percentageOfEdgesToLoad: 1.0,
   // Interaction Configuration
   clickDurationThreshold: 200, // in milliseconds. long clicks are ignored (bc they drag)
   clickDistanceThreshold: 5, // in pixels
@@ -38,13 +49,14 @@ export const CONFIG = {
   maxZoom: 5000,
   // Performance Configuration
   maxNodes: 45000,
-  percentageOfDataToLoad: 1.0,
+  percentageOfNodesToLoad: 1.0,
   loadClusterSubset: false,
   clustersToLoad: Array.from({ length: 3 }, () =>
     Math.floor(Math.random() * 15)
   ),
   // File Paths and URLs
-  nodeDataUrl: "/data/2d_with_color.json",
+  nodeDataUrl: "/data/3d_100clusters_nodes.json",
+  edgeDataUrl: "/data/3d_100clusters_edges.json",
   clusterColorMapUrl: "data/cluster_color_dict.json",
   clusterLabelMapUrl: "data/cluster_label_dict.json",
   legendDataUrl: "data/legend_tree.json",

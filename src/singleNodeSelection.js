@@ -148,6 +148,7 @@ export function updateNodeInfo(intersection, nodes, positions, scene) {
     const nodeIds = Array.from(nodes.keys());
     const selectedNodeId = nodeIds[intersection.index];
     const selectedNode = nodes.get(selectedNodeId);
+    console.log("Selected Node ID:", selectedNodeId);
     const points = scene.getObjectByName("points");
 
     if (!points) {
