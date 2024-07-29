@@ -37,9 +37,12 @@ let scene, camera, renderer, controls;
 async function initializeScene() {
   try {
     const startTime = performance.now();
+
+    // Create scene first
     ({ scene, camera, renderer, controls = {} } = createScene(canvas));
-    // Make sure the camera is properly set
     camera.isPerspectiveCamera = true;
+
+    // Load color and label maps
     let clusterColorMap, clusterLabelMap;
     try {
       await Promise.all([
@@ -48,14 +51,14 @@ async function initializeScene() {
       ]);
       clusterColorMap = getClusterColorMap();
       clusterLabelMap = getClusterLabelMap();
-      //console.log("Label and Color Maps Successfully Loaded");
+      console.log("Label and Color Maps Successfully Loaded");
     } catch (error) {
       console.error("Error loading mapped data:", error);
-      // Provide default values or handle the error as appropriate
       clusterColorMap = {};
       clusterLabelMap = {};
     }
 
+    // Load node data
     await loadNodeData(
       CONFIG.nodeDataUrl,
       CONFIG.percentageOfNodesToLoad,
@@ -64,35 +67,44 @@ async function initializeScene() {
     );
     const nodeData = getInitialNodeData();
 
-    const { points, nodes, positions, colors, sizes, brightness, selected } =
-      createNodes(nodeData);
-
-    if (points) {
-      scene.add(points);
-    } else {
-      console.error("Failed to create nodes");
+    // Ensure node data is loaded before proceeding
+    if (!nodeData || nodeData.length === 0) {
+      throw new Error("Node data not loaded properly");
     }
-    // edges
-    //console.log(clusterColorMap);
-    // Load edge data
-    //const edgeAttributes = await loadEdgeData(
-    //  CONFIG.edgeDataUrl,
-    //  CONFIG.percentageOfEdgesToLoad
-    //);
+
+    // Create nodes
+    const { points, nodes, positions, colors, sizes, brightness, selected } =
+      await createNodes(nodeData);
+    if (!points || !nodes) {
+      throw new Error("Failed to create nodes");
+    }
+    scene.add(points);
+
+    //// Load edge data
+    //const edgeAttributes = await loadEdgeData(CONFIG.edgeDataUrl);
+    //if (!edgeAttributes) {
+    //  throw new Error("Failed to load edge data");
+    //}
+    //
+    //console.log("positions 0", edgeAttributes.positions[0]);
+    //console.log("source 0", edgeAttributes.source[0]);
+    //console.log("target 0", edgeAttributes.target[0]);
+    //
+    //console.log("nodes position", nodeData);
     //
     //// Create edges
     //const edgeMesh = createEdges(edgeAttributes, nodes, clusterColorMap);
-    //if (edgeMesh) {
-    //  scene.add(edgeMesh);
-    //} else {
-    //  console.error("Failed to create edges");
+    //if (!edgeMesh) {
+    //  throw new Error("Failed to create edges");
     //}
+    //scene.add(edgeMesh);
     //
+    //// Initialize other components
     initializeSelectionMesh(scene);
-
     await initializeLegend(CONFIG.legendDataUrl);
+    initNodeVisibility();
 
-    initNodeVisibility(); // Initialize node visibility module
+    // Add event listeners
     addEventListeners(
       nodes,
       positions,
@@ -109,14 +121,17 @@ async function initializeScene() {
     const loadTime = (endTime - startTime) / 1000;
     console.log(`Total load time: ${loadTime.toFixed(2)} seconds`);
 
+    // Start rendering
     startRendering(scene, camera, controls, renderer);
   } catch (error) {
     console.error("Error in initializeScene:", error);
+    // Handle the error appropriately, e.g., display an error message to the user
   }
 }
 
 document.addEventListener("DOMContentLoaded", function () {
   initializeScene().catch((error) => {
     console.error("Error initializing scene:", error);
+    // Handle the error appropriately, e.g., display an error message to the user
   });
 });

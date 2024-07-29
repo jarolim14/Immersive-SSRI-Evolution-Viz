@@ -1,61 +1,79 @@
 import { loadJSONData } from "./dataUtils.js";
+import * as THREE from "three";
+import { CONFIG } from "./config.js";
 
-function calculateTotalPoints(data, edgesToLoad) {
-  return data
-    .slice(0, edgesToLoad)
-    .reduce((total, edge) => total + edge.points.length, 0);
-}
-
-function initializeEdgeAttributes(totalPoints) {
+function initializeEdgeAttributes(totalEdges, totalPoints) {
   return {
-    index: new Float32Array(totalPoints),
-    source: new Float32Array(totalPoints),
-    target: new Float32Array(totalPoints),
-    weight: new Float32Array(totalPoints),
-    color: new Float32Array(totalPoints),
+    index: new Float32Array(totalEdges),
+    source: new Float32Array(totalEdges),
+    target: new Float32Array(totalEdges),
+    weight: new Float32Array(totalEdges),
+    colorBool: new Float32Array(totalEdges),
+    color: new Float32Array(totalEdges * 3),
     positions: new Float32Array(totalPoints * 3),
+    edgeStartIndices: new Uint32Array(totalEdges + 1),
   };
 }
 
-function parseEdgeData(data, percentage) {
+function parseEdgeData(data) {
   const totalEdges = data.length;
   console.log(`Total edges: ${totalEdges}`);
 
-  const totalPoints = calculateTotalPoints(data, edgesToLoad);
-  const edgeAttributes = initializeEdgeAttributes(totalPoints);
+  // Pre-calculate total points and initialize attributes
+  let totalPoints = 0;
+  for (let i = 0; i < totalEdges; i++) {
+    totalPoints += data[i].points.length;
+  }
+  const edgeAttributes = initializeEdgeAttributes(totalEdges, totalPoints);
 
-  let currentIndex = 0;
-  for (let i = 0; i < edgesToLoad; i++) {
+  const defaultColor = new THREE.Color(CONFIG.edgeDefaultColor);
+  const rotationAxis = new THREE.Vector3(1, 0, 0);
+  const rotationAngle = Math.PI / 2;
+
+  let positionIndex = 0;
+  for (let i = 0; i < totalEdges; i++) {
     const { id, source, target, weight, colored, points } = data[i];
-    const colorValue = colored ? 1 : 0;
+    edgeAttributes.index[i] = id;
+    edgeAttributes.source[i] = source;
+    edgeAttributes.target[i] = target;
+    edgeAttributes.weight[i] = weight;
+    edgeAttributes.colorBool[i] = colored ? 1 : 0;
+    edgeAttributes.color.set(
+      [defaultColor.r, defaultColor.g, defaultColor.b],
+      i * 3
+    );
+
+    edgeAttributes.edgeStartIndices[i] = positionIndex / 3;
 
     for (const point of points) {
-      edgeAttributes.index[currentIndex] = id;
-      edgeAttributes.source[currentIndex] = source;
-      edgeAttributes.target[currentIndex] = target;
-      edgeAttributes.weight[currentIndex] = weight;
-      edgeAttributes.color[currentIndex] = colorValue;
+      const vector = new THREE.Vector3(
+        point.x * CONFIG.coordinateMultiplier,
+        point.y * CONFIG.coordinateMultiplier,
+        point.z * CONFIG.zCoordinateShift
+      ).applyAxisAngle(rotationAxis, rotationAngle);
 
-      const posIndex = currentIndex * 3;
-      edgeAttributes.positions[posIndex] = point.x;
-      edgeAttributes.positions[posIndex + 1] = point.y;
-      edgeAttributes.positions[posIndex + 2] = point.z;
-
-      currentIndex++;
+      edgeAttributes.positions.set(
+        [vector.x, vector.y, vector.z],
+        positionIndex
+      );
+      positionIndex += 3;
     }
   }
+
+  edgeAttributes.edgeStartIndices[totalEdges] = positionIndex / 3;
 
   return edgeAttributes;
 }
 
-export async function loadEdgeData(url, percentage = 1.0) {
+export async function loadEdgeData(url) {
   try {
     const data = await loadJSONData(url);
-    console.log("Edge Data loaded. Now parsing...");
-    console.log("Number of edges: ", data.length);
-    const edgeAttributes = parseEdgeData(data, percentage);
+    const edgeAttributes = parseEdgeData(data);
     console.log("Edge Data parsed");
-    console.log("Total points:", edgeAttributes.positions.length / 3);
+    console.log(
+      "Total coordinate points in edges:",
+      edgeAttributes.positions.length / 3
+    );
     return edgeAttributes;
   } catch (error) {
     console.error("Error loading edge data:", error);

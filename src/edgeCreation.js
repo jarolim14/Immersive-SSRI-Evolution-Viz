@@ -1,149 +1,86 @@
 import * as THREE from "three";
 import { CONFIG } from "./config.js";
 
-function hexToThreeColor(hex) {
-  return new THREE.Color(hex);
-}
-
 export function createEdges(edgeAttributes, nodes, clusterColorMap) {
   if (
     !edgeAttributes ||
     !edgeAttributes.positions ||
     !edgeAttributes.source ||
-    !edgeAttributes.target
+    !edgeAttributes.target ||
+    !edgeAttributes.edgeStartIndices
   ) {
     console.error("Invalid edgeAttributes:", edgeAttributes);
     return null;
   }
-
-  const totalPoints = edgeAttributes.positions.length / 3;
-  console.log("Total points:", totalPoints);
-
-  const geometry = createEdgeGeometry(edgeAttributes);
-  const material = createEdgeMaterial();
-  const mesh = createEdgeMesh(geometry, material);
-
-  const colors = geometry.attributes.color.array;
-  let colorIndex = 0;
-
-  let missingNodeCount = 0;
-  let missingClusterCount = 0;
-  let successfulEdgeCount = 0;
-
+  const totalEdges = edgeAttributes.source.length;
+  console.log("Total edges:", totalEdges);
+  const geometry = new THREE.BufferGeometry();
+  const positions = [];
+  const colors = [];
   const defaultColor = new THREE.Color(CONFIG.edgeDefaultColor);
+  let missingClusterCount = 0;
 
-  // Convert clusterColorMap hex strings to THREE.Color objects
-  const threeColorMap = {};
-  for (const [cluster, hexColor] of Object.entries(clusterColorMap)) {
-    threeColorMap[cluster] = hexToThreeColor(hexColor);
-  }
-
-  console.log("Cluster Color Map:", clusterColorMap);
-  console.log("Cluster Color Map:", threeColorMap);
-  console.log("Default Edge Color:", defaultColor);
-
-  for (let i = 0; i < totalPoints; i++) {
-    if (i % 10000 === 0) console.log(`Processing point ${i} of ${totalPoints}`);
-
-    if (
-      edgeAttributes.source[i] === undefined ||
-      edgeAttributes.target[i] === undefined
-    ) {
-      console.error(`Invalid edge data at index ${i}:`, {
-        source: edgeAttributes.source[i],
-        target: edgeAttributes.target[i],
-      });
-      colors[colorIndex++] = defaultColor.r;
-      colors[colorIndex++] = defaultColor.g;
-      colors[colorIndex++] = defaultColor.b;
-      continue;
-    }
-
-    const sourceId = "n" + edgeAttributes.source[i];
-    const targetId = "n" + edgeAttributes.target[i];
-    const sourceNode = nodes.get(sourceId);
-    const targetNode = nodes.get(targetId);
-
-    if (!sourceNode || !targetNode) {
-      missingNodeCount++;
-      if (missingNodeCount <= 5) {
-        console.warn(
-          `Edge ${i}: Unable to find source node ${sourceId} or target node ${targetId}`
-        );
-      }
-      colors[colorIndex++] = defaultColor.r;
-      colors[colorIndex++] = defaultColor.g;
-      colors[colorIndex++] = defaultColor.b;
-      continue;
-    }
-
-    if (
-      typeof sourceNode.cluster === "undefined" ||
-      typeof targetNode.cluster === "undefined"
-    ) {
-      missingClusterCount++;
-      if (missingClusterCount <= 5) {
-        console.warn(
-          `Edge ${i}: Cluster information missing for nodes ${sourceId} or ${targetId}`
-        );
-      }
-      colors[colorIndex++] = defaultColor.r;
-      colors[colorIndex++] = defaultColor.g;
-      colors[colorIndex++] = defaultColor.b;
-      continue;
-    }
-
-    successfulEdgeCount++;
+  for (let i = 0; i < totalEdges; i++) {
+    const startIndex = edgeAttributes.edgeStartIndices[i];
+    const endIndex = edgeAttributes.edgeStartIndices[i + 1];
     let color;
-    if (
-      sourceNode.cluster === targetNode.cluster &&
-      threeColorMap[sourceNode.cluster]
-    ) {
-      color = threeColorMap[sourceNode.cluster];
+    if (edgeAttributes.colorBool[i]) {
+      const sourceNode = nodes.get(edgeAttributes.source[i]);
+      const clusterColor = sourceNode
+        ? clusterColorMap[sourceNode.cluster]
+        : null;
+      if (clusterColor) {
+        color = new THREE.Color(clusterColor);
+      } else {
+        missingClusterCount++;
+        color = defaultColor;
+      }
     } else {
       color = defaultColor;
     }
+    // Smooth the edge path
+    const edgePoints = [];
+    for (let j = startIndex * 3; j < endIndex * 3; j += 3) {
+      edgePoints.push(
+        new THREE.Vector3(
+          edgeAttributes.positions[j],
+          edgeAttributes.positions[j + 1],
+          edgeAttributes.positions[j + 2]
+        )
+      );
+    }
 
-    colors[colorIndex++] = color.r;
-    colors[colorIndex++] = color.g;
-    colors[colorIndex++] = color.b;
+    const curve = new THREE.CatmullRomCurve3(edgePoints);
+    const smoothPoints = curve.getPoints(); // Adjust the number of points as needed
+
+    // Add smoothed points for this edge
+    for (const point of smoothPoints) {
+      positions.push(point.x, point.y, point.z);
+      colors.push(color.r, color.g, color.b);
+    }
+    // If this isn't the last edge, add a disconnector (NaN)
+    if (i < totalEdges - 1) {
+      positions.push(NaN, NaN, NaN);
+      colors.push(NaN, NaN, NaN);
+    }
   }
-
-  geometry.attributes.color.needsUpdate = true;
-
-  console.log(`Edge Creation Summary:`);
-  console.log(`Total points processed: ${totalPoints}`);
-  console.log(`Successful edges: ${successfulEdgeCount}`);
-  console.log(`Edges with missing nodes: ${missingNodeCount}`);
-  console.log(`Edges with missing cluster information: ${missingClusterCount}`);
-
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute(positions, 3)
+  );
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+  const material = createEdgeMaterial();
+  const mesh = new THREE.Line(geometry, material);
+  if (missingClusterCount > 0) {
+    console.warn(`Missing cluster colors for ${missingClusterCount} edges`);
+  }
   return mesh;
 }
-
 function createEdgeMaterial() {
   return new THREE.LineBasicMaterial({
     vertexColors: true,
     transparent: true,
     opacity: CONFIG.edgeOpacity,
+    linewidth: CONFIG.edgeWidth,
   });
-}
-
-function createEdgeGeometry(edgeAttributes) {
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.BufferAttribute(edgeAttributes.positions, 3)
-  );
-  geometry.setAttribute(
-    "color",
-    new THREE.BufferAttribute(
-      new Float32Array(edgeAttributes.positions.length),
-      3
-    )
-  );
-  return geometry;
-}
-
-function createEdgeMesh(geometry, material) {
-  return new THREE.LineSegments(geometry, material);
 }

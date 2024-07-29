@@ -5,7 +5,7 @@ export const CONFIG = {
   gridHelperSize: 1000,
   gridHelperDivisions: 10,
   axesHelperSize: 1000,
-  addAxesHelper: false,
+  addAxesHelper: true,
   // Renderer Configuration
   rendererAntialias: false, // Set to true for production Antialiasing is a technique used to reduce the appearance of jagged edges (aliasing) in digital images. These jagged edges are often referred to as “jaggies” and are especially noticeable on diagonal lines or curves. By smoothing these edges, antialiasing improves the visual quality of the rendered image.
   rendererAutoClearColor: true,
@@ -25,11 +25,12 @@ export const CONFIG = {
   zoomToCursor: true, // Zoom to node or only towards 0,0,0
   // Node Configuration
   nodeTextureUrl: "textures/standard_node.png",
-  coordinateMultiplier: 25, // Multiplier for the node coordinates
-  zCoordinateShift: 5, // multiplier for the centrality which functions as z dimension
+  coordinateMultiplier: 500, //500, //25 Multiplier for the node coordinates
+  zCoordinateShift: -200, //-200, // 5 multiplier for the centrality which functions as z dimension
   nodeSize: {
-    min: 50,
-    max: 500,
+    min: 50, // 50
+    max: 100, // 500
+
     power: 1.5, // Adjust this to change how quickly size increases with centrality
   },
   brightness: { default: 1.5, selected: 2.0, unselected: 0.2 },
@@ -37,8 +38,9 @@ export const CONFIG = {
   // Edge Configuration
   edgeTextureUrl: "textures/standard_edge.png",
   edgeTextureWidth: 1,
-  edgeDefaultColor: 0x000000,
-  edgeOpacity: 0.5,
+  edgeDefaultColor: "#FFFFFF", // white
+  edgeWidth: 20,
+  edgeOpacity: 0.3, //0.1,
   percentageOfEdgesToLoad: 1.0,
   // Interaction Configuration
   clickDurationThreshold: 200, // in milliseconds. long clicks are ignored (bc they drag)
@@ -55,8 +57,8 @@ export const CONFIG = {
     Math.floor(Math.random() * 15)
   ),
   // File Paths and URLs
-  nodeDataUrl: "/data/3d_100clusters_nodes.json",
-  edgeDataUrl: "/data/3d_100clusters_edges.json",
+  nodeDataUrl: "/data/nodes_3d_clusters50to69.json",
+  edgeDataUrl: "/data/bundled_edges_3d_clusters50to69.json",
   clusterColorMapUrl: "data/cluster_color_dict.json",
   clusterLabelMapUrl: "data/cluster_label_dict.json",
   legendDataUrl: "data/legend_tree.json",
