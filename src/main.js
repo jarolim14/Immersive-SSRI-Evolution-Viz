@@ -27,11 +27,11 @@ import { initializeLegend } from "./legend.js";
 // rendering functions
 import { startRendering } from "./renderer.js";
 import { addEventListeners } from "./eventListeners.js";
-import { initNodeVisibility } from "./updateNodeVisibility.js";
+import { initClusterVisibility } from "./updateClusterVisibility.js";
 
 // Global Variables
 const canvas = document.querySelector("canvas.webgl");
-let scene, camera, renderer, controls;
+//let scene, camera, renderer, controls;
 
 // Main Execution
 async function initializeScene() {
@@ -39,7 +39,9 @@ async function initializeScene() {
     const startTime = performance.now();
 
     // Create scene first
-    ({ scene, camera, renderer, controls = {} } = createScene(canvas));
+    const { scene, camera, renderer, controls, dummy, parent } =
+      createScene(canvas);
+
     camera.isPerspectiveCamera = true;
 
     // Load color and label maps
@@ -78,31 +80,25 @@ async function initializeScene() {
     if (!points || !nodes) {
       throw new Error("Failed to create nodes");
     }
-    scene.add(points);
+    parent.add(points);
 
     //// Load edge data
-    //const edgeAttributes = await loadEdgeData(CONFIG.edgeDataUrl);
-    //if (!edgeAttributes) {
-    //  throw new Error("Failed to load edge data");
-    //}
-    //
-    //console.log("positions 0", edgeAttributes.positions[0]);
-    //console.log("source 0", edgeAttributes.source[0]);
-    //console.log("target 0", edgeAttributes.target[0]);
-    //
-    //console.log("nodes position", nodeData);
+    const edgeAttributes = await loadEdgeData(CONFIG.edgeDataUrl);
+    if (!edgeAttributes) {
+      throw new Error("Failed to load edge data");
+    }
+
     //
     //// Create edges
-    //const edgeMesh = createEdges(edgeAttributes, nodes, clusterColorMap);
-    //if (!edgeMesh) {
-    //  throw new Error("Failed to create edges");
-    //}
-    //scene.add(edgeMesh);
-    //
+    const edges = createEdges(edgeAttributes, nodes, clusterColorMap);
+    parent.add(edges);
+    scene.add(parent);
+
     //// Initialize other components
     initializeSelectionMesh(scene);
+
     await initializeLegend(CONFIG.legendDataUrl);
-    initNodeVisibility();
+    initClusterVisibility();
 
     // Add event listeners
     addEventListeners(

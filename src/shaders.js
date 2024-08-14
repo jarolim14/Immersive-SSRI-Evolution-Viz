@@ -64,6 +64,31 @@ export const fragmentShaderNode = `
   }
 `;
 
+export const VertexShaderEdge = `
+  attribute float visibility;
+  varying vec3 vColor;
+  varying float vVisibility;
+  
+  void main() {
+    vColor = color;
+    vVisibility = visibility;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+export const FragmentShaderEdge = `
+  uniform float opacity;
+  uniform float brightness;
+  varying vec3 vColor;
+  varying float vVisibility;
+  
+  void main() {
+    if (vVisibility < 0.5) discard;
+    vec3 color = vColor * brightness;
+    gl_FragColor = vec4(color, opacity);
+  }
+`;
+
 export const vertexShaderSpotlight = `
       varying vec2 vUv;
       void main() {

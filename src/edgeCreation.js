@@ -1,86 +1,123 @@
 import * as THREE from "three";
 import { CONFIG } from "./config.js";
+import { VertexShaderEdge, FragmentShaderEdge } from "./shaders.js";
 
-export function createEdges(edgeAttributes, nodes, clusterColorMap) {
-  if (
-    !edgeAttributes ||
-    !edgeAttributes.positions ||
-    !edgeAttributes.source ||
-    !edgeAttributes.target ||
-    !edgeAttributes.edgeStartIndices
-  ) {
-    console.error("Invalid edgeAttributes:", edgeAttributes);
-    return null;
-  }
+let lineSegments;
+
+export function createEdges(edgeAttributes, nodes) {
   const totalEdges = edgeAttributes.source.length;
-  console.log("Total edges:", totalEdges);
-  const geometry = new THREE.BufferGeometry();
-  const positions = [];
-  const colors = [];
+  const positions = edgeAttributes.positions;
+  const colors = new Float32Array(positions.length);
+  const visibility = new Float32Array(positions.length / 3);
+  const indices = [];
+  const edgeData = [];
   const defaultColor = new THREE.Color(CONFIG.edgeDefaultColor);
-  let missingClusterCount = 0;
 
-  for (let i = 0; i < totalEdges; i++) {
-    const startIndex = edgeAttributes.edgeStartIndices[i];
-    const endIndex = edgeAttributes.edgeStartIndices[i + 1];
-    let color;
-    if (edgeAttributes.colorBool[i]) {
-      const sourceNode = nodes.get(edgeAttributes.source[i]);
-      const clusterColor = sourceNode
-        ? clusterColorMap[sourceNode.cluster]
-        : null;
-      if (clusterColor) {
-        color = new THREE.Color(clusterColor);
-      } else {
-        missingClusterCount++;
-        color = defaultColor;
+  const edgesToCreate = Math.floor(
+    totalEdges * (CONFIG.percentageOfEdgesToCreate / 100)
+  );
+  const edgeIndices = new Array(totalEdges).fill().map((_, i) => i);
+  shuffleArray(edgeIndices);
+  const edgeCount = Math.min(totalEdges, edgesToCreate);
+
+  console.log(`Creating geometry for ${edgeCount} edges`);
+
+  let coloredEdges = 0;
+  let missingTargets = 0;
+  let missingSources = 0;
+
+  for (let i = 0; i < edgeCount; i++) {
+    const edgeIndex = edgeIndices[i];
+    const startIndex = edgeAttributes.edgeStartIndices[edgeIndex];
+    const endIndex = edgeAttributes.edgeStartIndices[edgeIndex + 1];
+    let edgeColor = defaultColor;
+
+    const sourceNodeId = edgeAttributes.source[edgeIndex];
+    const targetNodeId = edgeAttributes.target[edgeIndex];
+    const sourceNode = nodes.get(sourceNodeId);
+    const targetNode = nodes.get(targetNodeId);
+
+    if (edgeAttributes.colorBool[edgeIndex] === 1) {
+      let nodeColor;
+
+      if (sourceNode && sourceNode.color) {
+        nodeColor = sourceNode.color;
+      } else if (targetNode && targetNode.color) {
+        nodeColor = targetNode.color;
       }
-    } else {
-      color = defaultColor;
-    }
-    // Smooth the edge path
-    const edgePoints = [];
-    for (let j = startIndex * 3; j < endIndex * 3; j += 3) {
-      edgePoints.push(
-        new THREE.Vector3(
-          edgeAttributes.positions[j],
-          edgeAttributes.positions[j + 1],
-          edgeAttributes.positions[j + 2]
-        )
-      );
+
+      if (nodeColor) {
+        edgeColor = nodeColor;
+        coloredEdges++;
+      }
     }
 
-    const curve = new THREE.CatmullRomCurve3(edgePoints);
-    const smoothPoints = curve.getPoints(); // Adjust the number of points as needed
+    if (!sourceNode) missingSources++;
+    if (!targetNode) missingTargets++;
 
-    // Add smoothed points for this edge
-    for (const point of smoothPoints) {
-      positions.push(point.x, point.y, point.z);
-      colors.push(color.r, color.g, color.b);
+    // Set edge colors and visibility
+    for (let j = startIndex; j < endIndex; j++) {
+      colors.set([edgeColor.r, edgeColor.g, edgeColor.b], j * 3);
+      visibility[j] = 1; // 1 for default visible
     }
-    // If this isn't the last edge, add a disconnector (NaN)
-    if (i < totalEdges - 1) {
-      positions.push(NaN, NaN, NaN);
-      colors.push(NaN, NaN, NaN);
+
+    for (let j = startIndex; j < endIndex - 1; j++) {
+      indices.push(j, j + 1);
     }
+
+    // Store edge data
+    edgeData.push({
+      sourceCluster: sourceNode ? sourceNode.cluster : null,
+      targetCluster: targetNode ? targetNode.cluster : null,
+      startIndex: startIndex,
+      endIndex: endIndex,
+    });
   }
+
+  console.log(`Colored edges: ${coloredEdges}`);
+  console.log(`Missing sources: ${missingSources}`);
+  console.log(`Missing targets: ${missingTargets}`);
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));
   geometry.setAttribute(
     "position",
     new THREE.Float32BufferAttribute(positions, 3)
   );
   geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-  const material = createEdgeMaterial();
-  const mesh = new THREE.Line(geometry, material);
-  if (missingClusterCount > 0) {
-    console.warn(`Missing cluster colors for ${missingClusterCount} edges`);
-  }
-  return mesh;
-}
-function createEdgeMaterial() {
-  return new THREE.LineBasicMaterial({
-    vertexColors: true,
+  geometry.setAttribute(
+    "visibility",
+    new THREE.Float32BufferAttribute(visibility, 1)
+  );
+  geometry.computeBoundingSphere();
+
+  const material = new THREE.ShaderMaterial({
+    vertexShader: VertexShaderEdge,
+    fragmentShader: FragmentShaderEdge,
+    uniforms: {
+      opacity: { value: CONFIG.edgeOpacity },
+      brightness: { value: CONFIG.edgeBrightness },
+    },
     transparent: true,
-    opacity: CONFIG.edgeOpacity,
-    linewidth: CONFIG.edgeWidth,
+    vertexColors: true,
   });
+
+  lineSegments = new THREE.LineSegments(geometry, material);
+  lineSegments.userData.edgeData = edgeData;
+  lineSegments.name = "edges";
+
+  return lineSegments;
+}
+
+// Fisher-Yates shuffle algorithm
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+// function to get line segments
+export function getEdges() {
+  return lineSegments;
 }

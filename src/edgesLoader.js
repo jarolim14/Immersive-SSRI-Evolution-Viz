@@ -2,6 +2,23 @@ import { loadJSONData } from "./dataUtils.js";
 import * as THREE from "three";
 import { CONFIG } from "./config.js";
 
+const rotationAxis = new THREE.Vector3(1, 0, 0);
+const rotationAngle = Math.PI / 2;
+const rotationMatrix = new THREE.Matrix4().makeRotationAxis(
+  rotationAxis,
+  rotationAngle
+);
+
+// Object pool for Vector3
+const vector3Pool = [];
+function getVector3(x, y, z) {
+  let v = vector3Pool.pop() || new THREE.Vector3();
+  return v.set(x, y, z);
+}
+function releaseVector3(v) {
+  vector3Pool.push(v);
+}
+
 function initializeEdgeAttributes(totalEdges, totalPoints) {
   return {
     index: new Float32Array(totalEdges),
@@ -15,22 +32,28 @@ function initializeEdgeAttributes(totalEdges, totalPoints) {
   };
 }
 
+function transformPoint(x, y, z) {
+  x *= CONFIG.coordinateMultiplier;
+  y *= CONFIG.coordinateMultiplier;
+  z = (z + CONFIG.liftUpZ) * CONFIG.zCoordinateShift;
+
+  const vector = getVector3(x, y, z);
+  vector.applyMatrix4(rotationMatrix);
+  return vector;
+}
+
+function isValidNumber(value) {
+  return typeof value === "number" && !isNaN(value) && isFinite(value);
+}
+
 function parseEdgeData(data) {
   const totalEdges = data.length;
-  console.log(`Total edges: ${totalEdges}`);
+  let totalPoints = data.reduce((sum, edge) => sum + edge.points.length, 0);
 
-  // Pre-calculate total points and initialize attributes
-  let totalPoints = 0;
-  for (let i = 0; i < totalEdges; i++) {
-    totalPoints += data[i].points.length;
-  }
   const edgeAttributes = initializeEdgeAttributes(totalEdges, totalPoints);
-
   const defaultColor = new THREE.Color(CONFIG.edgeDefaultColor);
-  const rotationAxis = new THREE.Vector3(1, 0, 0);
-  const rotationAngle = Math.PI / 2;
-
   let positionIndex = 0;
+
   for (let i = 0; i < totalEdges; i++) {
     const { id, source, target, weight, colored, points } = data[i];
     edgeAttributes.index[i] = id;
@@ -42,25 +65,27 @@ function parseEdgeData(data) {
       [defaultColor.r, defaultColor.g, defaultColor.b],
       i * 3
     );
-
     edgeAttributes.edgeStartIndices[i] = positionIndex / 3;
 
-    for (const point of points) {
-      const vector = new THREE.Vector3(
-        point.x * CONFIG.coordinateMultiplier,
-        point.y * CONFIG.coordinateMultiplier,
-        point.z * CONFIG.zCoordinateShift
-      ).applyAxisAngle(rotationAxis, rotationAngle);
-
-      edgeAttributes.positions.set(
-        [vector.x, vector.y, vector.z],
-        positionIndex
-      );
-      positionIndex += 3;
+    for (let j = 0; j < points.length; j++) {
+      const point = points[j];
+      if (
+        isValidNumber(point.x) &&
+        isValidNumber(point.y) &&
+        isValidNumber(point.z)
+      ) {
+        const vector = transformPoint(point.x, point.y, point.z);
+        edgeAttributes.positions.set(
+          [vector.x, vector.y, vector.z],
+          positionIndex
+        );
+        positionIndex += 3;
+        releaseVector3(vector);
+      }
     }
   }
-
   edgeAttributes.edgeStartIndices[totalEdges] = positionIndex / 3;
+  // if color
 
   return edgeAttributes;
 }
@@ -68,13 +93,7 @@ function parseEdgeData(data) {
 export async function loadEdgeData(url) {
   try {
     const data = await loadJSONData(url);
-    const edgeAttributes = parseEdgeData(data);
-    console.log("Edge Data parsed");
-    console.log(
-      "Total coordinate points in edges:",
-      edgeAttributes.positions.length / 3
-    );
-    return edgeAttributes;
+    return parseEdgeData(data);
   } catch (error) {
     console.error("Error loading edge data:", error);
     throw error;

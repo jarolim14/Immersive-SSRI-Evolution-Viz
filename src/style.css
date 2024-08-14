@@ -1,9 +1,12 @@
+/* font stylers -- font stylers --font stylers --font stylers -- font stylers */
+
 :root {
   --main-font: "Exo 2", sans-serif;
   --header-font: "Orbitron", sans-serif;
   --body-font: "Rajdhani", sans-serif;
 }
 
+/* general style -- general style --general style --general style -- general style */
 body,
 html {
   margin: 0;
@@ -19,6 +22,7 @@ html {
   left: 0;
   outline: none;
 }
+/* -- node info styles -- node info styles --node info styles --node info styles --node info styles -- */
 
 #nodeInfoDiv {
   position: fixed;
@@ -34,41 +38,44 @@ html {
   text-align: center; /* To center the text */
   display: none; /* Initially hide the div */
 }
+/* Legend styles  Legend styles Legend styles Legend styles Legend styles Legend styles */
+
 #legendDiv {
   position: absolute;
   top: 10px;
   left: 10px;
-  background: rgba(0, 0, 0, 0.8); /* Semi-transparent background */
+  background: rgba(0, 0, 0, 0.8);
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
   max-height: 90vh;
   overflow-y: auto;
-  color: white; /* White text color */
+  color: white;
   font-family: var(--body-font), sans-serif;
-  font-weight: 100; /* Light font weight */
-  font-size: 14px; /* Increase the font size */
+  font-weight: 100;
+  font-size: 14px;
 }
 
 .legend-item {
   margin: 5px 0;
   display: flex;
-  align-items: center;
-  margin-bottom: 5px;
+  flex-direction: column; /* Stack the color and text */
 }
 
-.legend-item span {
-  color: white; /* White text color for labels */
-}
 .legend-item-container {
   display: flex;
   align-items: center;
+}
+
+.legend-item span {
+  color: white;
 }
 
 .fold-indicator {
   cursor: pointer;
   margin-right: 5px;
 }
+
 .legend-color {
   width: 20px;
   height: 20px;
@@ -81,11 +88,12 @@ html {
 }
 
 .legend-subtree {
-  margin-left: 20px;
-  display: none;
+  margin-left: 20px; /* Slight indentation for the subtree */
+  display: none; /* Keep subtree hidden initially */
 }
+
 .legend-subtree .legend-item {
-  margin-left: 10px;
+  margin-left: 0; /* No additional margin */
 }
 
 /* Base button styles */

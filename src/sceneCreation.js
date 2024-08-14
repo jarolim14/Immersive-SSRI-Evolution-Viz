@@ -39,12 +39,14 @@ export function createScene(canvas) {
   const camera = createCamera();
   const renderer = createRenderer(canvas);
   const controls = createControls(camera, canvas);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.05;
+  const dummy = new THREE.Object3D();
+  const parent = new THREE.Object3D();
+
+  scene.add(parent);
 
   initScene(scene);
 
-  return { scene, camera, renderer, controls };
+  return { scene, camera, renderer, controls, dummy, parent };
 }
 
 function createCamera() {
@@ -54,7 +56,8 @@ function createCamera() {
     CONFIG.cameraNearPlane,
     CONFIG.cameraFarPlane
   );
-  camera.position.set(2000, 2000, 2000);
+  //camera.position.set(2000, 2000, 2000);
+  camera.position.set(2700, 2500, -8000);
   camera.lookAt(0, 0, 0);
   return camera;
 }
@@ -77,7 +80,8 @@ function createControls(camera, canvas) {
   controls.screenSpacePanning = false;
   controls.minDistance = CONFIG.controlsMinDistance;
   controls.maxDistance = CONFIG.controlsMaxDistance;
-  controls.maxPolarAngle = (Math.PI * 2) / 4; // 3 for 120 degrees in radians; /2 for 90 degrees; /3.5 for 100 degrees ; /4 for 80 degrees
+  controls.maxPolarAngle = Math.PI * 2; /// 4; // 3 for 120 degrees in radians; /2 for 90 degrees; /3.5 for 100 degrees ; /4 for 80 degrees
+  controls.zoomDampingFactor = 0.2;
   controls.target.set(0, 0, 0);
   return controls;
 }

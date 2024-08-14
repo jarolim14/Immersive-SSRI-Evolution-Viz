@@ -18,30 +18,32 @@ export const CONFIG = {
   // Camera Configuration
   cameraFOV: 75, // Field of view in degrees (higher values give a fish-eye effect)
   cameraNearPlane: 0.5, // Near clipping plane (anything closer than this won't be rendered)
-  cameraFarPlane: 10000, // Far clipping plane (anything further away from this won't be rendered)
+  cameraFarPlane: 20000, // Far clipping plane (anything further away from this won't be rendered)
   // Controls Configuration
   controlsMinDistance: 100, // Minimum distance the camera can be from the origin
   controlsMaxDistance: 5000, // Maximum distance the camera can be from the origin
   zoomToCursor: true, // Zoom to node or only towards 0,0,0
   // Node Configuration
   nodeTextureUrl: "textures/standard_node.png",
-  coordinateMultiplier: 500, //500, //25 Multiplier for the node coordinates
-  zCoordinateShift: -200, //-200, // 5 multiplier for the centrality which functions as z dimension
+  coordinateMultiplier: 4000, //500, //25 Multiplier for the node coordinates
+  zCoordinateShift: -1200, //-200, // 5 multiplier for the centrality which functions as z dimension
   nodeSize: {
     min: 50, // 50
-    max: 100, // 500
-
-    power: 1.5, // Adjust this to change how quickly size increases with centrality
+    max: 300, // 500
+    power: 2, // Adjust this to change how quickly size increases with centrality
   },
   brightness: { default: 1.5, selected: 2.0, unselected: 0.2 },
   singleNodeSelectionBrightness: 0.001, // 50% more brightness for single node selection
+  // All Z Coords
+  liftUpZ: 0.15, // lift all nodes by 0.15, so none are negative.
   // Edge Configuration
   edgeTextureUrl: "textures/standard_edge.png",
   edgeTextureWidth: 1,
-  edgeDefaultColor: "#FFFFFF", // white
-  edgeWidth: 20,
+  edgeDefaultColor: "#CCCCCC", // white
+  edgeWidth: 1,
   edgeOpacity: 0.3, //0.1,
-  percentageOfEdgesToLoad: 1.0,
+  edgeBrightness: 1.5,
+  percentageOfEdgesToCreate: 100,
   // Interaction Configuration
   clickDurationThreshold: 200, // in milliseconds. long clicks are ignored (bc they drag)
   clickDistanceThreshold: 5, // in pixels
@@ -57,11 +59,11 @@ export const CONFIG = {
     Math.floor(Math.random() * 15)
   ),
   // File Paths and URLs
-  nodeDataUrl: "/data/nodes_3d_clusters50to69.json",
-  edgeDataUrl: "/data/bundled_edges_3d_clusters50to69.json",
+  nodeDataUrl: "/data/nodes_3d_clusters0to100.json",
+  edgeDataUrl: "/data/bundled_edges_3d_clusters0to100.json",
   clusterColorMapUrl: "data/cluster_color_dict.json",
   clusterLabelMapUrl: "data/cluster_label_dict.json",
-  legendDataUrl: "data/legend_tree.json",
+  legendDataUrl: "data/legend_tree_mut_excl.json",
   nodeTextureUrl: "textures/nodeTexture.png",
   spotlightTextureUrl: "textures/spotlightTexture.png",
 };

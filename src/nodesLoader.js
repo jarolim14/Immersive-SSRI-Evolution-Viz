@@ -79,7 +79,7 @@ function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
     let x = node.x * CONFIG.coordinateMultiplier;
     let y = node.y * CONFIG.coordinateMultiplier;
 
-    let z = node.z * CONFIG.zCoordinateShift; // * CONFIG.coordinateMultiplier; // centrality; // // from old
+    let z = (CONFIG.liftUpZ + node.z) * CONFIG.zCoordinateShift; // * CONFIG.coordinateMultiplier; // centrality; // // from old
     // Apply rotation
     const rotatedPosition = new THREE.Vector3(x, y, z).applyAxisAngle(
       new THREE.Vector3(1, 0, 0),
@@ -101,6 +101,7 @@ function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
       year: node.year,
       title: node.title,
       centrality: centrality,
+      color: color,
     });
     updateNodeData(
       loadedNodes,

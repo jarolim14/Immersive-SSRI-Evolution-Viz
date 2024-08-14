@@ -2,27 +2,30 @@
  * Node Visibility Module
  *
  * This module handles updating the visibility (brightness) of nodes
- * based on the selection in the legend.
+ * and edges based on the selection in the legend.
  */
-
 import { getLegendSelectedLeafKeys } from "./legend.js";
 import { getFullNodeData } from "./nodeCreation.js";
+import { getEdges } from "./edgeCreation.js";
+
 import { CONFIG } from "./config.js";
-let nodes, brightness;
+
+let nodes, brightness, edges;
 
 // Initialize the module with the current node data
-export function initNodeVisibility() {
+export function initClusterVisibility() {
   const data = getFullNodeData(["nodes", "brightness"]);
   nodes = data.nodes;
   brightness = data.brightness;
+  edges = getEdges();
 }
 
-export function updateNodeVisibility() {
+export function updateClusterVisibility() {
   console.log("Updating node visibility");
   const selectedClusters = getLegendSelectedLeafKeys();
   updateNodeVisibilityBasedOnSelection(selectedClusters);
-  collapseLegend(); // Add this line
-  // Trigger an update in your main file or wherever you handle Three.js updates
+  updateEdgeVisibilityBasedOnSelection(selectedClusters);
+  collapseLegend();
   window.dispatchEvent(new CustomEvent("nodeVisibilityUpdated"));
 }
 
@@ -32,23 +35,20 @@ function updateNodeVisibilityBasedOnSelection(selectedClusters) {
     selected: selectedBrightness,
     unselected: unselectedBrightness,
   } = CONFIG.brightness;
-  // Check if brightness array exists and initialize it if not
+
   if (!brightness || brightness.length !== nodes.size) {
     console.warn("Brightness array not initialized or size mismatch");
     brightness = new Float32Array(nodes.size).fill(defaultBrightness);
   }
+
   nodes.forEach((node) => {
     const isSelected = selectedClusters.includes(node.cluster);
     let newBrightness;
-
     if (selectedClusters.length === 0) {
-      // If no clusters are selected, use the default brightness
       newBrightness = defaultBrightness;
     } else {
-      // Otherwise, use selected or unselected brightness based on the node's cluster
-      newBrightness = isSelected ? selectedBrightness : unselectedBrightness; // Ternary operator like if else
+      newBrightness = isSelected ? selectedBrightness : unselectedBrightness;
     }
-
     brightness[node.index] = newBrightness;
   });
 }
@@ -68,12 +68,33 @@ export function updateNodeBrightnessInScene(brightness, scene) {
   }
 }
 
+export function updateEdgeVisibilityBasedOnSelection(selectedClusters) {
+  // make it a set for faster lookup
+  selectedClusters = new Set(selectedClusters);
+  const geometry = edges.geometry;
+  const visibility = geometry.attributes.visibility;
+  const edgeData = edges.userData.edgeData;
+
+  for (let i = 0; i < edgeData.length; i++) {
+    const edge = edgeData[i];
+    const isVisible =
+      selectedClusters.size === 0 ||
+      (selectedClusters.has(edge.sourceCluster) &&
+        selectedClusters.has(edge.targetCluster));
+
+    for (let j = edge.startIndex; j < edge.endIndex; j++) {
+      visibility.array[j] = isVisible ? 1.0 : 0.0;
+    }
+  }
+
+  visibility.needsUpdate = true;
+}
+
 function collapseLegend() {
   const legendItems = document.querySelectorAll(".legend-subtree");
   legendItems.forEach((item) => {
     item.style.display = "none";
   });
-
   const foldIndicators = document.querySelectorAll(".fold-indicator");
   foldIndicators.forEach((indicator) => {
     indicator.textContent = "▶";
