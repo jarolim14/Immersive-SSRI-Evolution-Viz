@@ -70,7 +70,7 @@ function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
     ) {
       continue;
     }
-    const nodeId = node.node_id;
+    const nodeId = node.node_index;
     const centrality = parseFloat(node.centrality.toFixed(5));
     // Normalize centrality
     const normalizedCentrality =

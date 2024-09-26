@@ -46,7 +46,7 @@ function isValidNumber(value) {
   return typeof value === "number" && !isNaN(value) && isFinite(value);
 }
 
-function parseEdgeData(data) {
+function parseEdgeData(data, clusterColorMap) {
   const totalEdges = data.length;
   let totalPoints = data.reduce((sum, edge) => sum + edge.points.length, 0);
 
@@ -55,16 +55,28 @@ function parseEdgeData(data) {
   let positionIndex = 0;
 
   for (let i = 0; i < totalEdges; i++) {
-    const { id, source, target, weight, colored, points } = data[i];
+    const { id, source, target, weight, color, points } = data[i];
     edgeAttributes.index[i] = id;
     edgeAttributes.source[i] = source;
     edgeAttributes.target[i] = target;
     edgeAttributes.weight[i] = weight;
-    edgeAttributes.colorBool[i] = colored ? 1 : 0;
-    edgeAttributes.color.set(
-      [defaultColor.r, defaultColor.g, defaultColor.b],
-      i * 3
-    );
+
+    let edgeColor;
+    if (color === -1) {
+      edgeColor = defaultColor;
+    } else {
+      edgeColor = clusterColorMap[color] || defaultColor;
+    }
+    try {
+      edgeAttributes.color.set([edgeColor.r, edgeColor.g, edgeColor.b], i * 3);
+    } catch (error) {
+      //console.error("Error setting edge color:", error);
+      console.log(edgeColor, color);
+      edgeAttributes.color.set(
+        [defaultColor.r, defaultColor.g, defaultColor.b],
+        i * 3
+      );
+    }
     edgeAttributes.edgeStartIndices[i] = positionIndex / 3;
 
     for (let j = 0; j < points.length; j++) {
@@ -87,13 +99,15 @@ function parseEdgeData(data) {
   edgeAttributes.edgeStartIndices[totalEdges] = positionIndex / 3;
   // if color
 
+  console.log(edgeAttributes.color);
+
   return edgeAttributes;
 }
 
-export async function loadEdgeData(url) {
+export async function loadEdgeData(url, clusterColorMap) {
   try {
     const data = await loadJSONData(url);
-    return parseEdgeData(data);
+    return parseEdgeData(data, clusterColorMap);
   } catch (error) {
     console.error("Error loading edge data:", error);
     throw error;

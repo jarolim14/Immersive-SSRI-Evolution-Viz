@@ -30,27 +30,18 @@ export function createEdges(edgeAttributes, nodes) {
     const edgeIndex = edgeIndices[i];
     const startIndex = edgeAttributes.edgeStartIndices[edgeIndex];
     const endIndex = edgeAttributes.edgeStartIndices[edgeIndex + 1];
-    let edgeColor = defaultColor;
 
     const sourceNodeId = edgeAttributes.source[edgeIndex];
     const targetNodeId = edgeAttributes.target[edgeIndex];
     const sourceNode = nodes.get(sourceNodeId);
     const targetNode = nodes.get(targetNodeId);
 
-    if (edgeAttributes.colorBool[edgeIndex] === 1) {
-      let nodeColor;
-
-      if (sourceNode && sourceNode.color) {
-        nodeColor = sourceNode.color;
-      } else if (targetNode && targetNode.color) {
-        nodeColor = targetNode.color;
-      }
-
-      if (nodeColor) {
-        edgeColor = nodeColor;
-        coloredEdges++;
-      }
-    }
+    // Use the color from edgeAttributes instead of nodes
+    let edgeColor = new THREE.Color(
+      edgeAttributes.color[edgeIndex * 3],
+      edgeAttributes.color[edgeIndex * 3 + 1],
+      edgeAttributes.color[edgeIndex * 3 + 2]
+    );
 
     if (!sourceNode) missingSources++;
     if (!targetNode) missingTargets++;
@@ -72,6 +63,10 @@ export function createEdges(edgeAttributes, nodes) {
       startIndex: startIndex,
       endIndex: endIndex,
     });
+
+    if (edgeColor.getHex() !== defaultColor.getHex()) {
+      coloredEdges++;
+    }
   }
 
   console.log(`Colored edges: ${coloredEdges}`);

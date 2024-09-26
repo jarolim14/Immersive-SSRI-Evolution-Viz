@@ -73,6 +73,7 @@ async function initializeScene() {
     if (!nodeData || nodeData.length === 0) {
       throw new Error("Node data not loaded properly");
     }
+    console.log(nodeData);
 
     // Create nodes
     const { points, nodes, positions, colors, sizes, brightness, selected } =
@@ -83,7 +84,10 @@ async function initializeScene() {
     parent.add(points);
 
     //// Load edge data
-    const edgeAttributes = await loadEdgeData(CONFIG.edgeDataUrl);
+    const edgeAttributes = await loadEdgeData(
+      CONFIG.edgeDataUrl,
+      clusterColorMap
+    );
     if (!edgeAttributes) {
       throw new Error("Failed to load edge data");
     }
@@ -93,6 +97,7 @@ async function initializeScene() {
     const edges = createEdges(edgeAttributes, nodes, clusterColorMap);
     parent.add(edges);
     scene.add(parent);
+    console.log(edges);
 
     //// Initialize other components
     initializeSelectionMesh(scene);
