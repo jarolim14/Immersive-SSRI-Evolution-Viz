@@ -24,6 +24,8 @@ import {
 } from "./singleNodeSelection.js";
 // legend functions
 import { initializeLegend } from "./legend.js";
+// year slider functions
+import { initializeYearSlider } from "./yearSlider.js";
 // rendering functions
 import { startRendering } from "./renderer.js";
 import { addEventListeners } from "./eventListeners.js";
@@ -121,6 +123,8 @@ async function initializeScene() {
     const endTime = performance.now();
     const loadTime = (endTime - startTime) / 1000;
     console.log(`Total load time: ${loadTime.toFixed(2)} seconds`);
+
+    initializeYearSlider();
 
     // Start rendering
     startRendering(scene, camera, controls, renderer);

@@ -21,11 +21,11 @@ export const CONFIG = {
   cameraFarPlane: 20000, // Far clipping plane (anything further away from this won't be rendered)
   // Controls Configuration
   controlsMinDistance: 100, // Minimum distance the camera can be from the origin
-  controlsMaxDistance: 5000, // Maximum distance the camera can be from the origin
+  controlsMaxDistance: 10000, // Maximum distance the camera can be from the origin
   zoomToCursor: true, // Zoom to node or only towards 0,0,0
   // Node Configuration
   nodeTextureUrl: "textures/standard_node.png",
-  coordinateMultiplier: 1, //500, //25 Multiplier for the node coordinates
+  coordinateMultiplier: 1.5, //500, //25 Multiplier for the node coordinates
   zCoordinateShift: -1, //-200, // 5 multiplier for the centrality which functions as z dimension
   nodeSize: {
     min: 50, // 50
@@ -40,8 +40,8 @@ export const CONFIG = {
   edgeTextureUrl: "textures/standard_edge.png",
   edgeTextureWidth: 0.1,
   edgeDefaultColor: "#CCCCCC", // white
-  edgeWidth: 0.001,
-  edgeOpacity: 0.1, //0.1,
+  edgeWidth: 0.01,
+  edgeOpacity: 0.2, //0.1,
   edgeBrightness: 0.5,
   percentageOfEdgesToCreate: 100, //50,
   // Interaction Configuration
@@ -59,8 +59,8 @@ export const CONFIG = {
     Math.floor(Math.random() * 15)
   ),
   // File Paths and URLs
-  nodeDataUrl: "/data/NewNodesSUBGRAPH_fewer_edger_lower_min_seg.json",
-  edgeDataUrl: "/data/NewBundledEdgesSUBGRAPH_fewer_edger_lower_min_seg.json",
+  nodeDataUrl: "/data/nodes_run_4_p15_b0.05_d0.5_t0.3_m0.01.json",
+  edgeDataUrl: "/data/edges_run_4_p15_b0.05_d0.5_t0.3_m0.01.json",
   clusterColorMapUrl: "data/cluster_color_dict.json",
   clusterLabelMapUrl: "data/cluster_label_dict.json",
   legendDataUrl: "data/legend_tree_mut_excl.json",

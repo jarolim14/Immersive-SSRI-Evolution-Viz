@@ -4,6 +4,7 @@
   --main-font: "Exo 2", sans-serif;
   --header-font: "Orbitron", sans-serif;
   --body-font: "Rajdhani", sans-serif;
+  --slider-color: #e1c874; /* Golden color to match the update button */
 }
 
 /* general style -- general style --general style --general style -- general style */
@@ -38,6 +39,68 @@ html {
   text-align: center; /* To center the text */
   display: none; /* Initially hide the div */
 }
+
+/* Year Slider styles */
+#yearSliderContainer {
+  position: fixed;
+  top: 5%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1), 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+#yearSlider {
+  -webkit-appearance: none;
+  width: 300px;
+  height: 5px;
+  border-radius: 5px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  margin: 20px 0;
+}
+
+#yearSlider:hover {
+  opacity: 1;
+}
+
+#yearSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--slider-color);
+  cursor: pointer;
+  box-shadow: 0 0 5px rgba(225, 200, 116, 0.5);
+}
+
+#yearSlider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--slider-color);
+  cursor: pointer;
+  box-shadow: 0 0 5px rgba(225, 200, 116, 0.5);
+}
+
+#currentYear {
+  font-family: var(--header-font), sans-serif;
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--slider-color);
+  text-align: center;
+  margin-bottom: 10px;
+  text-shadow: 0 0 10px rgba(225, 200, 116, 0.5);
+}
+
 /* Legend styles  Legend styles Legend styles Legend styles Legend styles Legend styles */
 
 #legendDiv {
