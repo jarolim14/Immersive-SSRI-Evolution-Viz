@@ -36,6 +36,8 @@ export function createEdges(edgeAttributes, nodes) {
     const sourceNode = nodes.get(sourceNodeId);
     const targetNode = nodes.get(targetNodeId);
 
+    const edgeYear = Math.max(sourceNode.year, targetNode.year);
+
     // Use the color from edgeAttributes instead of nodes
     let edgeColor = new THREE.Color(
       edgeAttributes.color[edgeIndex * 3],
@@ -62,6 +64,7 @@ export function createEdges(edgeAttributes, nodes) {
       targetCluster: targetNode ? targetNode.cluster : null,
       startIndex: startIndex,
       endIndex: endIndex,
+      year: edgeYear,
     });
 
     if (edgeColor.getHex() !== defaultColor.getHex()) {

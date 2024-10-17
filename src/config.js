@@ -59,8 +59,10 @@ export const CONFIG = {
     Math.floor(Math.random() * 15)
   ),
   // File Paths and URLs
-  nodeDataUrl: "/data/nodes_run_4_p15_b0.05_d0.5_t0.3_m0.01.json",
-  edgeDataUrl: "/data/edges_run_4_p15_b0.05_d0.5_t0.3_m0.01.json",
+  nodeDataUrl:
+    "/data/NodesData0to100_Pruned33_Bundle_Tresh25_BW0.05_D0.07_T0.03.json",
+  edgeDataUrl:
+    "/data/EdgesData0to100_Pruned33_Bundle_Tresh25_BW0.05_D0.07_T0.03.json",
   clusterColorMapUrl: "data/cluster_color_dict.json",
   clusterLabelMapUrl: "data/cluster_label_dict.json",
   legendDataUrl: "data/legend_tree_mut_excl.json",
