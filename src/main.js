@@ -1,116 +1,118 @@
-// local imports
-// get configs
 import { CONFIG } from "./config.js";
-// data loading functions
 import {
   loadClusterColorMap,
   loadClusterLabelMap,
   getClusterColorMap,
   getClusterLabelMap,
 } from "./dataUtils.js";
-import { loadNodeData, getInitialNodeData } from "./nodesLoader.js";
-// node creation functions
-import { createNodes } from "./nodeCreation.js";
-// edge  functions
+import { loadNodeData } from "./nodesLoader.js";
+import { createNodes } from "./nodesCreation.js";
 import { loadEdgeData } from "./edgesLoader.js";
 import { createEdges } from "./edgeCreation.js";
-// scene creation functions
 import { createScene } from "./sceneCreation.js";
-// event handling functions - single node selection
 import {
   raycaster,
   mouse,
   initializeSelectionMesh,
 } from "./singleNodeSelection.js";
-// legend functions
 import { initializeLegend } from "./legend.js";
-// year slider functions
 import { initializeYearSlider } from "./yearSlider.js";
-// rendering functions
 import { startRendering } from "./renderer.js";
 import { addEventListeners } from "./eventListeners.js";
 import { initClusterVisibility } from "./updateClusterVisibility.js";
+import { initYearVisibility } from "./updateYearVisibility.js";
 
-// Global Variables
 const canvas = document.querySelector("canvas.webgl");
-//let scene, camera, renderer, controls;
 
-// Main Execution
+async function loadMaps() {
+  await Promise.all([
+    loadClusterColorMap(CONFIG.clusterColorMapUrl),
+    loadClusterLabelMap(CONFIG.clusterLabelMapUrl),
+  ]);
+  return {
+    clusterColorMap: getClusterColorMap(),
+    clusterLabelMap: getClusterLabelMap(),
+  };
+}
+
+async function loadAndCreateNodes(parent, clusterLabelMap, clusterColorMap) {
+  const { nodesMap, nodesGeometry } = await loadNodeData(
+    CONFIG.nodeDataUrl,
+    CONFIG.fractionOfNodesToLoad,
+    clusterLabelMap,
+    clusterColorMap
+  );
+  if (!nodesMap.size || !nodesGeometry) {
+    throw new Error("Node data not loaded properly");
+  }
+  const { points } = createNodes(nodesGeometry);
+  parent.add(points);
+  return { nodesMap, points };
+}
+
+async function loadAndCreateEdges(parent, clusterColorMap, nodesMap) {
+  const { edgesMap, edgesGeometry } = await loadEdgeData(
+    CONFIG.edgeDataUrl,
+    clusterColorMap
+  );
+  if (!edgesMap.size || !edgesGeometry) {
+    throw new Error("Edge data not loaded properly");
+  }
+  const edgeObject = createEdges(edgesGeometry, edgesMap, nodesMap);
+  if (!edgeObject) {
+    throw new Error("Failed to create edges");
+  }
+  parent.add(edgeObject);
+  return edgeObject;
+}
+
 async function initializeScene() {
+  const startTime = performance.now();
+
   try {
-    const startTime = performance.now();
-
-    // Create scene first
-    const { scene, camera, renderer, controls, dummy, parent } =
-      createScene(canvas);
-
+    const { scene, camera, renderer, controls, parent } = createScene(canvas);
     camera.isPerspectiveCamera = true;
 
-    // Load color and label maps
-    let clusterColorMap, clusterLabelMap;
-    try {
-      await Promise.all([
-        loadClusterColorMap(CONFIG.clusterColorMapUrl),
-        loadClusterLabelMap(CONFIG.clusterLabelMapUrl),
-      ]);
-      clusterColorMap = getClusterColorMap();
-      clusterLabelMap = getClusterLabelMap();
-      console.log("Label and Color Maps Successfully Loaded");
-    } catch (error) {
-      console.error("Error loading mapped data:", error);
-      clusterColorMap = {};
-      clusterLabelMap = {};
-    }
+    console.log("Starting data loading and visualization process...");
 
-    // Load node data
-    await loadNodeData(
-      CONFIG.nodeDataUrl,
-      CONFIG.percentageOfNodesToLoad,
+    const { clusterColorMap, clusterLabelMap } = await loadMaps();
+    console.log("Label and Color Maps Successfully Loaded");
+
+    const { nodesMap, points } = await loadAndCreateNodes(
+      parent,
       clusterLabelMap,
       clusterColorMap
     );
-    const nodeData = getInitialNodeData();
+    console.log("Nodes loaded and created successfully");
 
-    // Ensure node data is loaded before proceeding
-    if (!nodeData || nodeData.length === 0) {
-      throw new Error("Node data not loaded properly");
-    }
-    console.log(nodeData);
-
-    // Create nodes
-    const { points, nodes, positions, colors, sizes, brightness, selected } =
-      await createNodes(nodeData);
-    if (!points || !nodes) {
-      throw new Error("Failed to create nodes");
-    }
-    parent.add(points);
-
-    //// Load edge data
-    const edgeAttributes = await loadEdgeData(
-      CONFIG.edgeDataUrl,
-      clusterColorMap
+    const edgeObject = await loadAndCreateEdges(
+      parent,
+      clusterColorMap,
+      nodesMap
     );
-    if (!edgeAttributes) {
-      throw new Error("Failed to load edge data");
-    }
+    console.log("Edges loaded and created successfully");
 
-    //
-    //// Create edges
-    const edges = createEdges(edgeAttributes, nodes, clusterColorMap);
-    parent.add(edges);
     scene.add(parent);
-    console.log(edges);
 
-    //// Initialize other components
     initializeSelectionMesh(scene);
-
     await initializeLegend(CONFIG.legendDataUrl);
     initClusterVisibility();
+    // Create a container for the slider
+    const sliderContainer = document.createElement("div");
+    sliderContainer.id = "year-slider-container";
+    document.body.appendChild(sliderContainer);
 
-    // Add event listeners
+    // Initialize the year slider
+    initializeYearSlider(sliderContainer, (minYear, maxYear) => {
+      console.log(`Year range changed: ${minYear} - ${maxYear}`);
+      // Update your Three.js scene based on the new year range
+    });
+    //initializeYearSlider();
+    //initYearVisibility();
+
     addEventListeners(
-      nodes,
-      positions,
+      nodesMap,
+      points,
       camera,
       renderer,
       controls,
@@ -124,9 +126,6 @@ async function initializeScene() {
     const loadTime = (endTime - startTime) / 1000;
     console.log(`Total load time: ${loadTime.toFixed(2)} seconds`);
 
-    initializeYearSlider();
-
-    // Start rendering
     startRendering(scene, camera, controls, renderer);
   } catch (error) {
     console.error("Error in initializeScene:", error);
@@ -134,7 +133,7 @@ async function initializeScene() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
   initializeScene().catch((error) => {
     console.error("Error initializing scene:", error);
     // Handle the error appropriately, e.g., display an error message to the user

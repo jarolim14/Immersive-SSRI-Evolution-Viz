@@ -11,11 +11,16 @@ let clusterColorMap = {};
  * @throws Will throw an error if the fetch fails or if the response is not OK.
  */
 export async function loadJSONData(url) {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(`Error fetching data from ${url}:`, error);
+    throw error;
   }
-  return response.json();
 }
 
 /**

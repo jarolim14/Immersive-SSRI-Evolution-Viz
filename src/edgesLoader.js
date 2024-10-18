@@ -1,115 +1,185 @@
-import { loadJSONData } from "./dataUtils.js";
+/**
+ * @file edgesLoader.js
+ * @description This module handles the loading, parsing, and initialization of edge data for a 3D graph visualization using Three.js.
+ * It provides functionality for creating edge geometries, processing edge data, and managing edge metadata.
+ *
+ * @author [Your Name or Organization]
+ * @version 1.0.0
+ * @date 2023-10-18
+ *
+ * Key Functions:
+ * - initializeBufferGeometry(totalPoints): Initializes THREE.BufferGeometry for edges.
+ * - isValidNumber(value): Checks if a value is a valid number.
+ * - transformPoint(point): Transforms a point's coordinates based on configuration settings.
+ * - getEdgeColor(color, clusterColorMap, defaultColor): Determines the color for an edge.
+ * - updateEdgeBuffer(positionIndex, vector, edgeColor, year): Updates edge data in the buffer.
+ * - storeEdgeMetadata(id, source, target, weight, startIndex, endIndex, year): Stores metadata for each edge.
+ * - parseEdgesData(data, clusterColorMap): Main function for parsing edge data.
+ * - loadEdgeData(url, clusterColorMap): Loads and parses edge data from a URL.
+ * - getInitialEdgeData(): Returns the initial edge data and geometry.
+ *
+ * Features:
+ * - Dynamic edge loading and processing.
+ * - Custom attribute creation for Three.js BufferGeometry (position, color, visibility, year).
+ * - Efficient storage and retrieval of edge metadata.
+ * - Support for color mapping based on clusters.
+ * - 3D positioning with configurable transformations.
+ * - Handling of invalid or incomplete edge data.
+ *
+ * This module is crucial for initializing and managing edge data in a large-scale 3D graph visualization,
+ * providing the foundation for rendering connections between nodes in a Three.js environment.
+ *
+ * @requires THREE
+ * @requires ./config.js
+ * @requires ./dataUtils.js
+ *
+ * @exports {Function} loadEdgeData
+ * @exports {Function} getInitialEdgeData
+ */
+
 import * as THREE from "three";
 import { CONFIG } from "./config.js";
+import { loadJSONData } from "./dataUtils.js";
 
-const rotationAxis = new THREE.Vector3(1, 0, 0);
-const rotationAngle = Math.PI / 2;
-const rotationMatrix = new THREE.Matrix4().makeRotationAxis(
-  rotationAxis,
-  rotationAngle
-);
+let edgesMap = new Map();
+let edgesGeometry = null;
 
-// Object pool for Vector3
-const vector3Pool = [];
-function getVector3(x, y, z) {
-  let v = vector3Pool.pop() || new THREE.Vector3();
-  return v.set(x, y, z);
-}
-function releaseVector3(v) {
-  vector3Pool.push(v);
-}
+// BufferGeometry initialization
+function initializeBufferGeometry(totalPoints) {
+  edgesGeometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(totalPoints * 3); // x, y, z
+  const colors = new Float32Array(totalPoints * 3); // r, g, b
+  const visible = new Float32Array(totalPoints).fill(1); // default visible (1)
+  const years = new Float32Array(totalPoints); // Year for each point
 
-function initializeEdgeAttributes(totalEdges, totalPoints) {
-  return {
-    index: new Float32Array(totalEdges),
-    source: new Float32Array(totalEdges),
-    target: new Float32Array(totalEdges),
-    weight: new Float32Array(totalEdges),
-    colorBool: new Float32Array(totalEdges),
-    color: new Float32Array(totalEdges * 3),
-    positions: new Float32Array(totalPoints * 3),
-    edgeStartIndices: new Uint32Array(totalEdges + 1),
-  };
+  edgesGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(positions, 3)
+  );
+  edgesGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  edgesGeometry.setAttribute("visible", new THREE.BufferAttribute(visible, 1));
+  edgesGeometry.setAttribute("year", new THREE.BufferAttribute(years, 1));
+  edgesGeometry.name = "edgesGeometry";
 }
 
-function transformPoint(x, y, z) {
-  x *= CONFIG.coordinateMultiplier;
-  y *= CONFIG.coordinateMultiplier;
-  z = (z + CONFIG.liftUpZ) * CONFIG.zCoordinateShift;
-
-  const vector = getVector3(x, y, z);
-  vector.applyMatrix4(rotationMatrix);
-  return vector;
-}
-
+// Valid number checker
 function isValidNumber(value) {
   return typeof value === "number" && !isNaN(value) && isFinite(value);
 }
 
-function parseEdgeData(data, clusterColorMap) {
-  const totalEdges = data.length;
-  let totalPoints = data.reduce((sum, edge) => sum + edge.points.length, 0);
+// Point transformation helper
+function transformPoint(point) {
+  return new THREE.Vector3(
+    point.x * CONFIG.coordinateMultiplier,
+    point.y * CONFIG.coordinateMultiplier,
+    (point.z + CONFIG.liftUpZ) * CONFIG.zCoordinateShift
+  ).applyAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+}
 
-  const edgeAttributes = initializeEdgeAttributes(totalEdges, totalPoints);
+// Edge color helper
+function getEdgeColor(color, clusterColorMap, defaultColor) {
+  return color === -1
+    ? defaultColor
+    : new THREE.Color(clusterColorMap[color] || defaultColor);
+}
+
+// Buffer update
+function updateEdgeBuffer(positionIndex, vector, edgeColor, year) {
+  const i3 = positionIndex;
+  const positions = edgesGeometry.attributes.position.array;
+  const colors = edgesGeometry.attributes.color.array;
+  const visible = edgesGeometry.attributes.visible.array;
+  const years = edgesGeometry.attributes.year.array;
+
+  positions[i3] = vector.x;
+  positions[i3 + 1] = vector.y;
+  positions[i3 + 2] = vector.z;
+
+  colors[i3] = edgeColor.r;
+  colors[i3 + 1] = edgeColor.g;
+  colors[i3 + 2] = edgeColor.b;
+
+  visible[positionIndex / 3] = 1;
+  years[positionIndex / 3] = year || 0;
+}
+
+// Edge metadata storage
+function storeEdgeMetadata(
+  id,
+  source,
+  target,
+  weight,
+  startIndex,
+  endIndex,
+  year
+) {
+  edgesMap.set(id, {
+    source,
+    target,
+    weight,
+    startIndex,
+    endIndex,
+    year,
+  });
+}
+
+// Main data parsing function
+function parseEdgesData(data, clusterColorMap) {
+  const totalEdges = data.length;
+  let totalPoints = 0;
+
+  // First pass: count total points
+  data.forEach((edge) => {
+    totalPoints += edge.points.length;
+  });
+
+  initializeBufferGeometry(totalPoints);
+  console.log(
+    `BufferGeometry initialized for ${totalEdges} edges with ${totalPoints} total points`
+  );
+
   const defaultColor = new THREE.Color(CONFIG.edgeDefaultColor);
   let positionIndex = 0;
 
-  for (let i = 0; i < totalEdges; i++) {
-    const { id, source, target, weight, color, points } = data[i];
-    edgeAttributes.index[i] = id;
-    edgeAttributes.source[i] = source;
-    edgeAttributes.target[i] = target;
-    edgeAttributes.weight[i] = weight;
+  data.forEach((edge) => {
+    const { id, source, target, weight, color, points, year } = edge;
+    const startIndex = positionIndex / 3;
+    const edgeColor = getEdgeColor(color, clusterColorMap, defaultColor);
 
-    let edgeColor;
-    if (color === -1) {
-      edgeColor = defaultColor;
-    } else {
-      edgeColor = clusterColorMap[color] || defaultColor;
-    }
-    try {
-      edgeAttributes.color.set([edgeColor.r, edgeColor.g, edgeColor.b], i * 3);
-    } catch (error) {
-      //console.error("Error setting edge color:", error);
-      console.log(edgeColor, color);
-      edgeAttributes.color.set(
-        [defaultColor.r, defaultColor.g, defaultColor.b],
-        i * 3
-      );
-    }
-    edgeAttributes.edgeStartIndices[i] = positionIndex / 3;
-
-    for (let j = 0; j < points.length; j++) {
-      const point = points[j];
+    points.forEach((point) => {
       if (
         isValidNumber(point.x) &&
         isValidNumber(point.y) &&
         isValidNumber(point.z)
       ) {
-        const vector = transformPoint(point.x, point.y, point.z);
-        edgeAttributes.positions.set(
-          [vector.x, vector.y, vector.z],
-          positionIndex
-        );
+        const vector = transformPoint(point);
+        updateEdgeBuffer(positionIndex, vector, edgeColor, year);
         positionIndex += 3;
-        releaseVector3(vector);
       }
-    }
+    });
+
+    const endIndex = positionIndex / 3;
+    storeEdgeMetadata(id, source, target, weight, startIndex, endIndex, year);
+  });
+
+  // Trim buffer attributes if fewer points were loaded
+  if (positionIndex < totalPoints * 3) {
+    edgesGeometry.setDrawRange(0, positionIndex / 3);
   }
-  edgeAttributes.edgeStartIndices[totalEdges] = positionIndex / 3;
-  // if color
-
-  console.log(edgeAttributes.color);
-
-  return edgeAttributes;
+  console.log("Edge data processed.");
 }
 
+// Load and parse edge data
 export async function loadEdgeData(url, clusterColorMap) {
   try {
     const data = await loadJSONData(url);
-    return parseEdgeData(data, clusterColorMap);
+    parseEdgesData(data, clusterColorMap);
+    console.log("edgesLoader Module ran successfully");
+    return { edgesMap, edgesGeometry };
   } catch (error) {
     console.error("Error loading edge data:", error);
-    throw error;
   }
 }
+
+export { edgesMap };
+export { edgesGeometry };

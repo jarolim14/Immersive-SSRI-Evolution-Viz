@@ -1,14 +1,10 @@
 import { handleResize } from "./sceneCreation";
 import { handleScroll } from "./orbitControls";
 import { handleMouseDown, handleMouseUp } from "./singleNodeSelection";
-import {
-  updateClusterVisibility,
-  getUpdatedBrightness,
-  updateNodeBrightnessInScene,
-} from "./updateClusterVisibility.js";
+import { updateClusterVisibility } from "./updateClusterVisibility.js";
 
 export function addEventListeners(
-  nodes,
+  nodesMap,
   positions,
   camera,
   renderer,
@@ -32,22 +28,17 @@ export function addEventListeners(
   );
 
   canvas.addEventListener("mouseup", (event) =>
-    handleMouseUp(event, nodes, positions, canvas, camera, scene)
+    handleMouseUp(event, nodesMap, positions, canvas, camera, scene)
   );
 
   // Add event listener for the update visibility button
   const updateVisibilityButton = document.getElementById("updateVisibility");
   if (updateVisibilityButton) {
     updateVisibilityButton.addEventListener("click", () => {
-      updateClusterVisibility();
+      updateClusterVisibility(scene);
     });
   } else {
     console.warn("Update visibility button not found");
   }
-
-  // Add event listener for node visibility updates
-  window.addEventListener("nodeVisibilityUpdated", () => {
-    const updatedBrightness = getUpdatedBrightness();
-    updateNodeBrightnessInScene(updatedBrightness, scene);
-  });
+  window.addEventListener("clusterVisibilityUpdated", () => {});
 }

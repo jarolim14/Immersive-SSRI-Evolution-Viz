@@ -20,6 +20,7 @@
       href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600&display=swap"
       rel="stylesheet"
     />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.6.3/nouislider.min.js"></script>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
@@ -36,16 +37,42 @@
     <!-- 
     DESCRIPTION: Add slider
     -->
-    <div id="yearSliderContainer">
-      <span id="currentYear">2023</span>
-      <input
-        type="range"
-        id="yearSlider"
-        min="1982"
-        max="2023"
-        value="2023"
-        step="1"
-      />
+
+    <div class="range_container">
+      <div class="sliders_control">
+        <input
+          id="fromSlider"
+          type="range"
+          value="1982"
+          min="1982"
+          max="2023"
+        />
+        <input id="toSlider" type="range" value="2023" min="1982" max="2023" />
+      </div>
+      <div class="form_control">
+        <div class="form_control_container">
+          <div class="form_control_container__time">Min</div>
+          <input
+            class="form_control_container__time__input"
+            type="number"
+            id="fromInput"
+            value="1982"
+            min="1982"
+            max="2023"
+          />
+        </div>
+        <div class="form_control_container">
+          <div class="form_control_container__time">Max</div>
+          <input
+            class="form_control_container__time__input"
+            type="number"
+            id="toInput"
+            value="2023"
+            min="1982"
+            max="2023"
+          />
+        </div>
+      </div>
     </div>
     <!-- 
     DESCRIPTION: Add color legend to bottom right corner

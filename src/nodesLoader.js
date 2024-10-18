@@ -1,65 +1,145 @@
 /**
- * Data Loading and Processing Module
+ * @file nodesLoader.js
+ * @description This module handles the loading, parsing, and initialization of node data for a 3D graph visualization using Three.js.
+ * It provides functionality for creating node geometries, calculating node properties, and managing node data.
  *
- * This module handles the loading and processing of node data for a 3D visualization.
- * It includes functions for:
- * - Initializing buffer arrays for node positions, colors, and sizes
- * - Loading JSON data from URLs
- * - Loading and processing cluster color and label maps
- * - Parsing and processing node data, including position calculations and rotations
- * - Updating node data in the buffer arrays
- * - Providing access to the processed node data
+ * @author [Your Name or Organization]
+ * @version 1.0.0
+ * @date 2023-10-18
  *
- * The module uses Three.js for 3D calculations and relies on a CONFIG object for settings.
+ * Key Functions:
+ * - initializeBufferGeometry(nodeCount): Initializes THREE.BufferGeometry for nodes.
+ * - normalizeCentrality(data, nodesToLoad): Calculates min and max centrality values.
+ * - calculatePosition(node): Computes 3D position for a node.
+ * - calculateNodeSize(normalizedCentrality): Determines node size based on centrality.
+ * - getNodeColor(node, clusterColorMap): Retrieves color for a node based on its cluster.
+ * - updateNodeData(index, position, color, size): Updates node data in the buffer.
+ * - parseNodesData(data, percentage, clusterLabelMap, clusterColorMap): Main function for parsing node data.
+ * - loadNodeData(url, percentage, clusterLabelMap, clusterColorMap): Loads and parses node data from a URL.
+ * - getInitialNodeData(): Returns the initial node data and geometry.
  *
- * @author Lukas Westphal
- * @version 1.0
- * @date 16.07.24
+ * Features:
+ * - Dynamic node loading based on a configurable percentage of total nodes.
+ * - Custom attribute creation for Three.js BufferGeometry (position, color, size, visibility).
+ * - Centrality-based node size calculation.
+ * - Cluster-based node coloring.
+ * - Support for selective loading of specific clusters.
+ * - 3D positioning with configurable multipliers and transformations.
+ *
+ * This module is crucial for initializing and managing node data in a large-scale 3D graph visualization,
+ * providing the foundation for rendering and interacting with nodes in a Three.js environment.
+ *
+ * @requires THREE
+ * @requires ./config.js
+ * @requires ./dataUtils.js
+ *
+ * @exports {Function} loadNodeData
+ * @exports {Function} getInitialNodeData
  */
 
 import * as THREE from "three";
 import { CONFIG } from "./config.js";
+import { loadJSONData } from "./dataUtils.js";
 
-// Declare these at the top of your module
+let nodesMap = new Map();
+let nodesGeometry = null;
 
-let nodes = new Map();
-let positions, colors, sizes;
+// BufferGeometry initialization
+function initializeBufferGeometry(nodeCount) {
+  nodesGeometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(nodeCount * 3); // x, y, z
+  const colors = new Float32Array(nodeCount * 3); // r, g, b
+  const sizes = new Float32Array(nodeCount); // size
+  const visible = new Float32Array(nodeCount).fill(1); // default visible (1)
+  const singleNodeSelectionBrightness = new Float32Array(nodeCount).fill(0); // default visible (1)
 
-function initializeDefaultNodeAttributes(numberOfNodes) {
-  //console.log(`Initializing buffers for ${numberOfNodes} nodes`);
-  positions = new Float32Array(numberOfNodes * 3);
-  colors = new Float32Array(numberOfNodes * 3);
-  sizes = new Float32Array(numberOfNodes);
+  nodesGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(positions, 3)
+  );
+  nodesGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  nodesGeometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+  nodesGeometry.setAttribute("visible", new THREE.BufferAttribute(visible, 1));
+  nodesGeometry.setAttribute(
+    "singleNodeSelectionBrightness",
+    new THREE.BufferAttribute(singleNodeSelectionBrightness, 1)
+  );
+  nodesGeometry.name = "nodesGeometry";
 }
 
-export async function loadJSONData(url) {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error(`Error fetching data from ${url}:`, error);
-    throw error;
-  }
-}
-
-function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
-  const totalNodes = data.length;
-  const nodesToLoad = Math.floor(totalNodes * percentage);
-  console.log(`Loading ${nodesToLoad} out of ${totalNodes} nodes`);
-  initializeDefaultNodeAttributes(nodesToLoad);
-  console.log("Default Node Attributes initialized");
-
-  // Find max and min centrality for normalization
+// Centrality normalization helper
+function normalizeCentrality(data, nodesToLoad) {
   let maxCentrality = -Infinity;
   let minCentrality = Infinity;
+
   for (let i = 0; i < nodesToLoad; i++) {
     const centrality = parseFloat(data[i].centrality);
     maxCentrality = Math.max(maxCentrality, centrality);
     minCentrality = Math.min(minCentrality, centrality);
   }
+
+  return { maxCentrality, minCentrality };
+}
+
+// Position calculation helper
+function calculatePosition(node) {
+  const x = node.x * CONFIG.coordinateMultiplier;
+  const y = node.y * CONFIG.coordinateMultiplier;
+  const z = (CONFIG.liftUpZ + node.z) * CONFIG.zCoordinateShift;
+
+  return new THREE.Vector3(x, y, z).applyAxisAngle(
+    new THREE.Vector3(1, 0, 0),
+    Math.PI / 2
+  );
+}
+
+// Node size calculation helper
+function calculateNodeSize(normalizedCentrality) {
+  const minSize = CONFIG.nodeSize.min;
+  const maxSize = CONFIG.nodeSize.max;
+  const sizePower = CONFIG.nodeSize.power || 2;
+
+  return (
+    minSize + (maxSize - minSize) * Math.pow(normalizedCentrality, sizePower)
+  );
+}
+
+// Node color retrieval helper
+function getNodeColor(node, clusterColorMap) {
+  return clusterColorMap[node.cluster];
+}
+
+// Buffer update
+function updateNodeData(index, position, color, size) {
+  const i3 = index * 3;
+  const positions = nodesGeometry.attributes.position.array;
+  const colors = nodesGeometry.attributes.color.array;
+  const sizes = nodesGeometry.attributes.size.array;
+
+  positions[i3] = position.x;
+  positions[i3 + 1] = position.y;
+  positions[i3 + 2] = position.z;
+
+  colors[i3] = color.r;
+  colors[i3 + 1] = color.g;
+  colors[i3 + 2] = color.b;
+
+  sizes[index] = size;
+}
+
+// Main data parsing function
+function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
+  const totalNodes = data.length;
+  const nodesToLoad = Math.floor(totalNodes * percentage);
+  console.log(`Loading ${nodesToLoad} out of ${totalNodes} nodes`);
+
+  initializeBufferGeometry(nodesToLoad);
+  console.log("BufferGeometry initialized");
+
+  const { maxCentrality, minCentrality } = normalizeCentrality(
+    data,
+    nodesToLoad
+  );
 
   let loadedNodes = 0;
   for (let i = 0; i < nodesToLoad; i++) {
@@ -70,71 +150,32 @@ function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
     ) {
       continue;
     }
+
     const nodeId = node.node_index;
     const centrality = parseFloat(node.centrality.toFixed(5));
-    // Normalize centrality
+
     const normalizedCentrality =
       (centrality - minCentrality) / (maxCentrality - minCentrality);
+    const position = calculatePosition(node);
+    const size = calculateNodeSize(normalizedCentrality);
+    const color = getNodeColor(node, clusterColorMap);
 
-    let x = node.x * CONFIG.coordinateMultiplier;
-    let y = node.y * CONFIG.coordinateMultiplier;
-
-    let z = (CONFIG.liftUpZ + node.z) * CONFIG.zCoordinateShift; // * CONFIG.coordinateMultiplier; // centrality; // // from old
-    // Apply rotation
-    const rotatedPosition = new THREE.Vector3(x, y, z).applyAxisAngle(
-      new THREE.Vector3(1, 0, 0),
-      Math.PI / 2
-    );
-
-    // Calculate size using a power function
-    const minSize = CONFIG.nodeSize.min;
-    const maxSize = CONFIG.nodeSize.max;
-    const sizePower = CONFIG.nodeSize.power || 2; // Default to square if not specified
-    const size =
-      minSize + (maxSize - minSize) * Math.pow(normalizedCentrality, sizePower);
-
-    const color = clusterColorMap[node.cluster];
-    nodes.set(nodeId, {
-      index: loadedNodes,
+    nodesMap.set(nodeId, {
       cluster: node.cluster,
       clusterLabel: clusterLabelMap[node.cluster],
       year: node.year,
       title: node.title,
-      centrality: centrality,
-      color: color,
+      centrality,
+      color,
     });
-    updateNodeData(
-      loadedNodes,
-      rotatedPosition.x,
-      rotatedPosition.y,
-      rotatedPosition.z,
-      color.r,
-      color.g,
-      color.b,
-      size,
-      CONFIG.brightness.default // Add default brightness
-    );
+
+    updateNodeData(loadedNodes, position, color, size);
     loadedNodes++;
   }
-  // console.log(`Number of nodes loaded: ${nodes.size}`);
 
-  // Trim arrays to actual size if fewer nodes were loaded
   if (loadedNodes < nodesToLoad) {
-    positions = positions.slice(0, loadedNodes * 3);
-    colors = colors.slice(0, loadedNodes * 3);
-    sizes = sizes.slice(0, loadedNodes);
+    nodesGeometry.setDrawRange(0, loadedNodes);
   }
-}
-
-function updateNodeData(index, x, y, z, r, g, b, size) {
-  const i3 = index * 3;
-  positions[i3] = x;
-  positions[i3 + 1] = y;
-  positions[i3 + 2] = z;
-  colors[i3] = r;
-  colors[i3 + 1] = g;
-  colors[i3 + 2] = b;
-  sizes[index] = size;
 }
 
 export async function loadNodeData(
@@ -146,16 +187,13 @@ export async function loadNodeData(
   try {
     const data = await loadJSONData(url);
     parseNodesData(data, percentage, clusterLabelMap, clusterColorMap);
+    console.log("nodesLoader Module ran successfully");
+    return { nodesMap, nodesGeometry };
   } catch (error) {
     console.error("Error loading node data:", error);
+    throw error; // Re-throw the error for the caller to handle
   }
 }
 
-export function getInitialNodeData() {
-  return {
-    nodes,
-    positions,
-    colors,
-    sizes,
-  };
-}
+export { nodesMap };
+export { nodesGeometry };

@@ -23,6 +23,12 @@ export const CONFIG = {
   controlsMinDistance: 100, // Minimum distance the camera can be from the origin
   controlsMaxDistance: 10000, // Maximum distance the camera can be from the origin
   zoomToCursor: true, // Zoom to node or only towards 0,0,0
+  // fog
+  fog: {
+    color: { r: 0.6, g: 0.7, b: 0.8 }, // Light blue-gray fog
+    near: 3000,
+    far: 50000,
+  },
   // Node Configuration
   nodeTextureUrl: "textures/standard_node.png",
   coordinateMultiplier: 1.5, //500, //25 Multiplier for the node coordinates
@@ -33,7 +39,7 @@ export const CONFIG = {
     power: 2, // Adjust this to change how quickly size increases with centrality
   },
   brightness: { default: 1.5, selected: 2.0, unselected: 0.2 },
-  singleNodeSelectionBrightness: 0.001, // 50% more brightness for single node selection
+  singleNodeSelectionBrightness: 0.5, // 50% more brightness for single node selection
   // All Z Coords
   liftUpZ: 0, //0.15, // lift all nodes by 0.15, so none are negative.
   // Edge Configuration
@@ -43,7 +49,7 @@ export const CONFIG = {
   edgeWidth: 0.01,
   edgeOpacity: 0.2, //0.1,
   edgeBrightness: 0.5,
-  percentageOfEdgesToCreate: 100, //50,
+  percentageOfEdgesToCreate: 10, //50,
   // Interaction Configuration
   clickDurationThreshold: 200, // in milliseconds. long clicks are ignored (bc they drag)
   clickDistanceThreshold: 5, // in pixels
@@ -53,16 +59,10 @@ export const CONFIG = {
   maxZoom: 5000,
   // Performance Configuration
   maxNodes: 45000,
-  percentageOfNodesToLoad: 1, //0.5,
-  loadClusterSubset: false,
-  clustersToLoad: Array.from({ length: 3 }, () =>
-    Math.floor(Math.random() * 15)
-  ),
+  fractionOfNodesToLoad: 0.2, //0.5,
   // File Paths and URLs
-  nodeDataUrl:
-    "/data/NodesData0to100_Pruned33_Bundle_Tresh25_BW0.05_D0.07_T0.03.json",
-  edgeDataUrl:
-    "/data/EdgesData0to100_Pruned33_Bundle_Tresh25_BW0.05_D0.07_T0.03.json",
+  nodeDataUrl: "/data/TESTTESTTESTNodesData0to100_BundlPerc50_BW0,4.json",
+  edgeDataUrl: "/data/TESTTESTTESTEdgesData0to100_BundlPerc50_BW0,4.json",
   clusterColorMapUrl: "data/cluster_color_dict.json",
   clusterLabelMapUrl: "data/cluster_label_dict.json",
   legendDataUrl: "data/legend_tree_mut_excl.json",

@@ -14,7 +14,7 @@
  * - Export of selected leaf keys for use in other parts of the application
  */
 
-import { loadJSONData } from "./nodesLoader.js";
+import { loadJSONData } from "./dataUtils.js";
 
 export let legendSelections = {};
 export let legendSelectedLeafKeys = [];
