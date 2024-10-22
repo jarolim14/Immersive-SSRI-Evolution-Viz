@@ -19,8 +19,9 @@ import { initializeLegend } from "./legend.js";
 import { initializeYearSlider } from "./yearSlider.js";
 import { startRendering } from "./renderer.js";
 import { addEventListeners } from "./eventListeners.js";
-import { initClusterVisibility } from "./updateClusterVisibility.js";
-import { initYearVisibility } from "./updateYearVisibility.js";
+import { initClusterVisibility } from "./visibilityManagerCluster.js";
+import { initYearVisibility } from "./visibilityManagerYear.js";
+import { visibilityManager } from "./visibilityManager.js";
 
 const canvas = document.querySelector("canvas.webgl");
 
@@ -107,8 +108,8 @@ async function initializeScene() {
       console.log(`Year range changed: ${minYear} - ${maxYear}`);
       // Update your Three.js scene based on the new year range
     });
-    //initializeYearSlider();
-    //initYearVisibility();
+    initYearVisibility();
+    visibilityManager.init();
 
     addEventListeners(
       nodesMap,

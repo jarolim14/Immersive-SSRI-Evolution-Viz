@@ -56,14 +56,11 @@ export function initClusterVisibility() {
     // Initialize edge visibility from line segments
     edgeVisibility = lineSegments.geometry.attributes.visible.array;
 
-    console.log("Edge visibility array:", edgeVisibility);
-    console.log("Line segments object:", lineSegments);
     console.log("Cluster Visibility Initialized Successfully");
   } else {
     console.error(
       "Points object or visibility attribute not found. Initializing default visibility array - all nodes visible."
     );
-    // Create a new visibility array with all nodes visible
     nodeVisibility = new Float32Array(nodesMap.size).fill(1);
   }
 }
@@ -83,20 +80,22 @@ export function updateClusterVisibility() {
   const selectedClusters = new Set(getLegendSelectedLeafKeys());
 
   // Update node visibility
-  updateNodeVisibility(selectedClusters);
+  const nodeVisibility = updateNodeClusterVisibility(selectedClusters);
 
   // Update edge visibility
-  updateEdgeVisibility(selectedClusters);
+  const edgeVisibility = updateEdgeClusterVisibility(selectedClusters);
 
   // Collapse legend for better visualization
   collapseLegend();
+
+  return { nodeVisibility, edgeVisibility };
 }
 
 /**
- * Updates the visibility of nodes based on selected clusters and applies changes to the scene.
+ * Updates the visibility of nodes based on selected clusters.
  * @param {Set} selectedClusters - Set of currently selected cluster keys
  */
-function updateNodeVisibility(selectedClusters) {
+function updateNodeClusterVisibility(selectedClusters) {
   if (!nodeVisibility || nodeVisibility.length !== nodesMap.size) {
     console.warn(
       "Node visibility array not properly initialized or size mismatch. Reinitializing."
@@ -105,53 +104,35 @@ function updateNodeVisibility(selectedClusters) {
   }
 
   nodesMap.forEach((node, index) => {
-    // Node is visible if no clusters are selected or if its cluster is selected
     nodeVisibility[index] =
       selectedClusters.size === 0 || selectedClusters.has(node.cluster) ? 1 : 0;
   });
 
-  if (points && points.geometry.attributes.visible) {
-    // Update the visibility attribute of the points geometry
-    points.geometry.attributes.visible.array.set(nodeVisibility);
-    points.geometry.attributes.visible.needsUpdate = true;
-    console.log("Node visibility updated in scene");
-  } else {
-    console.warn(
-      "Unable to update node visibility in scene. Points object or visibility attribute not found."
-    );
-  }
+  return nodeVisibility; // Return updated visibility array
 }
 
 /**
  * Updates the visibility of edges based on selected clusters.
  * @param {Set} selectedClusters - Set of currently selected cluster keys
  */
-export function updateEdgeVisibility(selectedClusters) {
+function updateEdgeClusterVisibility(selectedClusters) {
   const edgeGeometry = lineSegments.geometry;
   const visibility = edgeGeometry.attributes.visible;
   const edgeData = lineSegments.userData.edgeData;
 
-  edgeData.forEach((edge, i) => {
+  edgeData.forEach((edge) => {
     const isVisible =
       selectedClusters.size === 0 ||
       (selectedClusters.has(edge.sourceCluster) &&
         selectedClusters.has(edge.targetCluster));
 
-    // Update visibility for all segments of this edge
     for (let j = edge.startIndex; j < edge.endIndex; j++) {
-      visibility.array[j] = isVisible ? 1.0 : 0.0;
+      edgeVisibility[j] = isVisible ? 1.0 : 0.0;
     }
   });
 
-  visibility.needsUpdate = true;
-  console.log("Edge visibility updated");
+  return edgeVisibility; // Return updated visibility array
 }
-
-// Event listener for cluster visibility updates
-window.addEventListener("clusterVisibilityUpdated", () => {
-  console.log("Cluster visibility update event received");
-  updateClusterVisibility();
-});
 
 /**
  * Collapses all subtrees in the legend for improved visualization.

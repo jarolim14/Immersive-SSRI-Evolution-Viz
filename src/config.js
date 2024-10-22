@@ -49,7 +49,7 @@ export const CONFIG = {
   edgeWidth: 0.01,
   edgeOpacity: 0.2, //0.1,
   edgeBrightness: 0.5,
-  percentageOfEdgesToCreate: 10, //50,
+  fractionOfEdgesToLoad: 0.5,
   // Interaction Configuration
   clickDurationThreshold: 200, // in milliseconds. long clicks are ignored (bc they drag)
   clickDistanceThreshold: 5, // in pixels
@@ -57,9 +57,10 @@ export const CONFIG = {
   zoomSpeed: 0.05, // scroll speed
   minZoom: 75,
   maxZoom: 5000,
+  yearUpdateDelayTime: 1000, // Time in milliseconds before dispatching the event
   // Performance Configuration
   maxNodes: 45000,
-  fractionOfNodesToLoad: 0.2, //0.5,
+  fractionOfNodesToLoad: 0.5, //0.5,
   // File Paths and URLs
   nodeDataUrl: "/data/TESTTESTTESTNodesData0to100_BundlPerc50_BW0,4.json",
   edgeDataUrl: "/data/TESTTESTTESTEdgesData0to100_BundlPerc50_BW0,4.json",

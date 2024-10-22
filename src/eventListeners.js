@@ -1,7 +1,9 @@
 import { handleResize } from "./sceneCreation";
 import { handleScroll } from "./orbitControls";
 import { handleMouseDown, handleMouseUp } from "./singleNodeSelection";
-import { updateClusterVisibility } from "./updateClusterVisibility.js";
+//import { updateClusterVisibility } from "./visibilityManagerCluster.js";
+//import { updateYearVisibility } from "./visibilityManagerYear.js";
+import { visibilityManager } from "./visibilityManager.js";
 
 export function addEventListeners(
   nodesMap,
@@ -31,14 +33,11 @@ export function addEventListeners(
     handleMouseUp(event, nodesMap, positions, canvas, camera, scene)
   );
 
-  // Add event listener for the update visibility button
-  const updateVisibilityButton = document.getElementById("updateVisibility");
-  if (updateVisibilityButton) {
-    updateVisibilityButton.addEventListener("click", () => {
-      updateClusterVisibility(scene);
-    });
-  } else {
-    console.warn("Update visibility button not found");
-  }
-  window.addEventListener("clusterVisibilityUpdated", () => {});
+  window.addEventListener("yearUpdated", () => {
+    visibilityManager.updateYearVisibility();
+  });
+
+  window.addEventListener("clusterVisibilityUpdated", () => {
+    visibilityManager.updateClusterVisibility();
+  });
 }

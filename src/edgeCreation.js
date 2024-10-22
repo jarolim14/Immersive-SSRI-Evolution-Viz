@@ -4,8 +4,8 @@
  * It provides functionality for generating edge geometries, applying shaders, and managing edge data.
  *
  * @author [Your Name or Organization]
- * @version 1.0.0
- * @date 2023-10-18
+ * @version 1.1.0
+ * @date 2023-10-21
  *
  * Key Functions:
  * - createEdges(edgesGeometry, edgeMap, nodesMap): Creates edge geometries and materials based on provided data.
@@ -13,7 +13,7 @@
  * - getEdges(): Returns the created line segments representing edges.
  *
  * Features:
- * - Dynamic edge creation based on a configurable percentage of total edges.
+ * - Dynamic edge creation based on a configurable fraction of total edges.
  * - Custom shader material application for edge rendering.
  * - Edge visibility control.
  * - Color differentiation for special edges.
@@ -46,9 +46,7 @@ export function createEdges(edgesGeometry, edgeMap, nodesMap) {
   const edgeData = [];
 
   const totalEdges = edgeMap.size;
-  const edgesToCreate = Math.floor(
-    totalEdges * (CONFIG.percentageOfEdgesToCreate / 100)
-  );
+  const edgesToCreate = Math.floor(totalEdges * CONFIG.fractionOfEdgesToLoad);
   const edgeIndices = Array.from(edgeMap.keys());
   shuffleArray(edgeIndices);
 
@@ -137,8 +135,6 @@ export function createEdges(edgesGeometry, edgeMap, nodesMap) {
   lineSegments = new THREE.LineSegments(geometry, material);
   lineSegments.userData.edgeData = edgeData;
   lineSegments.name = "edges";
-  //console.log("line segments visible array:");
-  //console.log(lineSegments.geometry.attributes.visible.array);
   return lineSegments;
 }
 
