@@ -56,7 +56,7 @@ export const CONFIG = {
   // Interaction Configuration
   clickDurationThreshold: 200, // in milliseconds. long clicks are ignored (bc they drag)
   clickDistanceThreshold: 5, // in pixels
-  nodeSelectionAccuracyThreshold: 10, //pixels; how accurate the click
+  nodeSelectionAccuracyThreshold: 15, //pixels; how accurate the click
   zoomSpeed: 0.05, // scroll speed
   minZoom: 75,
   maxZoom: 5000,
