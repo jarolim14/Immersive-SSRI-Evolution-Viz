@@ -160,7 +160,9 @@ function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
     const size = calculateNodeSize(normalizedCentrality);
     const color = getNodeColor(node, clusterColorMap);
 
-    nodesMap.set(nodeId, {
+    // Use `loadedNodes` as the key and add `nodeId` to the map value
+    nodesMap.set(loadedNodes, {
+      nodeId: nodeId, // Explicitly include nodeId in the value
       cluster: node.cluster,
       clusterLabel: clusterLabelMap[node.cluster],
       year: node.year,
@@ -188,6 +190,7 @@ export async function loadNodeData(
     const data = await loadJSONData(url);
     parseNodesData(data, percentage, clusterLabelMap, clusterColorMap);
     console.log("nodesLoader Module ran successfully");
+    console.log(clusterLabelMap);
     return { nodesMap, nodesGeometry };
   } catch (error) {
     console.error("Error loading node data:", error);

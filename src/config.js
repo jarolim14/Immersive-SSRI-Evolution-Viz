@@ -40,6 +40,9 @@ export const CONFIG = {
   },
   brightness: { default: 1.5, selected: 2.0, unselected: 0.2 },
   singleNodeSelectionBrightness: 0.5, // 50% more brightness for single node selection
+  // Performance Configuration
+  maxNodes: 45000,
+  fractionOfNodesToLoad: 1, // //0.5,
   // All Z Coords
   liftUpZ: 0, //0.15, // lift all nodes by 0.15, so none are negative.
   // Edge Configuration
@@ -49,7 +52,7 @@ export const CONFIG = {
   edgeWidth: 0.01,
   edgeOpacity: 0.2, //0.1,
   edgeBrightness: 0.5,
-  fractionOfEdgesToLoad: 0.5,
+  fractionOfEdgesToLoad: 1,
   // Interaction Configuration
   clickDurationThreshold: 200, // in milliseconds. long clicks are ignored (bc they drag)
   clickDistanceThreshold: 5, // in pixels
@@ -58,12 +61,10 @@ export const CONFIG = {
   minZoom: 75,
   maxZoom: 5000,
   yearUpdateDelayTime: 1000, // Time in milliseconds before dispatching the event
-  // Performance Configuration
-  maxNodes: 45000,
-  fractionOfNodesToLoad: 0.5, //0.5,
+
   // File Paths and URLs
-  nodeDataUrl: "/data/TESTTESTTESTNodesData0to100_BundlPerc50_BW0,4.json",
-  edgeDataUrl: "/data/TESTTESTTESTEdgesData0to100_BundlPerc50_BW0,4.json",
+  nodeDataUrl: "/data/smallchecksample10clusters_nodes.json",
+  edgeDataUrl: "/data/smallchecksample10clusters_edges.json",
   clusterColorMapUrl: "data/cluster_color_dict.json",
   clusterLabelMapUrl: "data/cluster_label_dict.json",
   legendDataUrl: "data/legend_tree_mut_excl.json",

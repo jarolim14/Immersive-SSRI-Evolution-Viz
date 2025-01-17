@@ -1,8 +1,6 @@
 import { handleResize } from "./sceneCreation";
 import { handleScroll } from "./orbitControls";
 import { handleMouseDown, handleMouseUp } from "./singleNodeSelection";
-//import { updateClusterVisibility } from "./visibilityManagerCluster.js";
-//import { updateYearVisibility } from "./visibilityManagerYear.js";
 import { visibilityManager } from "./visibilityManager.js";
 
 export function addEventListeners(
