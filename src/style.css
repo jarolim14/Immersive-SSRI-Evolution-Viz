@@ -45,7 +45,7 @@ html {
   display: flex;
   flex-direction: column;
   width: 40%;
-  margin: 85vh auto; /* Use vh (viewport height) for vertical centering */
+  margin: 1vh auto; /* Use vh (viewport height) for vertical centering 85 for button of */
 }
 
 @media (max-width: 768px) {
@@ -141,7 +141,6 @@ input[type="range"]::-webkit-slider-thumb:active {
 /* Legend styles  Legend styles Legend styles Legend styles Legend styles Legend styles */
 
 /* =================== =================== =================== =================== =================== */
-
 #legendDiv {
   position: absolute;
   top: 10px;
@@ -159,8 +158,8 @@ input[type="range"]::-webkit-slider-thumb:active {
 }
 
 .legend-item {
+  align-items: left;
   margin: 5px 0;
-  display: flex;
   flex-direction: column; /* Stack the color and text */
 }
 
