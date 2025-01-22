@@ -22,8 +22,19 @@
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.6.3/nouislider.min.js"></script>
     <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./loadingModal.css" />
   </head>
   <body>
+    <!-- Add to your index.html -->
+    <div id="loadingModal" class="modal">
+      <div class="modal-content">
+        <!-- Your introduction content goes here -->
+        <div id="introContent">
+          <!-- Add your introduction text/content here -->
+        </div>
+        <button id="closeModalBtn" class="close-btn">Close Introduction</button>
+      </div>
+    </div>
     <!-- Canvas for WebGL rendering -->
     <canvas class="webgl"></canvas>
     <!-- Add the node id div element -->

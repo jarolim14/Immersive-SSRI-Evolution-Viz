@@ -1,0 +1,44 @@
+/* loadingModal.css */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal-content {
+  background-color: #1a1a1a;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 500px;
+  text-align: center;
+  border-radius: 8px;
+  color: white;
+  font-family: "Exo 2", sans-serif;
+}
+
+.close-btn {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: "Exo 2", sans-serif;
+}
+
+.close-btn:hover {
+  background-color: #45a049;
+}
+
+/* Add any additional custom styles here */
+#introContent {
+  margin-bottom: 20px;
+}
