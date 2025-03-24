@@ -7,7 +7,7 @@ export const CONFIG = {
   axesHelperSize: 1000,
   addAxesHelper: true,
   // Renderer Configuration
-  rendererAntialias: false, // Set to true for production Antialiasing is a technique used to reduce the appearance of jagged edges (aliasing) in digital images. These jagged edges are often referred to as “jaggies” and are especially noticeable on diagonal lines or curves. By smoothing these edges, antialiasing improves the visual quality of the rendered image.
+  rendererAntialias: false, // Set to true for production Antialiasing is a technique used to reduce the appearance of jagged edges (aliasing) in digital images. These jagged edges are often referred to as "jaggies" and are especially noticeable on diagonal lines or curves. By smoothing these edges, antialiasing improves the visual quality of the rendered image.
   rendererAutoClearColor: true,
   devicePixelRatio: Math.min(window.devicePixelRatio, 2),
   windowSizes: {
@@ -57,7 +57,7 @@ export const CONFIG = {
   clickDurationThreshold: 200, // in milliseconds. long clicks are ignored (bc they drag)
   clickDistanceThreshold: 5, // in pixels
   nodeSelectionAccuracyThreshold: 15, //pixels; how accurate the click
-  zoomSpeed: 0.05, // scroll speed
+  zoomSpeed: 0.015, // Reduced for smoother zooming with new delta handling
   minZoom: 75,
   maxZoom: 5000,
   yearUpdateDelayTime: 1000, // Time in milliseconds before dispatching the event
