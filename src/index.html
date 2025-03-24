@@ -22,19 +22,73 @@
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.6.3/nouislider.min.js"></script>
     <link rel="stylesheet" href="./style.css" />
-    <link rel="stylesheet" href="./loadingModal.css" />
   </head>
   <body>
-    <!-- Add to your index.html -->
-    <div id="loadingModal" class="modal">
+    <!-- Instructions Modal -->
+    <div id="instructionsModal" class="modal">
       <div class="modal-content">
-        <!-- Your introduction content goes here -->
-        <div id="introContent">
-          <!-- Add your introduction text/content here -->
+        <!-- Loading Section -->
+        <div id="loadingContent" class="modal-section">
+          <h2>Loading Data</h2>
+          <div class="loading-spinner"></div>
+          <p id="loadingStatus">Loading visualization data...</p>
         </div>
-        <button id="closeModalBtn" class="close-btn">Close Introduction</button>
+
+        <!-- Instructions Section -->
+        <div id="instructionsContent" class="modal-section">
+          <h2>Network Visualization Guide</h2>
+          <div class="instructions-container">
+            <div class="instruction-item">
+              <h3>What You're Looking At</h3>
+              <ul>
+                <li>📄 Each node represents a scientific paper</li>
+                <li>↗️ Lines between nodes show citations</li>
+                <li>🎨 Colors indicate the paper's category (see legend)</li>
+                <li>🔍 Similar papers are positioned closer together</li>
+              </ul>
+            </div>
+            <div class="instruction-item">
+              <h3>Basic Controls</h3>
+              <ul>
+                <li>🖱️ Left Mouse Button: Rotate the view</li>
+                <li>🖱️ Right Mouse Button: Pan the view</li>
+                <li>🖱️ Mouse Wheel: Zoom in/out</li>
+              </ul>
+            </div>
+            <div class="instruction-item">
+              <h3>Node Interaction</h3>
+              <ul>
+                <li>🖱️ Click on a node to select it and view paper details</li>
+                <li>💫 Double-click to focus on a node</li>
+              </ul>
+            </div>
+            <div class="instruction-item">
+              <h3>Additional Features</h3>
+              <ul>
+                <li>
+                  📅 Use the year slider to filter papers by publication date
+                </li>
+                <li>🏷️ Toggle node visibility using the legend</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error Section -->
+        <div id="errorContent" class="modal-section">
+          <h2>Error</h2>
+          <p id="errorMessage"></p>
+        </div>
+
+        <div class="modal-footer">
+          <button id="instructionsCloseBtn" class="close-btn">Got it!</button>
+        </div>
       </div>
     </div>
+
+    <!-- Help Button -->
+    <button id="helpButton" class="help-button">?</button>
+
     <!-- Canvas for WebGL rendering -->
     <canvas class="webgl"></canvas>
     <!-- Add the node id div element -->
@@ -44,10 +98,9 @@
       <button id="updateVisibility" class="update-button">
         Update Selection
       </button>
+      <button id="resetLegend" class="reset-button">Reset All</button>
     </div>
-    <!-- 
-    DESCRIPTION: Add year slider
-    -->
+    <!-- Year slider -->
     <div id="year-slider-container">
       <div class="range_container">
         <div class="sliders_control">
@@ -73,9 +126,7 @@
       </div>
     </div>
 
-    <!-- 
-    DESCRIPTION: Add color legend to bottom right corner
-    -->
+    <!-- Color legend -->
     <div id="colorLegendDiv">
       <div class="legend-item">
         <div class="color-box pharmacology"></div>

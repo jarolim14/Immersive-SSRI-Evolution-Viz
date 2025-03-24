@@ -29,6 +29,12 @@ export async function initializeLegend(url) {
     legendSelectedLeafKeys = legendResult.legendSelectedLeafKeys;
     //console.log("Initial legendSelections:", legendSelections);
     // console.log("Initial selected leaf keys:", legendSelectedLeafKeys);
+
+    // Add reset button functionality
+    const resetButton = document.getElementById("resetLegend");
+    if (resetButton) {
+      resetButton.addEventListener("click", resetLegendState);
+    }
   } catch (error) {
     console.error("Error initializing legend:", error);
   }
@@ -175,4 +181,32 @@ export function createLegendTree(data) {
 
 export function getLegendSelectedLeafKeys() {
   return legendSelectedLeafKeys;
+}
+
+function resetLegendState() {
+  // Get all checkboxes in the legend
+  const checkboxes = document.querySelectorAll(
+    '#legendDiv input[type="checkbox"]'
+  );
+
+  // Uncheck all checkboxes
+  checkboxes.forEach((checkbox) => {
+    checkbox.checked = false;
+    // Update the internal state
+    if (checkbox.classList.contains("leaf-checkbox")) {
+      legendSelections[checkbox.id] = false;
+      const leafKey = parseInt(checkbox.dataset.key, 10);
+      const index = legendSelectedLeafKeys.indexOf(leafKey);
+      if (index > -1) {
+        legendSelectedLeafKeys.splice(index, 1);
+      }
+    }
+  });
+
+  // Clear the selected leaf keys array
+  legendSelectedLeafKeys.length = 0;
+
+  // Show all nodes and edges by triggering the visibility update
+  // with an empty selection (which means show all)
+  document.getElementById("updateVisibility").click();
 }

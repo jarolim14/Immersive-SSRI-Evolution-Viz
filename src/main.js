@@ -20,7 +20,7 @@ import { initializeYearSlider } from "./yearSlider.js";
 import { startRendering } from "./renderer.js";
 import { addEventListeners } from "./eventListeners.js";
 import { visibilityManager } from "./visibilityManager.js";
-import { loadingModal } from "./loadingModal.js";
+import { instructionsModal } from "./instructionsModal.js";
 
 const canvas = document.querySelector("canvas.webgl");
 
@@ -70,8 +70,7 @@ async function initializeScene() {
   console.log("Main: Starting initialization");
   const startTime = performance.now();
 
-  loadingModal.initialize();
-  loadingModal.show();
+  instructionsModal.initialize();
 
   try {
     const { scene, camera, renderer, controls, parent } = createScene(canvas);
@@ -100,18 +99,15 @@ async function initializeScene() {
 
     initializeSelectionMesh(scene);
     await initializeLegend(CONFIG.legendDataUrl);
-    // Create a container for the slider
+
     const sliderContainer = document.createElement("div");
     sliderContainer.id = "year-slider-container";
     document.body.appendChild(sliderContainer);
 
-    // Initialize the year slider
     initializeYearSlider(sliderContainer, (minYear, maxYear) => {
       console.log(`Year range changed: ${minYear} - ${maxYear}`);
-      // Update your Three.js scene based on the new year range
     });
 
-    // Initialize the visibility manager (cluster and year based)
     visibilityManager.init();
 
     addEventListeners(
@@ -129,19 +125,19 @@ async function initializeScene() {
     const endTime = performance.now();
     const loadTime = (endTime - startTime) / 1000;
     console.log(`Total load time: ${loadTime.toFixed(2)} seconds`);
-    // Enable close button after loading is complete
-    loadingModal.setLoaded();
+
     startRendering(scene, camera, controls, renderer);
   } catch (error) {
     console.error("Error in initializeScene:", error);
-    loadingModal.updateStatus("Error loading data. Please refresh the page.");
-    // Handle the error appropriately, e.g., display an error message to the user
+    instructionsModal.showError("Error loading data. Please refresh the page.");
   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   initializeScene().catch((error) => {
     console.error("Error initializing scene:", error);
-    // Handle the error appropriately, e.g., display an error message to the user
+    instructionsModal.showError(
+      "Failed to initialize the scene. Please refresh the page."
+    );
   });
 });

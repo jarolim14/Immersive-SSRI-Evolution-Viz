@@ -23,10 +23,10 @@ export function initializeYearSlider(container, onYearChange) {
     } else {
       fromValue.textContent = from;
     }
+    // Update the display immediately
     onYearChange(from, parseInt(toValue.textContent));
-    //    dispatchYearUpdatedEvent(); // Dispatch the event after changing values
-    // Reset the timeout to wait for the selection to remain unchanged
-    resetYearUpdateTimeout();
+    // Debounce the actual data update
+    debouncedYearUpdate();
   }
 
   function controlToSlider(fromSlider, toSlider) {
@@ -40,9 +40,20 @@ export function initializeYearSlider(container, onYearChange) {
       toValue.textContent = from;
       toSlider.value = from;
     }
+    // Update the display immediately
     onYearChange(parseInt(fromValue.textContent), to);
-    // Reset the timeout to wait for the selection to remain unchanged
-    resetYearUpdateTimeout();
+    // Debounce the actual data update
+    debouncedYearUpdate();
+  }
+
+  // Debounced update function
+  function debouncedYearUpdate() {
+    if (yearUpdateTimeout) {
+      clearTimeout(yearUpdateTimeout);
+    }
+    yearUpdateTimeout = setTimeout(() => {
+      dispatchYearUpdatedEvent();
+    }, CONFIG.yearUpdateDelayTime || 1000); // Use 1 second as default delay
   }
 
   function getParsed(currentFrom, currentTo) {
@@ -83,23 +94,15 @@ export function initializeYearSlider(container, onYearChange) {
   // Initialize values
   fromValue.textContent = fromSlider.value;
   toValue.textContent = toSlider.value;
+
+  // Set initial visibility after a short delay
+  setTimeout(() => {
+    dispatchYearUpdatedEvent();
+  }, 100);
 }
 
 // Function to dispatch the custom "yearUpdated" event
 function dispatchYearUpdatedEvent() {
   const event = new Event("yearUpdated");
   window.dispatchEvent(event);
-}
-
-// Function to reset the year update timeout
-function resetYearUpdateTimeout() {
-  // Clear the existing timeout if it exists
-  if (yearUpdateTimeout) {
-    clearTimeout(yearUpdateTimeout);
-  }
-
-  // Set a new timeout to dispatch the event after the delay
-  yearUpdateTimeout = setTimeout(() => {
-    dispatchYearUpdatedEvent();
-  }, CONFIG.yearUpdateDelayTime);
 }

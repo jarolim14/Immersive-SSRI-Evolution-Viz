@@ -21,7 +21,7 @@ export const CONFIG = {
   cameraFarPlane: 20000, // Far clipping plane (anything further away from this won't be rendered)
   // Controls Configuration
   controlsMinDistance: 100, // Minimum distance the camera can be from the origin
-  controlsMaxDistance: 10000, // Maximum distance the camera can be from the origin
+  controlsMaxDistance: 20000, // Maximum distance the camera can be from the origin
   zoomToCursor: true, // Zoom to node or only towards 0,0,0
   // fog
   fog: {

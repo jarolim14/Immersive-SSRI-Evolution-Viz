@@ -2,6 +2,7 @@ import { handleResize } from "./sceneCreation";
 import { handleScroll } from "./orbitControls";
 import { handleMouseDown, handleMouseUp } from "./singleNodeSelection";
 import { visibilityManager } from "./visibilityManager.js";
+import { instructionsModal } from "./instructionsModal.js";
 
 export function addEventListeners(
   nodesMap,
@@ -37,5 +38,12 @@ export function addEventListeners(
 
   window.addEventListener("clusterVisibilityUpdated", () => {
     visibilityManager.updateClusterVisibility();
+  });
+
+  // Add keyboard shortcut for instructions
+  document.addEventListener("keydown", (event) => {
+    if (event.key.toLowerCase() === "h") {
+      instructionsModal.show();
+    }
   });
 }
