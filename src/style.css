@@ -627,6 +627,10 @@ input[type="range"]::-webkit-slider-thumb:active {
   font-family: var(--header-font);
 }
 
+.credits-button {
+  right: 70px;
+}
+
 .help-button:hover {
   transform: scale(1.1);
   background-color: var(--button-success);
@@ -636,4 +640,36 @@ input[type="range"]::-webkit-slider-thumb:active {
 
 .help-button:active {
   transform: scale(0.95);
+}
+
+/* Credits Modal Styles */
+.credits-container {
+  margin: 20px 0;
+  text-align: left;
+  max-height: calc(70vh - 200px);
+  overflow-y: auto;
+  padding-right: 15px;
+}
+
+.credits-section {
+  margin-bottom: 30px;
+}
+
+.credits-section h3 {
+  color: var(--slider-color);
+  margin-bottom: 15px;
+  font-family: var(--header-font);
+}
+
+.credits-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.credits-section li {
+  margin: 10px 0;
+  font-family: var(--body-font);
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--text-light);
 }

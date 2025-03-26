@@ -88,6 +88,8 @@
 
     <!-- Help Button -->
     <button id="helpButton" class="help-button">?</button>
+    <!-- Credits Button -->
+    <button id="creditsButton" class="help-button credits-button">©</button>
 
     <!-- Canvas for WebGL rendering -->
     <canvas class="webgl"></canvas>
@@ -145,6 +147,44 @@
         <span>Other</span>
       </div>
     </div>
+
+    <!-- Credits Modal -->
+    <div id="creditsModal" class="modal">
+      <div class="modal-content">
+        <h2>Credits</h2>
+        <div class="credits-container">
+          <div class="credits-section">
+            <h3>Data Analysis</h3>
+            <ul>
+              <li>Lukas Westphal</li>
+              <li>Débora Gräf</li>
+              <li>Morten Andersen</li>
+              <li>Christine Hallgreen</li>
+            </ul>
+          </div>
+          <div class="credits-section">
+            <h3>Visualization</h3>
+            <ul>
+              <li>Lukas Westphal</li>
+              <li>Débora Gräf</li>
+
+            </ul>
+          </div>
+          <div class="credits-section">
+            <h3>Writing</h3>
+            <ul>
+              <li>Lukas Westphal</li>
+              <li>Débora Gräf</li>
+              <li>Christine Hallgreen</li>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="creditsCloseBtn" class="close-btn">Close</button>
+        </div>
+      </div>
+    </div>
+
     <script type="module" src="main.js"></script>
   </body>
 </html>

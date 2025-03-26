@@ -21,6 +21,7 @@ import { startRendering } from "./renderer.js";
 import { addEventListeners } from "./eventListeners.js";
 import { visibilityManager } from "./visibilityManager.js";
 import { instructionsModal } from "./instructionsModal.js";
+import { creditsModal } from "./creditsModal.js";
 
 const canvas = document.querySelector("canvas.webgl");
 
@@ -71,6 +72,7 @@ async function initializeScene() {
   const startTime = performance.now();
 
   instructionsModal.initialize();
+  creditsModal.initialize();
 
   try {
     const { scene, camera, renderer, controls, parent } = createScene(canvas);
@@ -134,6 +136,10 @@ async function initializeScene() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Initialize modals
+  instructionsModal.initialize();
+  creditsModal.initialize();
+
   initializeScene().catch((error) => {
     console.error("Error initializing scene:", error);
     instructionsModal.showError(
