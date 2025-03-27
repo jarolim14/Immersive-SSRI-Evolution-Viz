@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# ThreeJS
+
+This project is a visualization of academic papers as network, connected by citations (edges)
+
+use the officual documentation https://threejs.org/docs/
+
