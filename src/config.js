@@ -70,4 +70,18 @@ export const CONFIG = {
   legendDataUrl: "data/legend_tree_mut_excl.json",
   nodeTextureUrl: "textures/nodeTexture.png",
   spotlightTextureUrl: "textures/spotlightTexture.png",
+  
+  // Search Functionality Configuration
+  search: {
+    resultsLimit: 10,              // Maximum number of search results to display
+    debounceTime: 200,             // Delay in ms before search is executed while typing
+    camera: {
+      baseDistance: 1500,           // Base distance for camera when viewing a search result
+      extraHeight: 500,            // Extra height added to camera position
+      centralityDistanceMultiplier: 50,  // How much to increase distance based on node centrality
+      transitionDuration: 2500,    // Camera transition duration in ms
+      viewOffsetUpward: 0.9,       // Upward view offset component (Z in rotated system)
+      viewOffsetCenter: 0.5        // Center view offset component
+    }
+  }
 };

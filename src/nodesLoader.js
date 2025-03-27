@@ -167,6 +167,7 @@ function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
       clusterLabel: clusterLabelMap[node.cluster],
       year: node.year,
       title: node.title,
+      doi: node.doi || "", // Include DOI data
       centrality,
       color,
     });

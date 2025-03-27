@@ -22,6 +22,7 @@ import { addEventListeners } from "./eventListeners.js";
 import { visibilityManager } from "./visibilityManager.js";
 import { instructionsModal } from "./instructionsModal.js";
 import { creditsModal } from "./creditsModal.js";
+import { initializeSearch } from "./searchFunctionality.js";
 
 const canvas = document.querySelector("canvas.webgl");
 
@@ -109,6 +110,10 @@ async function initializeScene() {
     initializeYearSlider(sliderContainer, (minYear, maxYear) => {
       console.log(`Year range changed: ${minYear} - ${maxYear}`);
     });
+
+    // Initialize search functionality
+    initializeSearch(nodesMap, camera, controls, scene);
+    console.log("Search functionality initialized");
 
     visibilityManager.init();
 

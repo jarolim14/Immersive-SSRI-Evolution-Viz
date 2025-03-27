@@ -188,6 +188,13 @@ export function handleLongClick(
 let lastSelectedNodeIndex = -1; // Track the last selected node index
 
 export function updateNodeInfo(intersection, nodesMap, positions, scene) {
+  // If scene is not provided but positions is a THREE.Scene, use positions as scene
+  // This helps when called from searchFunctionality.js
+  if (!scene && positions && positions instanceof THREE.Scene) {
+    scene = positions;
+    positions = null;
+  }
+
   const points = scene.getObjectByName("points");
   if (!points) {
     console.error("Points object not found in the scene");
@@ -215,7 +222,7 @@ export function updateNodeInfo(intersection, nodesMap, positions, scene) {
   }
 
   // If no intersection, reset everything and return
-  if (!intersection || !nodesMap || !positions) {
+  if (!intersection || !nodesMap) {
     console.log("No intersection or missing data, hiding node info");
     nodeInfoDiv.style.display = "none";
     brightnessAttribute.array.fill(0.0);
@@ -261,6 +268,7 @@ export function updateNodeInfo(intersection, nodesMap, positions, scene) {
     Cluster Label: ${selectedNode.clusterLabel}
     Title: ${selectedNode.title}
     Year: ${selectedNode.year}
+    ${selectedNode.doi ? `DOI: ${selectedNode.doi}` : ''}
     Cluster: ${selectedNode.cluster}
     Centrality: ${selectedNode.centrality}
     Node ID: ${selectedNodeId}
