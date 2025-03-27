@@ -21,7 +21,7 @@ export const CONFIG = {
   cameraFarPlane: 20000, // Far clipping plane (anything further away from this won't be rendered)
   // Controls Configuration
   controlsMinDistance: 100, // Minimum distance the camera can be from the origin
-  controlsMaxDistance: 20000, // Maximum distance the camera can be from the origin
+  controlsMaxDistance: 50000, // Maximum distance the camera can be from the origin
   zoomToCursor: true, // Zoom to node or only towards 0,0,0
   // fog
   fog: {
@@ -59,7 +59,7 @@ export const CONFIG = {
   nodeSelectionAccuracyThreshold: 15, //pixels; how accurate the click
   zoomSpeed: 0.015, // Reduced for smoother zooming with new delta handling
   minZoom: 75,
-  maxZoom: 5000,
+  maxZoom: 8000,
   yearUpdateDelayTime: 1000, // Time in milliseconds before dispatching the event
 
   // File Paths and URLs
@@ -82,6 +82,22 @@ export const CONFIG = {
       transitionDuration: 2500,    // Camera transition duration in ms
       viewOffsetUpward: 0.9,       // Upward view offset component (Z in rotated system)
       viewOffsetCenter: 0.5        // Center view offset component
+    }
+  },
+  
+  // Time Travel Configuration
+  timeTravel: {
+    startYear: 1982,
+    endYear: 2023,
+    defaultSpeed: 100, // Milliseconds between each year (lower = faster)
+    maxSpeed: 1000,
+    minSpeed: 50,
+    maxVisibleNodesWarning: 15000,
+    processingDelay: 0, // Delay between batch processing to keep UI responsive
+    camera: {
+      distance: 4000,
+      height: 4000,
+      fieldOfView: 40,
     }
   }
 };

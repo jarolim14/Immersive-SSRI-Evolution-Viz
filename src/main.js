@@ -23,6 +23,7 @@ import { visibilityManager } from "./visibilityManager.js";
 import { instructionsModal } from "./instructionsModal.js";
 import { creditsModal } from "./creditsModal.js";
 import { initializeSearch } from "./searchFunctionality.js";
+import { timeTravelController } from "./timeTravel.js";
 
 const canvas = document.querySelector("canvas.webgl");
 
@@ -114,6 +115,10 @@ async function initializeScene() {
     // Initialize search functionality
     initializeSearch(nodesMap, camera, controls, scene);
     console.log("Search functionality initialized");
+    
+    // Initialize time travel functionality
+    timeTravelController.initialize(camera, controls, scene);
+    console.log("Time travel functionality initialized");
 
     visibilityManager.init();
 

@@ -41,6 +41,9 @@ export class InstructionsModal {
     return true;
   }
 
+  /**
+   * Show a specific section of the modal
+   */
   showSection(sectionId) {
     // Hide all sections
     this.loadingContent?.classList.remove("active");
