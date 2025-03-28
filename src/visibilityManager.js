@@ -5,19 +5,6 @@
  * 2. Cluster-based visibility: Shows/hides elements based on selected clusters
  *
  * The final visibility of each element is determined by combining both visibility states (AND operation).
- *
- * Key features:
- * - Maintains separate visibility arrays for year and cluster states
- * - Updates visibility based on year range selection
- * - Updates visibility based on cluster selection
- * - Provides detailed logging of visibility states
- * - Handles both nodes and edges visibility simultaneously
- *
- * @requires yearSlider - Provides current year range selection
- * @requires legend - Provides selected cluster information
- * @requires nodesCreation - Provides points geometry
- * @requires nodesLoader - Provides nodes data map
- * @requires edgeCreation - Provides line segments geometry
  */
 
 import { getCurrentYearRange } from "./yearSlider.js";
@@ -25,14 +12,7 @@ import { getLegendSelectedLeafKeys } from "./legend.js";
 import { points } from "./nodesCreation.js";
 import { nodesMap } from "./nodesLoader.js";
 import { lineSegments } from "./edgeCreation.js";
-
-/**
- * Data structure assumptions:
- * - points: THREE.Points object with visible attribute in geometry
- * - lineSegments: THREE.LineSegments object with visible attribute in geometry
- * - nodesMap: Map containing node data with sequential numeric keys
- * - lineSegments.userData.edgeData: Array of edge data with startIndex and endIndex
- */
+import { edgesMap, edgeIndices } from "./edgesLoader.js";
 
 class VisibilityManager {
   constructor() {
@@ -41,24 +21,22 @@ class VisibilityManager {
     this.nodeClusterVisibility = null;
     this.edgeClusterVisibility = null;
     this.initialized = false;
+
+    // New edge control functions
+    this.showEdgesByYear = null;
+    this.setEdgeVisibility = null;
   }
 
-  init() {
-    // Validate required attributes
-    if (
-      !points?.geometry?.attributes?.visible ||
-      !lineSegments?.geometry?.attributes?.visible
-    ) {
-      console.error("Required geometry attributes not found");
-      return;
+  init(edgeControlFunctions = {}) {
+    // Store edge control functions if provided
+    if (edgeControlFunctions) {
+      this.showEdgesByYear = edgeControlFunctions.showEdgesByYear;
+      this.setEdgeVisibility = edgeControlFunctions.setEdgeVisibility;
     }
 
-    // Validate data structures
-    if (!nodesMap || !lineSegments.userData.edgeData) {
-      console.error("Required data structures not found", {
-        hasNodesMap: !!nodesMap,
-        hasEdgeData: !!lineSegments.userData.edgeData,
-      });
+    // Validate required attributes
+    if (!points?.geometry?.attributes?.visible || !lineSegments?.geometry?.attributes?.visible) {
+      console.error("Required geometry attributes not found");
       return;
     }
 
@@ -69,6 +47,7 @@ class VisibilityManager {
       nodeCount,
       edgeCount,
       nodesMapSize: nodesMap.size,
+      edgesMapSize: edgesMap ? edgesMap.size : 0
     });
 
     // Initialize visibility arrays
@@ -91,33 +70,52 @@ class VisibilityManager {
     const [fromYear, toYear] = getCurrentYearRange();
     console.log(`Updating visibility for years ${fromYear} to ${toYear}`);
 
-    let visibleNodesCount = 0;
     // Update node visibility based on year
+    let visibleNodesCount = 0;
     nodesMap.forEach((node, index) => {
       const isVisible = node.year >= fromYear && node.year <= toYear;
       this.nodeYearVisibility[index] = isVisible ? 1 : 0;
       if (isVisible) visibleNodesCount++;
     });
 
-    let visibleEdgesCount = 0;
-    // Update edge visibility based on year
-    const edgeData = lineSegments.userData.edgeData;
-    edgeData.forEach((edge) => {
-      const isVisible = edge.year >= fromYear && edge.year <= toYear;
-      for (let j = edge.startIndex; j < edge.endIndex; j++) {
-        this.edgeYearVisibility[j] = isVisible ? 1 : 0;
-        if (isVisible) visibleEdgesCount++;
-      }
-    });
+    // Use the optimized year visibility function if available
+    if (this.showEdgesByYear) {
+      this.showEdgesByYear(fromYear, toYear);
+      console.log("Used optimized edge year visibility function");
+    } else {
+      // Otherwise fallback to the old approach
+      let visibleEdgesCount = 0;
 
-    console.log("Year visibility update complete", {
-      visibleNodes: visibleNodesCount,
-      totalNodes: nodesMap.size,
-      visibleEdges: visibleEdgesCount,
-      totalEdges: edgeData.length,
-    });
+      // Get edge data - first try userData, then fall back to direct edgesMap
+      const edgeData = lineSegments.userData.edgeData ||
+                      (Array.from(edgesMap.values()) || []);
 
-    this.applyVisibility();
+      // Update each edge's visibility
+      edgeData.forEach((edge) => {
+        const isVisible = edge.year >= fromYear && edge.year <= toYear;
+
+        // The range might be startVertexIndex/endVertexIndex in the new approach
+        const startIdx = edge.startIndex || edge.startVertexIndex;
+        const endIdx = edge.endIndex || edge.endVertexIndex;
+
+        if (startIdx !== undefined && endIdx !== undefined) {
+          for (let j = startIdx; j <= endIdx; j++) {
+            this.edgeYearVisibility[j] = isVisible ? 1 : 0;
+            if (isVisible) visibleEdgesCount++;
+          }
+        }
+      });
+
+      console.log("Year visibility update complete (legacy method)", {
+        visibleNodes: visibleNodesCount,
+        totalNodes: nodesMap.size,
+        visibleEdges: visibleEdgesCount,
+        totalEdges: edgeData.length,
+      });
+
+      // Apply the visibility
+      this.applyVisibility();
+    }
   }
 
   updateClusterVisibility() {
@@ -133,8 +131,8 @@ class VisibilityManager {
       selectedClusters: Array.from(selectedClusters),
     });
 
-    let visibleNodesCount = 0;
     // Update node visibility based on clusters
+    let visibleNodesCount = 0;
     nodesMap.forEach((node, index) => {
       const isVisible =
         selectedClusters.size === 0 || selectedClusters.has(node.cluster);
@@ -142,37 +140,78 @@ class VisibilityManager {
       if (isVisible) visibleNodesCount++;
     });
 
-    let visibleEdgesCount = 0;
-    // Update edge visibility based on clusters
-    const edgeData = lineSegments.userData.edgeData;
-    edgeData.forEach((edge) => {
-      const isVisible =
-        selectedClusters.size === 0 ||
-        (selectedClusters.has(edge.sourceCluster) &&
-          selectedClusters.has(edge.targetCluster));
+    // Get edge data - first try userData, then fall back to direct edgesMap
+    const edgeData = lineSegments.userData.edgeData ||
+                    (Array.from(edgesMap.entries()).map(([id, edge]) => ({
+                      id,
+                      sourceCluster: edge.sourceCluster,
+                      targetCluster: edge.targetCluster,
+                      startIndex: edge.startVertexIndex,
+                      endIndex: edge.endVertexIndex
+                    })));
 
-      for (let j = edge.startIndex; j < edge.endIndex; j++) {
-        this.edgeClusterVisibility[j] = isVisible ? 1 : 0;
-        if (isVisible) visibleEdgesCount++;
+    // Process edges for cluster visibility
+    let visibleEdgesCount = 0;
+
+    if (edgeData && edgeData.length > 0) {
+      // Reset all edges visibility first
+      const visibilityArray = lineSegments.geometry.attributes.visible.array;
+      if (selectedClusters.size > 0) {
+        // If clusters are selected, reset all to invisible first
+        visibilityArray.fill(0);
+      } else {
+        // If no clusters selected, make all visible
+        visibilityArray.fill(1);
+        visibleEdgesCount = visibilityArray.length;
       }
-    });
+
+      if (selectedClusters.size > 0) {
+        // Process each edge for selected clusters
+        edgeData.forEach((edge) => {
+          // Check for edge's clusters in the selection
+          const sourceVisible = selectedClusters.has(edge.sourceCluster);
+          const targetVisible = selectedClusters.has(edge.targetCluster);
+          const isVisible = sourceVisible && targetVisible;
+
+          if (isVisible) {
+            // The range might be startVertexIndex/endVertexIndex in the new approach
+            const startIdx = edge.startIndex || edge.startVertexIndex;
+            const endIdx = edge.endIndex || edge.endVertexIndex;
+
+            if (startIdx !== undefined && endIdx !== undefined) {
+              for (let j = startIdx; j <= endIdx; j++) {
+                visibilityArray[j] = 1;
+                visibleEdgesCount++;
+              }
+            }
+          }
+        });
+      }
+
+      // Mark buffer for update
+      lineSegments.geometry.attributes.visible.needsUpdate = true;
+    }
 
     console.log("Cluster visibility update complete", {
       visibleNodes: visibleNodesCount,
       totalNodes: nodesMap.size,
       visibleEdges: visibleEdgesCount,
-      totalEdges: edgeData.length,
+      totalEdges: edgeData ? edgeData.length : 0,
     });
 
-    this.applyVisibility();
+    // Apply node visibility
+    this.applyNodeVisibility();
   }
 
   applyVisibility() {
+    this.applyNodeVisibility();
+    this.applyEdgeVisibility();
+  }
+
+  applyNodeVisibility() {
     const nodeVisArray = points.geometry.attributes.visible.array;
-    const edgeVisArray = lineSegments.geometry.attributes.visible.array;
 
     let visibleNodes = 0;
-    let visibleEdges = 0;
 
     // Apply combined visibility for nodes
     for (let i = 0; i < nodeVisArray.length; i++) {
@@ -181,6 +220,22 @@ class VisibilityManager {
       nodeVisArray[i] = isVisible ? 1 : 0;
       if (isVisible) visibleNodes++;
     }
+
+    // Update geometry
+    points.geometry.attributes.visible.needsUpdate = true;
+
+    console.log("Node visibility updated", {
+      visibleNodes,
+      totalNodes: nodeVisArray.length,
+      percentNodesVisible:
+        ((visibleNodes / nodeVisArray.length) * 100).toFixed(1) + "%",
+    });
+  }
+
+  applyEdgeVisibility() {
+    const edgeVisArray = lineSegments.geometry.attributes.visible.array;
+
+    let visibleEdges = 0;
 
     // Apply combined visibility for edges
     for (let i = 0; i < edgeVisArray.length; i++) {
@@ -191,16 +246,11 @@ class VisibilityManager {
     }
 
     // Update geometry
-    points.geometry.attributes.visible.needsUpdate = true;
     lineSegments.geometry.attributes.visible.needsUpdate = true;
 
-    console.log("Final visibility state", {
-      visibleNodes,
-      totalNodes: nodeVisArray.length,
+    console.log("Edge visibility updated", {
       visibleEdges,
       totalEdges: edgeVisArray.length,
-      percentNodesVisible:
-        ((visibleNodes / nodeVisArray.length) * 100).toFixed(1) + "%",
       percentEdgesVisible:
         ((visibleEdges / edgeVisArray.length) * 100).toFixed(1) + "%",
     });
