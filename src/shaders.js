@@ -41,13 +41,16 @@
 
 // Vertex Shader
 export const vertexShaderNode = `
+  // Custom attributes
   attribute float size;
   attribute vec3 color;
   attribute float visible;
   attribute float singleNodeSelectionBrightness;
+  
   varying vec4 vColor;
   varying float vVisible;
   varying float vSingleNodeSelectionBrightness;
+  
   void main() {
     vColor = vec4(color, 1.0); 
     vVisible = visible;
@@ -57,7 +60,6 @@ export const vertexShaderNode = `
     // Calculate size factor based on brightness
     float sizeFactor = (singleNodeSelectionBrightness > 0.0) ? 2.0 : 1.0;
     
-    
     // Apply size factor to gl_PointSize
     gl_PointSize = size * sizeFactor * (300.0 / -mvPosition.z) * vVisible;
     
@@ -66,14 +68,15 @@ export const vertexShaderNode = `
 `;
 
 export const fragmentShaderNode = `
+  varying vec4 vColor;
+  varying float vVisible;
+  varying float vSingleNodeSelectionBrightness;
+  
   uniform vec3 color;
   uniform sampler2D nodeTexture;
   uniform vec3 fogColor;
   uniform float fogNear;
   uniform float fogFar;
-  varying vec4 vColor;
-  varying float vVisible;
-  varying float vSingleNodeSelectionBrightness; // Now a varying, passed from vertex shader
 
   void main() {
     if (vVisible < 0.5) discard; // Discard fragment if not visible
