@@ -7,8 +7,8 @@ import {
 } from "./dataUtils.js";
 import { loadNodeData } from "./nodesLoader.js";
 import { createNodes } from "./nodesCreation.js";
-import { loadEdgeData } from "./edgesLoader.js";
-import { createEdges } from "./edgeCreation.js";
+import { loadEdgeData, updateEdgeVisibility } from "./edgesLoader.js";
+import { createEdges, showEdgesByYear, setEdgeVisibility } from "./edgeCreation.js";
 import { createScene } from "./sceneCreation.js";
 import {
   raycaster,
@@ -54,19 +54,27 @@ async function loadAndCreateNodes(parent, clusterLabelMap, clusterColorMap) {
 }
 
 async function loadAndCreateEdges(parent, clusterColorMap, nodesMap) {
-  const { edgesMap, edgesGeometry } = await loadEdgeData(
+  // Use the new optimized edge loading approach
+  const { edgesMap, edgesGeometry, edgeIndices } = await loadEdgeData(
     CONFIG.edgeDataUrl,
     clusterColorMap
   );
+
   if (!edgesMap.size || !edgesGeometry) {
     throw new Error("Edge data not loaded properly");
   }
-  const edgeObject = createEdges(edgesGeometry, edgesMap, nodesMap);
+
+  // Create edges with our optimized approach, passing edgeIndices
+  const edgeObject = createEdges(edgesGeometry, edgesMap, nodesMap, edgeIndices);
+
   if (!edgeObject) {
     throw new Error("Failed to create edges");
   }
+
   parent.add(edgeObject);
-  return edgeObject;
+
+  // Return both the edge object and maps for external access
+  return { edgeObject, edgesMap, edgesGeometry };
 }
 
 async function initializeScene() {
@@ -92,7 +100,7 @@ async function initializeScene() {
     );
     console.log("Nodes loaded and created successfully");
 
-    const edgeObject = await loadAndCreateEdges(
+    const { edgeObject, edgesMap } = await loadAndCreateEdges(
       parent,
       clusterColorMap,
       nodesMap
@@ -108,20 +116,34 @@ async function initializeScene() {
     sliderContainer.id = "year-slider-container";
     document.body.appendChild(sliderContainer);
 
+    // Connect year slider with the new showEdgesByYear function
     initializeYearSlider(sliderContainer, (minYear, maxYear) => {
       console.log(`Year range changed: ${minYear} - ${maxYear}`);
+      showEdgesByYear(minYear, maxYear);
     });
 
-    // Initialize search functionality
-    initializeSearch(nodesMap, camera, controls, scene);
+    // Initialize search functionality with access to edge control
+    initializeSearch(nodesMap, camera, controls, scene, {
+      setEdgeVisibility: setEdgeVisibility  // Pass the new edge visibility function
+    });
     console.log("Search functionality initialized");
-    
-    // Initialize time travel functionality
-    timeTravelController.initialize(camera, controls, scene);
+
+    // Initialize time travel functionality with access to optimized edge controls
+    timeTravelController.initialize(camera, controls, scene, {
+      edgeVisibility: {
+        showEdgesByYear,
+        setEdgeVisibility
+      }
+    });
     console.log("Time travel functionality initialized");
 
-    visibilityManager.init();
+    // Initialize visibility manager with new edge control functions
+    visibilityManager.init({
+      showEdgesByYear,
+      setEdgeVisibility
+    });
 
+    // Add listeners with access to the edge control functions
     addEventListeners(
       nodesMap,
       points,
@@ -131,7 +153,14 @@ async function initializeScene() {
       raycaster,
       mouse,
       scene,
-      canvas
+      canvas,
+      {
+        edges: {
+          object: edgeObject,
+          map: edgesMap,
+          setVisibility: setEdgeVisibility
+        }
+      }
     );
 
     const endTime = performance.now();
