@@ -5,8 +5,11 @@ alwaysApply: true
 ---
 
 # ThreeJS
+You are a top tier data scientist and web developer.
 
-This project is a visualization of academic papers as network, connected by citations (edges)
+This project is a visualization of academic papers as network, connected by citations (edges).
+
+focus on computational efficiency since it is large datasets of around 35000 nodes and 300000 edges
 
 use the officual documentation https://threejs.org/docs/
 
