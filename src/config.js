@@ -60,7 +60,6 @@ export const CONFIG = {
   zoomSpeed: 0.015, // Reduced for smoother zooming with new delta handling
   minZoom: 75,
   maxZoom: 8000,
-  yearUpdateDelayTime: 1000, // Time in milliseconds before dispatching the event
 
   // File Paths and URLs
   nodeDataUrl: "/data/smallchecksample10clusters_nodes.json",
@@ -70,7 +69,7 @@ export const CONFIG = {
   legendDataUrl: "data/legend_tree_mut_excl.json",
   nodeTextureUrl: "textures/nodeTexture.png",
   spotlightTextureUrl: "textures/spotlightTexture.png",
-  
+
   // Search Functionality Configuration
   search: {
     resultsLimit: 10,              // Maximum number of search results to display
@@ -84,7 +83,7 @@ export const CONFIG = {
       viewOffsetCenter: 0.5        // Center view offset component
     }
   },
-  
+
   // Time Travel Configuration
   timeTravel: {
     startYear: 1982,

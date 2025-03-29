@@ -116,10 +116,14 @@ async function initializeScene() {
     sliderContainer.id = "year-slider-container";
     document.body.appendChild(sliderContainer);
 
-    // Connect year slider with the new showEdgesByYear function
+    // Updated code for initializeScene()
     initializeYearSlider(sliderContainer, (minYear, maxYear) => {
-      console.log(`Year range changed: ${minYear} - ${maxYear}`);
-      showEdgesByYear(minYear, maxYear);
+      // Only update the visual representation in the slider
+      // Don't actually change visibility here
+      console.log(`Year range display updated: ${minYear} - ${maxYear}`);
+
+      // The actual visibility update will happen when the "yearUpdated" event fires
+      // after the debounce delay
     });
 
     // Initialize search functionality with access to edge control
