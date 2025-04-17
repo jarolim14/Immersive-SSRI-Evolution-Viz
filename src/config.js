@@ -42,7 +42,7 @@ export const CONFIG = {
   singleNodeSelectionBrightness: 0.5, // 50% more brightness for single node selection
   // Performance Configuration
   maxNodes: 45000,
-  fractionOfNodesToLoad: 1, // //0.5,
+  fractionOfNodesToLoad:1, // //0.5,
   // All Z Coords
   liftUpZ: 0, //0.15, // lift all nodes by 0.15, so none are negative.
   // Edge Configuration
@@ -52,7 +52,7 @@ export const CONFIG = {
   edgeWidth: 0.01,
   edgeOpacity: 0.2, //0.1,
   edgeBrightness: 0.5,
-  fractionOfEdgesToLoad: 1,
+  fractionOfEdgesToLoad: 0.3,
   // Interaction Configuration
   clickDurationThreshold: 200, // in milliseconds. long clicks are ignored (bc they drag)
   clickDistanceThreshold: 5, // in pixels
@@ -100,3 +100,4 @@ export const CONFIG = {
     }
   }
 };
+

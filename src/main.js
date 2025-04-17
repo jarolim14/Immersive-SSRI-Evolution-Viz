@@ -24,6 +24,7 @@ import { instructionsModal } from "./instructionsModal.js";
 import { creditsModal } from "./creditsModal.js";
 import { initializeSearch } from "./searchFunctionality.js";
 import { timeTravelController } from "./timeTravel.js";
+import { LODSystem } from "./lodSystem.js";
 
 const canvas = document.querySelector("canvas.webgl");
 
@@ -88,6 +89,9 @@ async function initializeScene() {
     const { scene, camera, renderer, controls, parent } = createScene(canvas);
     camera.isPerspectiveCamera = true;
 
+    // Initialize LOD system
+    const lodSystem = new LODSystem(camera, scene);
+
     console.log("Starting data loading and visualization process...");
 
     const { clusterColorMap, clusterLabelMap } = await loadMaps();
@@ -106,6 +110,10 @@ async function initializeScene() {
       nodesMap
     );
     console.log("Edges loaded and created successfully");
+
+    // Set nodes and edges in LOD system
+    lodSystem.setNodes(points);
+    lodSystem.setEdges(edgeObject);
 
     scene.add(parent);
 
@@ -171,7 +179,10 @@ async function initializeScene() {
     const loadTime = (endTime - startTime) / 1000;
     console.log(`Total load time: ${loadTime.toFixed(2)} seconds`);
 
-    startRendering(scene, camera, controls, renderer);
+    // Modify the startRendering call to include LOD updates
+    startRendering(scene, camera, controls, renderer, () => {
+      lodSystem.update();
+    });
   } catch (error) {
     console.error("Error in initializeScene:", error);
     instructionsModal.showError("Error loading data. Please refresh the page.");
