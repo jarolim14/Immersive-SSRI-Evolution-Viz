@@ -52,7 +52,7 @@ class TimeTravelController {
     this.scene = scene;
     this.createUI();
     this.buildYearIndices();
-    
+
     // Get references to year slider elements
     this.yearSliders.fromSlider = document.getElementById("fromSlider");
     this.yearSliders.toSlider = document.getElementById("toSlider");
@@ -67,16 +67,16 @@ class TimeTravelController {
   buildYearIndices() {
     console.log("Building year indices for time travel...");
     const startTime = performance.now();
-    
+
     // Initialize year ranges
     this.nodeYearIndex = {};
     this.edgeYearIndex = {};
-    
+
     for (let year = CONFIG.timeTravel.startYear; year <= CONFIG.timeTravel.endYear; year++) {
       this.nodeYearIndex[year] = [];
       this.edgeYearIndex[year] = [];
     }
-    
+
     // Index nodes by year
     nodesMap.forEach((node, index) => {
       const year = node.year;
@@ -87,7 +87,7 @@ class TimeTravelController {
         });
       }
     });
-    
+
     // Index edges by year
     if (lineSegments && lineSegments.userData && lineSegments.userData.edgeData) {
       lineSegments.userData.edgeData.forEach((edge) => {
@@ -102,19 +102,19 @@ class TimeTravelController {
         }
       });
     }
-    
+
     const endTime = performance.now();
     console.log(`Year indices built in ${((endTime - startTime) / 1000).toFixed(2)} seconds`);
-    
+
     // Log statistics for each year
     let totalNodes = 0;
     let totalEdges = 0;
-    
+
     for (let year = CONFIG.timeTravel.startYear; year <= CONFIG.timeTravel.endYear; year++) {
       totalNodes += this.nodeYearIndex[year].length;
       totalEdges += this.edgeYearIndex[year].length;
     }
-    
+
     console.log(`Total nodes indexed: ${totalNodes}`);
     console.log(`Total edges indexed: ${totalEdges}`);
   }
@@ -124,32 +124,32 @@ class TimeTravelController {
    */
   async start() {
     if (this.isPlaying) return;
-    
+
     // Get selected clusters from legend
     this.selectedClusters = new Set(getLegendSelectedLeafKeys());
-    
+
     // If no clusters selected, show a message
     if (this.selectedClusters.size === 0) {
       alert("Please select at least one cluster from the legend to begin time travel");
       return;
     }
-    
+
     // Create a new abort controller
     this.abortController = new AbortController();
-    
+
     // Save original visibility arrays to restore later
     this.backupOriginalVisibility();
-    
+
     // Get current year range from slider
     const [fromYear, toYear] = getCurrentYearRange();
-    
+
     // Reset to starting year (the left slider value)
     this.currentYear = fromYear;
     this.endYear = toYear;
-    
+
     // Update UI to show we're starting from the left slider
     this.updateYearSlider(this.currentYear);
-    
+
     // Count how many nodes will be visible for the selected clusters
     let visibleNodesCount = 0;
     nodesMap.forEach((node) => {
@@ -157,22 +157,22 @@ class TimeTravelController {
         visibleNodesCount++;
       }
     });
-    
+
     // Warn if too many nodes selected
     if (visibleNodesCount > CONFIG.timeTravel.maxVisibleNodesWarning) {
       const proceed = confirm(
         `You've selected ${visibleNodesCount} nodes which may cause performance issues. Proceed anyway?`
       );
-      
+
       if (!proceed) {
         this.abortController = null;
         return;
       }
     }
-    
+
     // First, hide all nodes and edges
     this.resetVisibility();
-    
+
     // Start the animation
     this.isPlaying = true;
     this.updateUI();
@@ -184,23 +184,23 @@ class TimeTravelController {
    */
   stop() {
     if (!this.isPlaying) return;
-    
+
     this.isPlaying = false;
-    
+
     if (this.animationId) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
     }
-    
+
     // Signal any ongoing processes to abort
     if (this.abortController) {
       this.abortController.abort();
       this.abortController = null;
     }
-    
+
     // Don't restore original visibility - keep current state
     // this.restoreOriginalVisibility();
-    
+
     this.updateUI();
   }
 
@@ -210,14 +210,14 @@ class TimeTravelController {
    */
   updateYearSlider(year) {
     if (!this.yearSliders.toSlider || !this.yearSliders.toValue) return;
-    
+
     // Update the right slider (to value) to the current year
     this.yearSliders.toSlider.value = year;
     this.yearSliders.toValue.textContent = year;
-    
+
     // Update the slider fill
     this.updateSliderFill();
-    
+
     // Trigger the year updated event to update visibility
     this.dispatchYearUpdatedEvent();
   }
@@ -229,19 +229,19 @@ class TimeTravelController {
     const fromSlider = this.yearSliders.fromSlider;
     const toSlider = this.yearSliders.toSlider;
     if (!fromSlider || !toSlider) return;
-    
+
     const rangeDistance = toSlider.max - toSlider.min;
     const fromPosition = fromSlider.value - toSlider.min;
     const toPosition = toSlider.value - toSlider.min;
-    
+
     // Use the same styling as in yearSlider.js
     toSlider.style.background = `linear-gradient(
       to right,
       #C6C6C6 0%,
       #C6C6C6 ${(fromPosition / rangeDistance) * 100}%,
       #25daa5 ${(fromPosition / rangeDistance) * 100}%,
-      #25daa5 ${(toPosition / rangeDistance) * 100}%, 
-      #C6C6C6 ${(toPosition / rangeDistance) * 100}%, 
+      #25daa5 ${(toPosition / rangeDistance) * 100}%,
+      #C6C6C6 ${(toPosition / rangeDistance) * 100}%,
       #C6C6C6 100%)`;
   }
 
@@ -258,18 +258,18 @@ class TimeTravelController {
    */
   backupOriginalVisibility() {
     if (!points || !lineSegments) return;
-    
+
     const nodeVisArray = points.geometry.attributes.visible.array;
     const edgeVisArray = lineSegments.geometry.attributes.visible.array;
-    
+
     this.originalNodeVisibility = new Float32Array(nodeVisArray.length);
     this.originalEdgeVisibility = new Float32Array(edgeVisArray.length);
-    
+
     // Copy current visibility
     for (let i = 0; i < nodeVisArray.length; i++) {
       this.originalNodeVisibility[i] = nodeVisArray[i];
     }
-    
+
     for (let i = 0; i < edgeVisArray.length; i++) {
       this.originalEdgeVisibility[i] = edgeVisArray[i];
     }
@@ -281,19 +281,19 @@ class TimeTravelController {
   restoreOriginalVisibility() {
     if (!points || !lineSegments) return;
     if (!this.originalNodeVisibility || !this.originalEdgeVisibility) return;
-    
+
     const nodeVisArray = points.geometry.attributes.visible.array;
     const edgeVisArray = lineSegments.geometry.attributes.visible.array;
-    
+
     // Restore original visibility
     for (let i = 0; i < nodeVisArray.length; i++) {
       nodeVisArray[i] = this.originalNodeVisibility[i];
     }
-    
+
     for (let i = 0; i < edgeVisArray.length; i++) {
       edgeVisArray[i] = this.originalEdgeVisibility[i];
     }
-    
+
     // Update geometry
     points.geometry.attributes.visible.needsUpdate = true;
     lineSegments.geometry.attributes.visible.needsUpdate = true;
@@ -304,19 +304,19 @@ class TimeTravelController {
    */
   resetVisibility() {
     if (!points || !lineSegments) return;
-    
+
     const nodeVisArray = points.geometry.attributes.visible.array;
     const edgeVisArray = lineSegments.geometry.attributes.visible.array;
-    
+
     // Hide all nodes and edges
     for (let i = 0; i < nodeVisArray.length; i++) {
       nodeVisArray[i] = 0;
     }
-    
+
     for (let i = 0; i < edgeVisArray.length; i++) {
       edgeVisArray[i] = 0;
     }
-    
+
     // Update geometry
     points.geometry.attributes.visible.needsUpdate = true;
     lineSegments.geometry.attributes.visible.needsUpdate = true;
@@ -327,10 +327,10 @@ class TimeTravelController {
    */
   animate() {
     if (!this.isPlaying) return;
-    
+
     // Update year slider to show current year
     this.updateYearSlider(this.currentYear);
-    
+
     // Apply visibility for current year
     this.applyVisibilityForYear(this.currentYear)
       .then(() => {
@@ -339,7 +339,7 @@ class TimeTravelController {
           this.stop();
           return;
         }
-        
+
         // Schedule next year update
         setTimeout(() => {
           this.currentYear++;
@@ -364,23 +364,23 @@ class TimeTravelController {
     if (!points || !lineSegments || !this.abortController) {
       return Promise.reject(new Error("Missing required objects"));
     }
-    
+
     const signal = this.abortController.signal;
-    
+
     return new Promise((resolve, reject) => {
       // Early rejection if already aborted
       if (signal.aborted) {
         reject(new Error("AbortError"));
         return;
       }
-      
+
       const nodeVisArray = points.geometry.attributes.visible.array;
       const edgeVisArray = lineSegments.geometry.attributes.visible.array;
-      
+
       // Get the year range from sliders
       const fromYear = parseInt(this.yearSliders.fromSlider.value);
       const toYear = parseInt(this.yearSliders.toSlider.value);
-      
+
       // First, hide all nodes and edges
       for (let i = 0; i < nodeVisArray.length; i++) {
         nodeVisArray[i] = 0;
@@ -388,10 +388,10 @@ class TimeTravelController {
       for (let i = 0; i < edgeVisArray.length; i++) {
         edgeVisArray[i] = 0;
       }
-      
+
       let visibleNodesCount = 0;
       let visibleEdgesCount = 0;
-      
+
       // Process nodes for each year up to targetYear
       for (let year = fromYear; year <= targetYear; year++) {
         // Get nodes for this year from our index
@@ -403,22 +403,22 @@ class TimeTravelController {
           }
         }
       }
-      
+
       // Process edges for each year up to targetYear
       for (let year = fromYear; year <= targetYear; year++) {
         // Get edges for this year from our index
         const edgesForYear = this.edgeYearIndex[year] || [];
         for (const edge of edgesForYear) {
           // Check if both clusters are selected
-          if (this.selectedClusters.has(edge.sourceCluster) && 
+          if (this.selectedClusters.has(edge.sourceCluster) &&
               this.selectedClusters.has(edge.targetCluster)) {
-            
+
             // Get the actual edge data to access the correct indices
-            const edgeData = lineSegments.userData.edgeData.find(e => 
-              e.startIndex === edge.startIndex && 
+            const edgeData = lineSegments.userData.edgeData.find(e =>
+              e.startIndex === edge.startIndex &&
               e.endIndex === edge.endIndex
             );
-            
+
             if (edgeData) {
               // Set visibility for all points in this edge using the correct indices
               for (let j = edgeData.startIndex; j < edgeData.endIndex; j++) {
@@ -429,11 +429,11 @@ class TimeTravelController {
           }
         }
       }
-      
+
       // Update geometry
       points.geometry.attributes.visible.needsUpdate = true;
       lineSegments.geometry.attributes.visible.needsUpdate = true;
-      
+
       console.log(`Year ${targetYear}: ${visibleNodesCount} nodes, ${visibleEdgesCount} edges visible (range: ${fromYear}-${targetYear})`);
       resolve();
     });
@@ -457,36 +457,36 @@ class TimeTravelController {
     const container = document.createElement('div');
     container.id = 'time-travel-control';
     container.className = 'time-travel-section';
-    
+
     // Add section title
     const title = document.createElement('div');
     title.className = 'legend-section-title';
     title.textContent = 'Time Evolution';
-    
+
     // Create top row with play button and speed label
     const topRow = document.createElement('div');
     topRow.className = 'top-row';
-    
+
     // Create the button
     this.ui.playButton = document.createElement('button');
     this.ui.playButton.className = 'time-travel-button';
     this.ui.playButton.textContent = 'Play';
     this.ui.playButton.title = 'Play/pause time evolution animation';
-    
+
     // Speed label at top row
     const speedLabel = document.createElement('span');
     speedLabel.className = 'speed-label';
     speedLabel.textContent = 'Speed:';
-    
+
     // Add hover effects to play button
     this.ui.playButton.addEventListener('mouseover', () => {
       this.ui.playButton.style.backgroundColor = '#d4b86a';
     });
-    
+
     this.ui.playButton.addEventListener('mouseout', () => {
       this.ui.playButton.style.backgroundColor = '#e1c874';
     });
-    
+
     this.ui.playButton.addEventListener('click', () => {
       if (this.isPlaying) {
         this.stop();
@@ -494,39 +494,46 @@ class TimeTravelController {
         this.start();
       }
     });
-    
+
     // Create bottom row with slider
     const bottomRow = document.createElement('div');
     bottomRow.className = 'bottom-row';
-    
+
     // Create speed slider
     const speedSlider = document.createElement('input');
     speedSlider.type = 'range';
-    speedSlider.min = CONFIG.timeTravel.minSpeed;
-    speedSlider.max = CONFIG.timeTravel.maxSpeed;
-    speedSlider.value = this.animationSpeed;
+    speedSlider.min = 0;  // Use 0-100 scale for slider
+    speedSlider.max = 100;
+    // Calculate initial slider position based on current animation speed
+    const initialSliderValue = 100 - (
+      ((this.animationSpeed - CONFIG.timeTravel.minSpeed) /
+      (CONFIG.timeTravel.maxSpeed - CONFIG.timeTravel.minSpeed)) * 100
+    );
+    speedSlider.value = initialSliderValue;
     speedSlider.title = 'Adjust animation speed';
     speedSlider.id = 'time-travel-speed-slider';
-    
+
     // Update animation speed when slider changes
     speedSlider.addEventListener('input', (e) => {
-      this.animationSpeed = parseInt(e.target.value);
-      // Invert the slider so moving right makes animation faster (lower ms delay)
-      this.animationSpeed = CONFIG.timeTravel.maxSpeed - this.animationSpeed + CONFIG.timeTravel.minSpeed;
+      // Convert slider value (0-100) to animation speed in correct range
+      // Higher slider value (right) = faster animation = lower delay
+      const sliderPercent = parseInt(e.target.value);
+      this.animationSpeed = CONFIG.timeTravel.maxSpeed -
+        ((sliderPercent / 100) * (CONFIG.timeTravel.maxSpeed - CONFIG.timeTravel.minSpeed));
     });
-    
+
     // Add elements to container
     container.appendChild(title);
-    
+
     // Add elements to top row
     topRow.appendChild(this.ui.playButton);
     topRow.appendChild(speedLabel);
     container.appendChild(topRow);
-    
+
     // Add slider to bottom row
     bottomRow.appendChild(speedSlider);
     container.appendChild(bottomRow);
-    
+
     // Add to the legend container
     const legendDiv = document.getElementById('legendDiv');
     if (legendDiv) {
@@ -541,10 +548,10 @@ class TimeTravelController {
    */
   updateUI() {
     if (!this.ui.playButton) return;
-    
+
     this.ui.playButton.textContent = this.isPlaying ? 'Stop' : 'Play';
     this.ui.playButton.className = `time-travel-button ${this.isPlaying ? 'playing' : ''}`;
   }
 }
 
-export const timeTravelController = new TimeTravelController(); 
+export const timeTravelController = new TimeTravelController();

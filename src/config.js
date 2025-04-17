@@ -62,11 +62,11 @@ export const CONFIG = {
   maxZoom: 8000,
 
   // File Paths and URLs
-  nodeDataUrl: "/data/smallchecksample10clusters_nodes.json",
-  edgeDataUrl: "/data/smallchecksample10clusters_edges.json",
-  clusterColorMapUrl: "data/cluster_color_dict.json",
-  clusterLabelMapUrl: "data/cluster_label_dict.json",
-  legendDataUrl: "data/legend_tree_mut_excl.json",
+  nodeDataUrl: "/data/nodes_2025-04-16-21-30-09.json",
+  edgeDataUrl: "/data/edges_2025-04-16-21-30-09.json",
+  clusterColorMapUrl: "data/cluster_color_map_2025.json",
+  clusterLabelMapUrl: "data/cluster_label_map_2025.json",
+  legendDataUrl: "data/legend_2025.json",
   nodeTextureUrl: "textures/nodeTexture.png",
   spotlightTextureUrl: "textures/spotlightTexture.png",
 
@@ -87,10 +87,10 @@ export const CONFIG = {
   // Time Travel Configuration
   timeTravel: {
     startYear: 1982,
-    endYear: 2023,
-    defaultSpeed: 100, // Milliseconds between each year (lower = faster)
+    endYear: 2025,
+    defaultSpeed: 1000, // Milliseconds between each year (lower = faster)
     maxSpeed: 1000,
-    minSpeed: 50,
+    minSpeed: 500,
     maxVisibleNodesWarning: 15000,
     processingDelay: 0, // Delay between batch processing to keep UI responsive
     camera: {
