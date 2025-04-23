@@ -48,9 +48,15 @@ function isValidNumber(value) {
 
 // Edge color helper
 function getEdgeColor(color, clusterColorMap, defaultColor) {
-  return color === -1
-    ? defaultColor
-    : new THREE.Color(clusterColorMap[color] || defaultColor);
+  if (color === -1) return defaultColor;
+
+  const clusterColor = clusterColorMap[color];
+  if (!clusterColor) {
+    console.warn(`No color found for cluster ${color}, using default color`);
+    return defaultColor;
+  }
+
+  return clusterColor;
 }
 
 // Buffer update with improved vertex processing

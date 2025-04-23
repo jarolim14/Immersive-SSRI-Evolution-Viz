@@ -49,7 +49,7 @@ let spatialPartitioning = new SpatialPartitioning();
 // BufferGeometry initialization
 function initializeBufferGeometry(nodeCount) {
   nodesGeometry = new THREE.BufferGeometry();
-  
+
   // Use TypedArrays for better performance
   const positions = new Float32Array(nodeCount * 3); // x, y, z
   const colors = new Float32Array(nodeCount * 3); // r, g, b
@@ -83,7 +83,7 @@ function initializeBufferGeometry(nodeCount) {
     new THREE.BufferAttribute(singleNodeSelectionBrightness, 1)
       .setUsage(THREE.DynamicDrawUsage)
   );
-  
+
   nodesGeometry.name = "nodesGeometry";
 }
 
@@ -126,7 +126,12 @@ function calculateNodeSize(normalizedCentrality) {
 
 // Node color retrieval helper
 function getNodeColor(node, clusterColorMap) {
-  return clusterColorMap[node.cluster];
+  const clusterColor = clusterColorMap[node.cluster];
+  if (!clusterColor) {
+    console.warn(`No color found for cluster ${node.cluster}, using default color`);
+    return new THREE.Color(0xCCCCCC); // Default color
+  }
+  return clusterColor;
 }
 
 // Buffer update with batch processing
@@ -151,15 +156,15 @@ function updateNodeData(index, position, color, size) {
 export function updateNodesVisibility(yearRange, selectedClusters) {
   const visibleNodes = spatialPartitioning.updateVisibility(yearRange, selectedClusters);
   const visible = nodesGeometry.attributes.visible.array;
-  
+
   // Reset all nodes to invisible
   visible.fill(0);
-  
+
   // Set visible nodes
   for (const node of visibleNodes) {
     visible[node.index] = 1;
   }
-  
+
   nodesGeometry.attributes.visible.needsUpdate = true;
 }
 

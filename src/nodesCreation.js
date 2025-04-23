@@ -54,6 +54,11 @@ function createNodeMaterial() {
     },
     fogNear: { value: CONFIG.fog.near },
     fogFar: { value: CONFIG.fog.far },
+    saturation: { value: CONFIG.shaderEffects.nodes.saturation },
+    specularPower: { value: CONFIG.shaderEffects.nodes.specularPower },
+    specularIntensity: { value: CONFIG.shaderEffects.nodes.specularIntensity },
+    brightnessMultiplier: { value: CONFIG.shaderEffects.nodes.brightnessMultiplier },
+    highlightBrightness: { value: CONFIG.shaderEffects.nodes.highlightBrightness },
   };
 
   return new THREE.ShaderMaterial({
@@ -97,10 +102,10 @@ export function createNodes(nodesGeometry) {
 
   points = new THREE.Points(nodesGeometry, material);
   points.name = "points";
-  
+
   // Enable frustum culling for better performance
   points.frustumCulled = true;
-  
+
   console.log("Nodes geometry created:", points);
 
   return { points }; // Return both nodes and points

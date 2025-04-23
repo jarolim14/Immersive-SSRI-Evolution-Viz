@@ -46,6 +46,8 @@ export function createEdges(edgesGeometry, edgesMap, nodesMap, edgeIndices) {
     uniforms: {
       opacity: { value: CONFIG.edgeOpacity },
       brightness: { value: CONFIG.edgeBrightness },
+      saturation: { value: CONFIG.shaderEffects.edges.saturation },
+      glowIntensity: { value: CONFIG.shaderEffects.edges.glowIntensity },
     },
     transparent: true,
     vertexColors: true,

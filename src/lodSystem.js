@@ -11,15 +11,15 @@ import { CONFIG } from './config.js';
 const LOD_CONFIG = {
     // Viewport size thresholds (in pixels)
     viewportSize: {
-        high: 10,      // High detail when object is larger than 10px
-        medium: 5,     // Medium detail when object is 5-10px
-        low: 2         // Low detail when object is smaller than 5px
+        high: 5,      // High detail when object is larger than 10px
+        medium: 2,     // Medium detail when object is 5-10px
+        low: 1         // Low detail when object is smaller than 5px
     },
     // Node size multipliers for each LOD level
     nodeSizeMultipliers: {
-        high: 1.0,
-        medium: 0.7,
-        low: 0.4
+        high: 0.7,
+        medium: 0.5,
+        low: 0.3
     },
     // Edge detail levels - now represents the number of segments to keep
     edgeDetail: {

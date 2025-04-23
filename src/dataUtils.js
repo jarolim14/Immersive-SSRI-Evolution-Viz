@@ -32,7 +32,10 @@ export async function loadClusterColorMap(url) {
   try {
     const data = await loadJSONData(url);
     clusterColorMap = Object.fromEntries(
-      Object.entries(data).map(([key, value]) => [key, new THREE.Color(value)])
+      Object.entries(data).map(([key, value]) => [
+        key,
+        new THREE.Color(value.rgb[0], value.rgb[1], value.rgb[2])
+      ])
     );
     console.log("Cluster Color Map Successfully Loaded");
     return clusterColorMap;
