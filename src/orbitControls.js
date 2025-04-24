@@ -14,10 +14,10 @@ export function handleScroll(
   canvas
 ) {
   event.preventDefault();
-  
+
   // Normalize scroll speed with improved sensitivity
   let deltaY = event.deltaY;
-  
+
   // More refined delta handling for different input devices
   if (event.deltaMode === WheelEvent.DOM_DELTA_PIXEL) {
     // Trackpad - more granular control
@@ -26,37 +26,37 @@ export function handleScroll(
     // Mouse wheel - smoother scaling
     deltaY *= 0.8;
   }
-  
+
   const zoomAmount = deltaY * CONFIG.zoomSpeed;
   const currentDistance = camera.position.distanceTo(controls.target);
-  
+
   // Smoother exponential interpolation for zooming
   const targetDistance = currentDistance * Math.pow(0.99, zoomAmount);
-  
+
   // Use smoother lerp for distance transition
   const newDistance = THREE.MathUtils.lerp(
     currentDistance,
     targetDistance,
     ZOOM_SMOOTHING
   );
-  
+
   // Clamp the new distance within the defined bounds
   const clampedDistance = Math.max(
     CONFIG.minZoom,
     Math.min(CONFIG.maxZoom, newDistance)
   );
-  
+
   // Calculate zoom direction vector relative to controls target
   const zoomDirection = camera.position
     .clone()
     .sub(controls.target)
     .normalize();
-  
+
   // Set new camera position relative to controls target
   camera.position
     .copy(controls.target)
     .add(zoomDirection.multiplyScalar(clampedDistance));
-  
+
   // Update the orbit controls target if needed
   if (CONFIG.zoomToCursor) {
     updateOrbitControlsTarget(
@@ -69,7 +69,7 @@ export function handleScroll(
       canvas
     );
   }
-  
+
   // Update the camera and controls
   camera.updateProjectionMatrix();
   controls.update();

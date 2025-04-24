@@ -1,17 +1,21 @@
 # 2D SSR Network Visualization
 
-A Three.js-based interactive network visualization tool that allows users to explore and analyze network data in 3D space. This project provides a modern, responsive interface for visualizing network structures with features like node selection, edge visualization, and interactive controls.
+A Three.js-based interactive network visualization tool for academic papers that allows users to explore and analyze citation networks in 3D space. This project provides a modern, responsive interface for visualizing large-scale academic networks with features like time-based filtering, cluster analysis, and interactive exploration.
 
 ## Features
 
 - Interactive 3D network visualization using Three.js
-- Node and edge-based network representation
+- Large-scale data handling (~35,000 nodes, ~100,000 edges)
+- Time-based filtering with year range slider
+- Cluster-based node grouping and filtering
+- Time travel functionality to visualize cluster evolution
+- Real-time search for papers by title or DOI
 - Custom node textures and styling
-- Orbit controls for navigation
-- Node selection and highlighting
-- Edge creation and management
+- Optimized edge bundling with 1.5 million segments
 - Legend system for data interpretation
 - Responsive design with modern UI
+- Performance optimizations for large datasets
+- Custom shader effects for enhanced visualization
 
 ## Project Structure
 
@@ -31,8 +35,46 @@ src/
 ├── sceneCreation.js   # Scene initialization
 ├── shaders.js         # Custom shaders
 ├── singleNodeSelection.js  # Node selection logic
+├── timeTravel.js      # Time evolution functionality
+├── searchFunctionality.js  # Search implementation
+├── visibilityManager.js    # Visibility control
 └── updateNodeVisibility.js # Node visibility management
 ```
+
+## Data Structure
+
+The project uses a comprehensive data structure stored in the `src/data` directory:
+
+```
+src/data/
+├── nodes_2025-04-22-15-55-44scale2.json      # Node data (papers)
+├── smaller_edges_2025-04-22-15-55-44scale2.json  # Edge data (citations)
+├── cluster_color_map_2025.json               # Cluster color mappings
+├── cluster_label_map_2025.json               # Cluster label mappings
+├── cluster_label_tag_map_2025.json           # Cluster tag mappings
+├── legend_2025.json                          # Legend configuration
+├── topicTree/                                # Topic tree visualization data
+└── ParamsExploring/                          # Parameter exploration data
+```
+
+### Data Files Description:
+- **Node Data**: Contains information about academic papers including:
+  - Paper metadata (title, authors, year)
+  - Cluster assignments
+  - Centrality measures
+  - Position coordinates
+
+- **Edge Data**: Contains citation relationships between papers with:
+  - Source and target paper IDs
+  - Edge weights
+  - Bundled edge coordinates
+  - Temporal information
+
+- **Cluster Data**: Contains mappings for:
+  - Cluster colors
+  - Cluster labels
+  - Cluster hierarchy
+  - Topic relationships
 
 ## Prerequisites
 
@@ -43,7 +85,7 @@ src/
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/jarolim14/Immersive-SSRI-Evolution-Viz.git
 cd 2d_ssrinetworkviz
 ```
 
@@ -68,6 +110,29 @@ npm run build
 ```
 
 The built files will be available in the `dist/` directory.
+
+## Key Technical Features
+
+### Performance Optimizations
+- WebGL2 optimized rendering with instanced arrays
+- Efficient buffer geometry management
+- Batch processing for large datasets
+- Level of Detail (LOD) system
+- Optimized edge bundling
+
+### Visualization Features
+- Custom shader effects for nodes and edges
+- Dynamic node sizing based on centrality
+- Cluster-based color mapping
+- Fog effects for depth perception
+- Interactive node selection and highlighting
+
+### Data Management
+- Efficient node and edge data loading
+- Visibility management system
+- Time-based filtering
+- Cluster-based filtering
+- Real-time search functionality
 
 ## Dependencies
 
@@ -103,55 +168,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-```
-2d_ssrinetworkviz
-
-│  │  ├─ info
-│  │  └─ pack
-│  └─ refs
-│     ├─ heads
-│     │  ├─ main
-│     │  └─ modularized
-│     ├─ remotes
-│     │  └─ origin
-│     │     ├─ main
-│     │     └─ modularized
-│     └─ tags
-├─ .gitignore
-├─ package-lock.json
-├─ package.json
-├─ readme.md
-├─ setup_tips.txt
-├─ src
-│  ├─ config.js
-│  ├─ dataUtils.js
-│  ├─ edgeCreation.js
-│  ├─ edgesLoader.js
-│  ├─ eventListeners.js
-│  ├─ fonts
-│  │  └─ Centauri.otf
-│  ├─ index.html
-│  ├─ legend.js
-│  ├─ main.js
-│  ├─ nodeCreation.js
-│  ├─ nodesLoader.js
-│  ├─ orbitControls.js
-│  ├─ renderer.js
-│  ├─ sceneCreation.js
-│  ├─ shaders.js
-│  ├─ singleNodeSelection.js
-│  ├─ style.css
-│  ├─ textures
-│  │  ├─ alternatives
-│  │  │  ├─ spotlight1.jpg
-│  │  │  ├─ spotlight3.png
-│  │  │  └─ standard_node.png
-│  │  ├─ nodeTexture.png
-│  │  └─ spotlightTexture.png
-│  └─ updateNodeVisibility.js
-├─ static
-│  └─ .gitkeep
-└─ vite.config.js
-
-```

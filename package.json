@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "csv-parser": "^3.0.0",
+    "d3": "^7.9.0",
     "fs": "^0.0.1-security",
     "nouislider": "^15.8.1",
     "three": "^0.158.0"

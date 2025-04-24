@@ -29,35 +29,59 @@ const LOD_CONFIG = {
     },
     // Transition settings
     transition: {
-        duration: 500, // Transition duration in milliseconds
-        steps: 10      // Number of steps in the transition
+        duration: 200, // Reduced from 300ms for faster transitions
+        steps: 6       // Reduced from 8 for more immediate transitions
     },
     // Anti-flickering settings
     antiFlicker: {
         // Higher values (e.g., 2.0) = larger margin, more stable but less responsive
         // Lower values (e.g., 1.1) = smaller margin, more responsive but more prone to flickering
-        viewportMargin: 1.5,    // Margin for viewport calculations (1.0 = no margin)
+        viewportMargin: 2.0,    // Reduced from 2.5 for more responsiveness
 
         // Higher values = more stable but less responsive updates
         // Lower values = more responsive but more prone to flickering
-        minFrameTime: 16,       // Minimum time between updates in ms (16 = 60fps)
-        maxFrameTime: 32,       // Maximum time between updates in ms (32 = 30fps)
+        minFrameTime: 12,       // Reduced from 15 for more responsive updates (83fps)
+        maxFrameTime: 25,       // Reduced from 30 for more responsive updates (40fps)
 
         // Higher values = slower adaptation to frame rate changes
         // Lower values = faster adaptation but more prone to flickering
-        frameTimeAdjustment: 2, // How quickly to adjust update frequency in ms
+        frameTimeAdjustment: 2, // Reduced from 3 for faster adaptation
 
         // Higher values = more stable but slower transitions
         // Lower values = faster transitions but more prone to flickering
-        transitionCooldown: 1000, // Minimum time between LOD transitions in ms
+        transitionCooldown: 200, // Reduced from 300 for more responsive transitions
 
         // Higher values (e.g., 0.3) = more stable but less responsive
         // Lower values (e.g., 0.1) = more responsive but more prone to flickering
-        hysteresis: 0.2,        // Hysteresis factor for LOD transitions (0.0 = no hysteresis)
+        hysteresis: 0.2,        // Reduced from 0.25 for more responsive transitions
 
         // Higher values = more updates per frame but more prone to flickering
         // Lower values = fewer updates but more stable
-        maxUpdatesPerFrame: 1   // Maximum number of updates per frame
+        maxUpdatesPerFrame: 4,  // Increased from 3 to allow more frequent updates
+
+        // New settings for scroll optimization
+        scroll: {
+            // Higher values = more aggressive LOD during scrolling
+            // Lower values = better quality but potentially less smooth
+            scrollLODMultiplier: 0.2,  // Increased from 0.15 for more aggressive LOD during scrolling
+
+            // How quickly to return to normal LOD after scrolling stops
+            recoverySpeed: 0.4,        // Increased from 0.3 for faster recovery
+
+            // Minimum time to maintain scroll LOD after scrolling stops
+            minScrollDuration: 150,    // Reduced from 200ms for faster recovery
+
+            // Maximum time to maintain scroll LOD
+            maxScrollDuration: 600,    // Reduced from 800ms for faster recovery
+
+            // Progressive LOD adjustment during scrolling
+            progressiveLOD: {
+                enabled: true,
+                initialDelay: 30,      // Reduced from 50ms for faster LOD adjustment
+                stepSize: 0.08,        // Increased from 0.05 for more aggressive detail reduction
+                maxSteps: 3            // Reduced from 4 for faster transitions
+            }
+        }
     }
 };
 
@@ -100,6 +124,12 @@ class LODSystem {
         // Frame synchronization
         this.rafId = null;
         this.lastRafTime = 0;
+
+        // Add scroll-specific properties
+        this.lastScrollTime = 0;
+        this.isScrolling = false;
+        this.scrollLODActive = false;
+        this.scrollStartTime = 0;
     }
 
     setNodes(nodes) {
@@ -195,6 +225,26 @@ class LODSystem {
         if (this.isUpdating) return;
 
         const now = performance.now();
+
+        // Check if scrolling has stopped
+        if (this.isScrolling && now - this.lastScrollTime > LOD_CONFIG.antiFlicker.scroll.minScrollDuration) {
+            this.isScrolling = false;
+
+            // Gradually return to normal LOD
+            const recoveryProgress = Math.min(
+                (now - this.lastScrollTime - LOD_CONFIG.antiFlicker.scroll.minScrollDuration) /
+                (LOD_CONFIG.antiFlicker.scroll.maxScrollDuration - LOD_CONFIG.antiFlicker.scroll.minScrollDuration),
+                1
+            );
+
+            const scrollMultiplier = 1 - (recoveryProgress * LOD_CONFIG.antiFlicker.scroll.recoverySpeed);
+            this.applyLOD(this.currentLOD, scrollMultiplier);
+
+            if (recoveryProgress >= 1) {
+                this.scrollLODActive = false;
+            }
+        }
+
         if (now - this.lastUpdateTime < this.updateInterval) {
             return;
         }
@@ -288,8 +338,25 @@ class LODSystem {
         this.applyLOD(this.targetLOD, progress);
     }
 
-    applyLOD(targetLevel, progress) {
+    applyLOD(targetLevel, multiplier = 1) {
         if (!this.nodes || !this.edges || !this.originalEdgeGeometry) return;
+
+        const levelConfig = {
+            high: {
+                nodeSize: LOD_CONFIG.nodeSizeMultipliers.high * multiplier,
+                edgeDetail: LOD_CONFIG.edgeDetail.high * multiplier
+            },
+            medium: {
+                nodeSize: LOD_CONFIG.nodeSizeMultipliers.medium * multiplier,
+                edgeDetail: LOD_CONFIG.edgeDetail.medium * multiplier
+            },
+            low: {
+                nodeSize: LOD_CONFIG.nodeSizeMultipliers.low * multiplier,
+                edgeDetail: LOD_CONFIG.edgeDetail.low * multiplier
+            }
+        };
+
+        const config = levelConfig[targetLevel];
 
         // Get the current buffer for updates
         const nodeBuffer = this.currentNodeBuffer === 'A' ? this.nodeBufferB : this.nodeBufferA;
@@ -297,9 +364,9 @@ class LODSystem {
 
         // Update node sizes in the buffer
         if (this.nodes.geometry.attributes.size && this.originalNodeSizes) {
-            const targetMultiplier = LOD_CONFIG.nodeSizeMultipliers[targetLevel];
+            const targetMultiplier = config.nodeSize;
             const currentMultiplier = LOD_CONFIG.nodeSizeMultipliers[this.currentLOD];
-            const interpolatedMultiplier = currentMultiplier + (targetMultiplier - currentMultiplier) * progress;
+            const interpolatedMultiplier = currentMultiplier + (targetMultiplier - currentMultiplier) * multiplier;
 
             for (let i = 0; i < this.originalNodeSizes.length; i++) {
                 nodeBuffer[i] = this.originalNodeSizes[i] * interpolatedMultiplier;
@@ -308,9 +375,9 @@ class LODSystem {
 
         // Update edge detail in the buffer
         if (this.edges.geometry) {
-            const targetDetail = LOD_CONFIG.edgeDetail[targetLevel];
+            const targetDetail = config.edgeDetail;
             const currentDetail = LOD_CONFIG.edgeDetail[this.currentLOD];
-            const interpolatedDetail = currentDetail + (targetDetail - currentDetail) * progress;
+            const interpolatedDetail = currentDetail + (targetDetail - currentDetail) * multiplier;
 
             const originalPositions = this.originalEdgeGeometry.attributes.position.array;
             const originalIndices = this.originalEdgeGeometry.index.array;
@@ -365,6 +432,37 @@ class LODSystem {
                 this.currentEdgeBuffer = 'A';
             }
         }
+    }
+
+    // New method to handle scroll events
+    handleScroll() {
+        const now = performance.now();
+        this.lastScrollTime = now;
+
+        if (!this.isScrolling) {
+            this.isScrolling = true;
+            this.scrollStartTime = now;
+            this.scrollLODActive = true;
+            this.applyScrollLOD();
+        }
+    }
+
+    // New method to apply scroll-specific LOD
+    applyScrollLOD() {
+        if (!this.scrollLODActive) return;
+
+        const now = performance.now();
+        const scrollDuration = now - this.scrollStartTime;
+
+        // Check if we should maintain scroll LOD
+        if (scrollDuration > LOD_CONFIG.antiFlicker.scroll.maxScrollDuration) {
+            this.scrollLODActive = false;
+            return;
+        }
+
+        // Apply scroll-specific LOD
+        const scrollMultiplier = LOD_CONFIG.antiFlicker.scroll.scrollLODMultiplier;
+        this.applyLOD(this.currentLOD, scrollMultiplier);
     }
 }
 

@@ -25,6 +25,7 @@ import { creditsModal } from "./creditsModal.js";
 import { initializeSearch } from "./searchFunctionality.js";
 import { timeTravelController } from "./timeTravel.js";
 import { LODSystem } from "./lodSystem.js";
+import { TopicTree } from './topicTree.js';
 
 const canvas = document.querySelector("canvas.webgl");
 
@@ -174,6 +175,9 @@ async function initializeScene() {
         }
       }
     );
+
+    // Initialize topic tree
+    const topicTree = new TopicTree();
 
     const endTime = performance.now();
     const loadTime = (endTime - startTime) / 1000;

@@ -18,16 +18,16 @@ export const CONFIG = {
   // Camera Configuration
   cameraFOV: 75, // Field of view in degrees (higher values give a fish-eye effect)
   cameraNearPlane: 0.5, // Near clipping plane (anything closer than this won't be rendered)
-  cameraFarPlane: 20000, // Far clipping plane (anything further away from this won't be rendered)
+  cameraFarPlane: 50000, // Far clipping plane (anything further away from this won't be rendered)
   // Controls Configuration
   controlsMinDistance: 100, // Minimum distance the camera can be from the origin
-  controlsMaxDistance: 50000, // Maximum distance the camera can be from the origin
+  controlsMaxDistance: 100000, // Maximum distance the camera can be from the origin
   zoomToCursor: true, // Zoom to node or only towards 0,0,0
   // fog
   fog: {
     color: { r: 0.6, g: 0.7, b: 0.8 }, // Light blue-gray fog
-    near: 3000,
-    far: 50000,
+    near: 5000,
+    far: 100000,
   },
   // Node Configuration
   nodeTextureUrl: "textures/standard_node.png",

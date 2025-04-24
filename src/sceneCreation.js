@@ -56,8 +56,7 @@ function createCamera() {
     CONFIG.cameraNearPlane,
     CONFIG.cameraFarPlane
   );
-  //camera.position.set(2000, 2000, 2000);
-  camera.position.set(2700, 2500, -8000);
+  camera.position.set(4000, 3500, -12000);
   camera.lookAt(0, 0, 0);
   return camera;
 }

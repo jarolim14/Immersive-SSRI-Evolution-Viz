@@ -81,7 +81,10 @@
         </div>
 
         <div class="modal-footer">
-          <button id="instructionsCloseBtn" class="close-btn">Got it!</button>
+          <div class="button-group">
+            <button id="instructionsCloseBtn" class="close-btn">Got it!</button>
+            <button id="viewTopicHierarchyBtn" class="view-hierarchy-btn">View Topic Hierarchy</button>
+          </div>
         </div>
       </div>
     </div>
@@ -181,6 +184,29 @@
         </div>
         <div class="modal-footer">
           <button id="creditsCloseBtn" class="close-btn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Topic Tree Modal -->
+    <div id="topicTreeModal" class="modal">
+      <div class="modal-content">
+        <h2>Topic Hierarchy</h2>
+        <div class="topic-tree-container">
+          <select id="datasetSelect" class="topic-select">
+            <option value="overview" selected>Overview</option>
+            <option value="pharmacology">Pharmacology</option>
+            <option value="indications">Indications</option>
+            <option value="safety">Safety</option>
+            <option value="other">Other</option>
+          </select>
+          <div class="topic-tree-controls">
+            <button id="saveTreeButton" class="save-button">Save as SVG</button>
+          </div>
+          <div id="topicTreeSvg"></div>
+        </div>
+        <div class="modal-footer">
+          <button id="topicTreeCloseBtn" class="close-btn">Close</button>
         </div>
       </div>
     </div>
