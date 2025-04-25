@@ -49,7 +49,7 @@ export class TopicTree {
 
   async loadData() {
     try {
-      const response = await fetch('https://raw.githubusercontent.com/jarolim14/Study-1-Bibliometrics/refs/heads/feature/2025-03-26-data-and-code-improvements/src/visualization/tree-hierachy/D3JS_cluster_hierarchy_structure_2025.json?token=GHSAT0AAAAAADBVDIMOFVEQXELUYH3EZDQM2AJ7OJA');
+      const response = await fetch('./data/D3JS_cluster_hierarchy_structure_2025.json');
       if (!response.ok) throw new Error('Network response was not ok');
 
       this.datasets = await response.json();

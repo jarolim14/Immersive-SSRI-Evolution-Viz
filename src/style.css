@@ -827,15 +827,19 @@ input[type="range"]::-webkit-slider-thumb:active {
   flex-direction: column;
   align-items: center;
   transition: opacity 0.3s ease-in-out;
-  opacity: 1; /* Ensure full opacity by default */
+  opacity: 1;
 }
 
-/* Make search less visible when node is selected */
-#nodeInfoDiv[style*="display: block"] ~ #search-container {
+/* Make search less visible when node is selected or modal is open */
+#nodeInfoDiv[style*="display: block"] ~ #search-container,
+.modal[style*="display: block"] ~ #search-container,
+body.node-selected #search-container {
   opacity: 0.2;
 }
 
-#nodeInfoDiv[style*="display: block"] ~ #search-container:hover {
+#nodeInfoDiv[style*="display: block"] ~ #search-container:hover,
+.modal[style*="display: block"] ~ #search-container:hover,
+body.node-selected #search-container:hover {
   opacity: 0.8;
 }
 

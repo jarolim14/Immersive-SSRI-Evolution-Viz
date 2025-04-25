@@ -225,6 +225,7 @@ export function updateNodeInfo(intersection, nodesMap, positions, scene) {
   if (!intersection || !nodesMap) {
     console.log("No intersection or missing data, hiding node info");
     nodeInfoDiv.style.display = "none";
+    document.body.classList.remove('node-selected');
     brightnessAttribute.array.fill(0.0);
     brightnessAttribute.needsUpdate = true;
     hideVisualSelection();
@@ -275,6 +276,7 @@ export function updateNodeInfo(intersection, nodesMap, positions, scene) {
   `;
   nodeInfoDiv.style.whiteSpace = "pre-line";
   nodeInfoDiv.style.display = "block";
+  document.body.classList.add('node-selected');
 
   // Update last selected node index
   lastSelectedNodeIndex = intersection.index;
