@@ -13,6 +13,7 @@
  * - getFullNodeData(requestedKeys): Retrieves specified node data, including the Points object and raw node information.
  *
  * Features:
+ * - WebGL2 optimized rendering with instanced arrays
  * - Custom shader material creation with support for textures, fog, and selection highlighting.
  * - Flexible node data retrieval system allowing for selective data access.
  * - Integration with pre-defined shaders and configuration settings.
@@ -53,6 +54,11 @@ function createNodeMaterial() {
     },
     fogNear: { value: CONFIG.fog.near },
     fogFar: { value: CONFIG.fog.far },
+    saturation: { value: CONFIG.shaderEffects.nodes.saturation },
+    specularPower: { value: CONFIG.shaderEffects.nodes.specularPower },
+    specularIntensity: { value: CONFIG.shaderEffects.nodes.specularIntensity },
+    brightnessMultiplier: { value: CONFIG.shaderEffects.nodes.brightnessMultiplier },
+    highlightBrightness: { value: CONFIG.shaderEffects.nodes.highlightBrightness },
   };
 
   return new THREE.ShaderMaterial({
@@ -62,6 +68,13 @@ function createNodeMaterial() {
     alphaTest: 1,
     transparent: true,
     depthWrite: false, // Prevent flickering
+    // Enable WebGL2 features
+    extensions: {
+      derivatives: true,
+      fragDepth: true,
+      drawBuffers: true,
+      shaderTextureLOD: true
+    }
   });
 }
 
@@ -70,10 +83,29 @@ export function createNodes(nodesGeometry) {
     console.error("No position data available for creating nodes");
     return null;
   }
+
+  // Enable WebGL2 features in the geometry
+  nodesGeometry.attributes.position.usage = THREE.DynamicDrawUsage;
+  nodesGeometry.attributes.color.usage = THREE.DynamicDrawUsage;
+  nodesGeometry.attributes.size.usage = THREE.DynamicDrawUsage;
+  nodesGeometry.attributes.visible.usage = THREE.DynamicDrawUsage;
+  nodesGeometry.attributes.singleNodeSelectionBrightness.usage = THREE.DynamicDrawUsage;
+
+  // Optimize buffer updates
+  nodesGeometry.attributes.position.needsUpdate = false;
+  nodesGeometry.attributes.color.needsUpdate = false;
+  nodesGeometry.attributes.size.needsUpdate = false;
+  nodesGeometry.attributes.visible.needsUpdate = false;
+  nodesGeometry.attributes.singleNodeSelectionBrightness.needsUpdate = false;
+
   const material = createNodeMaterial();
 
   points = new THREE.Points(nodesGeometry, material);
   points.name = "points";
+
+  // Enable frustum culling for better performance
+  points.frustumCulled = true;
+
   console.log("Nodes geometry created:", points);
 
   return { points }; // Return both nodes and points

@@ -1,125 +1,44 @@
 /**
  * @file edgeCreation.js
- * @description This module handles the creation and management of edges in a 3D graph visualization using Three.js.
- * It provides functionality for generating edge geometries, applying shaders, and managing edge data.
- *
- * @author [Your Name or Organization]
- * @version 1.1.0
- * @date 2023-10-21
- *
- * Key Functions:
- * - createEdges(edgesGeometry, edgeMap, nodesMap): Creates edge geometries and materials based on provided data.
- * - shuffleArray(array): Implements the Fisher-Yates shuffle algorithm for randomizing edge creation order.
- * - getEdges(): Returns the created line segments representing edges.
- *
- * Features:
- * - Dynamic edge creation based on a configurable fraction of total edges.
- * - Custom shader material application for edge rendering.
- * - Edge visibility control.
- * - Color differentiation for special edges.
- * - Handling of missing source or target nodes.
- * - Edge data storage for further processing or interaction.
- *
- * This module integrates with Three.js to create a complex edge system in a 3D environment,
- * supporting large-scale graph visualizations with customizable appearance and behavior.
- *
- * @requires THREE
- * @requires ./config.js
- * @requires ./shaders.js
- *
- * @exports {Function} createEdges
- * @exports {Function} getEdges
+ * @description Optimized module for creating and rendering edges using merged BufferGeometry
+ * @version 2.0.0
  */
 
 import * as THREE from "three";
 import { CONFIG } from "./config.js";
-import { VertexShaderEdge, FragmentShaderEdge } from "./shaders.js";
+
+// Custom shaders that respect the visibility attribute
+const VertexShaderEdge = `
+  attribute float visible;
+  varying vec3 vColor;
+  varying float vVisible;
+
+  void main() {
+    vColor = color; // Use the existing color attribute that THREE.js provides
+    vVisible = visible;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const FragmentShaderEdge = `
+  uniform float opacity;
+  uniform float brightness;
+  varying vec3 vColor;
+  varying float vVisible;
+
+  void main() {
+    if (vVisible < 0.5) discard; // Skip invisible segments
+    gl_FragColor = vec4(vColor * brightness, opacity);
+  }
+`;
 
 let lineSegments;
 
-export function createEdges(edgesGeometry, edgeMap, nodesMap) {
-  const geometry = edgesGeometry.clone(); // Clone to avoid modifying the original
-  const positions = geometry.attributes.position.array;
-  const colors = geometry.attributes.color.array;
-  const visible = new Float32Array(positions.length / 3);
-  const indices = [];
-  const edgeData = [];
+export function createEdges(edgesGeometry, edgesMap, nodesMap, edgeIndices) {
+  console.log(`Creating optimized edge rendering with ${edgesMap.size} edges`);
 
-  const totalEdges = edgeMap.size;
-  const edgesToCreate = Math.floor(totalEdges * CONFIG.fractionOfEdgesToLoad);
-  const edgeIndices = Array.from(edgeMap.keys());
-  shuffleArray(edgeIndices);
-
-  const edgeCount = Math.min(totalEdges, edgesToCreate);
-  console.log(`Creating geometry for ${edgeCount} edges`);
-
-  let coloredEdges = 0;
-  let missingTargets = 0;
-  let missingSources = 0;
-
-  for (let i = 0; i < edgeCount; i++) {
-    const edgeId = edgeIndices[i];
-    const edge = edgeMap.get(edgeId);
-    const {
-      source: sourceNodeId,
-      target: targetNodeId,
-      startIndex,
-      endIndex,
-      year,
-    } = edge;
-
-    const sourceNode = nodesMap.get(sourceNodeId);
-    const targetNode = nodesMap.get(targetNodeId);
-
-    if (!sourceNode) missingSources++;
-    if (!targetNode) missingTargets++;
-
-    const edgeYear =
-      year ||
-      (sourceNode && targetNode
-        ? Math.max(sourceNode.year, targetNode.year)
-        : 0);
-
-    // Set visible
-    for (let j = startIndex; j < endIndex; j++) {
-      visible[j] = 1; // 1 for default visible
-    }
-
-    // Create indices for line segments
-    for (let j = startIndex; j < endIndex - 1; j++) {
-      indices.push(j, j + 1);
-    }
-
-    // Store edge data
-    edgeData.push({
-      sourceCluster: sourceNode ? sourceNode.cluster : null,
-      targetCluster: targetNode ? targetNode.cluster : null,
-      startIndex: startIndex,
-      endIndex: endIndex,
-      year: edgeYear,
-    });
-
-    // Check if edge is colored (non-default color)
-    const defaultColor = new THREE.Color(CONFIG.edgeDefaultColor);
-    const edgeColor = new THREE.Color(
-      colors[startIndex * 3],
-      colors[startIndex * 3 + 1],
-      colors[startIndex * 3 + 2]
-    );
-    if (edgeColor.getHex() !== defaultColor.getHex()) {
-      coloredEdges++;
-    }
-  }
-
-  console.log(`Colored edges: ${coloredEdges}`);
-  console.log(`Missing sources: ${missingSources}`);
-  console.log(`Missing targets: ${missingTargets}`);
-
-  geometry.setIndex(new THREE.BufferAttribute(new Uint32Array(indices), 1));
-  geometry.setAttribute(
-    "visible",
-    new THREE.Float32BufferAttribute(visible, 1)
-  );
+  // We're now working with a pre-built geometry with indices already set
+  // We just need to create the material and LineSegments object
 
   const material = new THREE.ShaderMaterial({
     vertexShader: VertexShaderEdge,
@@ -127,15 +46,179 @@ export function createEdges(edgesGeometry, edgeMap, nodesMap) {
     uniforms: {
       opacity: { value: CONFIG.edgeOpacity },
       brightness: { value: CONFIG.edgeBrightness },
+      saturation: { value: CONFIG.shaderEffects.edges.saturation },
+      glowIntensity: { value: CONFIG.shaderEffects.edges.glowIntensity },
     },
     transparent: true,
     vertexColors: true,
   });
 
-  lineSegments = new THREE.LineSegments(geometry, material);
-  lineSegments.userData.edgeData = edgeData;
+  // Create the LineSegments with our existing geometry
+  lineSegments = new THREE.LineSegments(edgesGeometry, material);
   lineSegments.name = "edges";
+
+  // Store edge metadata for later use
+  const edgeData = [];
+
+  // If we want to limit the number of edges shown initially
+  if (CONFIG.fractionOfEdgesToLoad < 1.0) {
+    // Get a subset of edges to show initially
+    const totalEdges = edgesMap.size;
+    const edgesToShow = Math.floor(totalEdges * CONFIG.fractionOfEdgesToLoad);
+    const edgeKeys = Array.from(edgesMap.keys());
+    shuffleArray(edgeKeys);
+
+    // Set all edges to invisible first
+    const visibilityArray = edgesGeometry.attributes.visible.array;
+    visibilityArray.fill(0);
+
+    // Then show only the selected edges
+    let coloredEdges = 0;
+    let missingTargets = 0;
+    let missingSources = 0;
+
+    for (let i = 0; i < edgesToShow && i < edgeKeys.length; i++) {
+      const edgeId = edgeKeys[i];
+      const edge = edgesMap.get(edgeId);
+      const {
+        source: sourceNodeId,
+        target: targetNodeId,
+        startVertexIndex,
+        endVertexIndex,
+        year,
+      } = edge;
+
+      const sourceNode = nodesMap.get(sourceNodeId);
+      const targetNode = nodesMap.get(targetNodeId);
+
+      if (!sourceNode) missingSources++;
+      if (!targetNode) missingTargets++;
+
+      const edgeYear =
+        year ||
+        (sourceNode && targetNode
+          ? Math.max(sourceNode.year, targetNode.year)
+          : 0);
+
+      // Make this edge visible
+      for (let j = startVertexIndex; j <= endVertexIndex; j++) {
+        visibilityArray[j] = 1;
+      }
+
+      // Store edge data for reference
+      edgeData.push({
+        id: edgeId,
+        sourceCluster: sourceNode ? sourceNode.cluster : null,
+        targetCluster: targetNode ? targetNode.cluster : null,
+        startIndex: startVertexIndex,
+        endIndex: endVertexIndex,
+        year: edgeYear,
+      });
+
+      // Check if edge is colored (non-default color)
+      const defaultColor = new THREE.Color(CONFIG.edgeDefaultColor);
+      const colors = edgesGeometry.attributes.color.array;
+      const edgeColor = new THREE.Color(
+        colors[startVertexIndex * 3],
+        colors[startVertexIndex * 3 + 1],
+        colors[startVertexIndex * 3 + 2]
+      );
+
+      if (edgeColor.getHex() !== defaultColor.getHex()) {
+        coloredEdges++;
+      }
+    }
+
+    console.log(`Showing ${edgesToShow} of ${totalEdges} edges`);
+    console.log(`Colored edges: ${coloredEdges}`);
+    console.log(`Missing sources: ${missingSources}`);
+    console.log(`Missing targets: ${missingTargets}`);
+
+    // Mark buffer for update
+    edgesGeometry.attributes.visible.needsUpdate = true;
+  } else {
+    // Show all edges - convert edgesMap to edgeData for reference
+    for (const [edgeId, edge] of edgesMap.entries()) {
+      const {
+        source: sourceNodeId,
+        target: targetNodeId,
+        startVertexIndex,
+        endVertexIndex,
+        year,
+      } = edge;
+
+      const sourceNode = nodesMap.get(sourceNodeId);
+      const targetNode = nodesMap.get(targetNodeId);
+
+      edgeData.push({
+        id: edgeId,
+        sourceCluster: sourceNode ? sourceNode.cluster : null,
+        targetCluster: targetNode ? targetNode.cluster : null,
+        startIndex: startVertexIndex,
+        endIndex: endVertexIndex,
+        year: year || (sourceNode && targetNode ? Math.max(sourceNode.year, targetNode.year) : 0),
+      });
+    }
+  }
+
+  // Store edge data in userData for reference
+  lineSegments.userData.edgeData = edgeData;
+
   return lineSegments;
+}
+
+// Functions for controlling edge visibility
+export function showEdgesByYear(minYear, maxYear) {
+  if (!lineSegments) return;
+
+  const visibilityArray = lineSegments.geometry.attributes.visible.array;
+  const yearArray = lineSegments.geometry.attributes.year.array;
+
+  for (let i = 0; i < visibilityArray.length; i++) {
+    const year = yearArray[i];
+    visibilityArray[i] = (year >= minYear && year <= maxYear) ? 1 : 0;
+  }
+
+  lineSegments.geometry.attributes.visible.needsUpdate = true;
+}
+
+export function showEdgesByCluster(clusterIds) {
+  if (!lineSegments || !lineSegments.userData.edgeData) return;
+
+  const visibilityArray = lineSegments.geometry.attributes.visible.array;
+  visibilityArray.fill(0); // Start by hiding all
+
+  const edgeData = lineSegments.userData.edgeData;
+  const clusterSet = new Set(clusterIds);
+
+  edgeData.forEach(edge => {
+    const { sourceCluster, targetCluster, startIndex, endIndex } = edge;
+    const showEdge = clusterSet.has(sourceCluster) || clusterSet.has(targetCluster);
+
+    if (showEdge) {
+      for (let i = startIndex; i <= endIndex; i++) {
+        visibilityArray[i] = 1;
+      }
+    }
+  });
+
+  lineSegments.geometry.attributes.visible.needsUpdate = true;
+}
+
+export function setEdgeVisibility(edgeId, isVisible) {
+  if (!lineSegments) return;
+
+  const edgeData = lineSegments.userData.edgeData.find(edge => edge.id === edgeId);
+  if (!edgeData) return;
+
+  const visibilityArray = lineSegments.geometry.attributes.visible.array;
+  const visibilityValue = isVisible ? 1 : 0;
+
+  for (let i = edgeData.startIndex; i <= edgeData.endIndex; i++) {
+    visibilityArray[i] = visibilityValue;
+  }
+
+  lineSegments.geometry.attributes.visible.needsUpdate = true;
 }
 
 // Fisher-Yates shuffle algorithm

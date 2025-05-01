@@ -185,20 +185,24 @@ input[type="range"]::-webkit-slider-thumb:active {
 
 /* =================== =================== =================== =================== =================== */
 #legendDiv {
-  position: absolute;
+  position: fixed;
   top: var(--spacing-md);
   left: var(--spacing-md);
   background: var(--overlay-bg);
   padding: var(--spacing-md);
   border: var(--border-width) var(--border-style) var(--border-color);
   border-radius: var(--border-radius);
-  max-height: 90vh;
+  max-height: calc(100vh - 150px);
   overflow-y: auto;
   color: var(--text-light);
   font-family: var(--body-font);
   font-weight: 100;
   font-size: 14px;
   box-shadow: var(--border-glow);
+  padding-bottom: 20px;
+  min-width: 200px;
+  max-width: 300px;
+  box-sizing: border-box;
 }
 
 .legend-item {
@@ -242,30 +246,144 @@ input[type="range"]::-webkit-slider-thumb:active {
 }
 
 .reset-button {
-  display: block;
-  padding: 4px 12px;
-  background-color: var(--overlay-light);
+  background-color: rgba(225, 200, 116, 0.15);
   color: var(--text-light);
-  border: var(--border-width) var(--border-style) var(--border-color);
-  border-radius: calc(var(--border-radius) / 2);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: normal;
+  border: 1px solid rgba(225, 200, 116, 0.3);
+  border-radius: 4px;
   font-family: var(--body-font);
-  font-size: 12px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   margin-top: var(--spacing-md);
-  width: 140px; /* Fixed width - adjust the value as needed */
-  box-sizing: border-box; /* Include padding and border in the width calculation */
-  white-space: nowrap; /* Prevent text wrapping */
-  overflow: hidden; /* Hide overflow text */
-  text-overflow: ellipsis; /* Show ellipsis for overflow text */
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
 }
 
 .reset-button:hover {
-  background-color: var(--overlay-bg);
+  background-color: rgba(225, 200, 116, 0.25);
+  border-color: rgba(225, 200, 116, 0.5);
+  opacity: 1;
 }
 
-/* Remove the legend-buttons class since we're not using it anymore */
-.legend-buttons {
-  display: none;
+.reset-button:active {
+  background-color: rgba(225, 200, 116, 0.1);
+  opacity: 0.9;
+}
+
+/* Time Travel UI Styles */
+.time-travel-section {
+  margin-top: 15px;
+  padding: 8px 10px;
+  border: 1px solid rgba(225, 200, 116, 0.2);
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.3);
+  width: calc(100% - 20px);
+  box-sizing: border-box;
+  position: relative;
+  left: 0;
+  right: 0;
+  font-family: var(--body-font);
+}
+
+.time-travel-section .legend-section-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #e1c874;
+  font-family: var(--header-font);
+}
+
+.time-travel-section .top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 6px;
+}
+
+.time-travel-section .time-travel-button {
+  padding: 4px 10px;
+  font-size: 12px;
+  background-color: #e1c874;
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+  min-width: 40px;
+  flex-shrink: 0;
+}
+
+.time-travel-section .time-travel-button:hover {
+  background-color: #d4b86a;
+}
+
+.time-travel-section .time-travel-button.playing {
+  background-color: #ff6b6b;
+}
+
+.time-travel-section .time-travel-button.playing:hover {
+  background-color: #ff5252;
+}
+
+.time-travel-section .speed-label {
+  font-size: 10px;
+  color: #e1c874;
+  margin-left: 10px;
+  margin-right: auto;
+  margin-top: -11px;
+  font-family: var(--body-font);
+}
+
+.time-travel-section .bottom-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding-left: 50px;
+  margin-top: -9px;
+}
+
+.time-travel-section #time-travel-speed-slider {
+  width: 100%;
+  max-width: 60px;
+  height: 1px;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: rgba(225, 200, 116, 0.3);
+  border-radius: 1px;
+  outline: none;
+}
+
+.time-travel-section #time-travel-speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 6px;
+  height: 10px;
+  border-radius: 2px;
+  background: #e1c874;
+  cursor: pointer;
+}
+
+.time-travel-section #time-travel-speed-slider::-moz-range-thumb {
+  width: 6px;
+  height: 10px;
+  border-radius: 2px;
+  background: #e1c874;
+  cursor: pointer;
+  border: none;
 }
 
 /* Button container for legend buttons */
@@ -273,67 +391,78 @@ input[type="range"]::-webkit-slider-thumb:active {
   display: flex;
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-md);
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
 }
 
-/* Base button styles */
+/* Base button styles for legend */
+.legend-button,
+.time-travel-button,
 .update-button {
-  --button-bg: rgba(225, 200, 116, 0.8);
-  --button-bg-hover: rgba(225, 200, 116, 1);
-
-  background-color: var(--button-bg);
-  color: var(--text-dark);
-  padding: 6px 18px;
-  font-size: 14px;
+  background-color: #e1c874;
+  color: #000;
+  padding: 6px 12px;
+  font-size: 12px;
   font-weight: bold;
-  margin: var(--spacing-xs) var(--spacing-xs);
   border: none;
-  border-radius: var(--border-radius);
+  border-radius: 4px;
   font-family: var(--body-font);
-  font-weight: 100;
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: transform var(--transition-speed),
-    box-shadow var(--transition-speed);
-  box-shadow: 0 4px 6px rgba(255, 255, 255, 0.3), 0 8px 15px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s ease;
+  min-width: 40px;
+  text-align: center;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.legend-button:hover,
+.time-travel-button:hover,
 .update-button:hover {
-  background-color: var(--button-bg-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2), 0 12px 20px rgba(0, 0, 0, 0.3);
+  background-color: #d4b86a;
 }
 
+.legend-button:active,
+.time-travel-button:active,
 .update-button:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 6px 10px rgba(0, 0, 0, 0.2);
+  background-color: #c5a85f;
 }
 
-.update-button:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+/* Specific button states */
+.time-travel-button.playing {
+  background-color: #ff6b6b;
+}
+
+.time-travel-button.playing:hover {
+  background-color: #ff5252;
+}
+
+/* Update button specific styles */
+.update-button {
+  margin: 0;
+  padding: 6px 18px;
+  min-width: 120px;
+}
+
+/* Remove old button styles */
+.update-button {
+  --button-bg: #e1c874;
+  --button-bg-hover: #d4b86a;
+  box-shadow: none;
 }
 
 .update-button::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -75%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.8) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  transform: skewX(-25deg);
-  transition: left 0.5s ease;
+  display: none;
 }
 
-.update-button:hover::before {
-  left: 150%;
+/* Time Travel UI specific button styles */
+.time-travel-section .time-travel-button {
+  min-width: 40px;
+  flex-shrink: 0;
 }
+
 #colorLegendDiv {
   position: fixed;
   top: var(--spacing-md);
@@ -380,8 +509,8 @@ input[type="range"]::-webkit-slider-thumb:active {
 /* Category Colors */
 :root {
   --color-pharmacology: #4287f5;
-  --color-indications: #f54242;
-  --color-safety: #42f554;
+  --color-indications:#42f554;
+  --color-safety:  #f54242;
   --color-other: #b042f5;
 }
 
@@ -410,7 +539,7 @@ input[type="range"]::-webkit-slider-thumb:active {
   top: 0;
   width: 100%;
   height: 100%;
-  background-color: var(--overlay-bg);
+  background-color: rgba(0, 0, 0, 0.8);
   overflow: hidden;
 }
 
@@ -472,15 +601,22 @@ input[type="range"]::-webkit-slider-thumb:active {
 
 /* Footer area with buttons and checkbox */
 .modal-footer {
-  position: sticky;
-  bottom: 0;
-  background-color: var(--modal-bg);
-  padding-top: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 20px;
+  padding-top: 15px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.close-btn {
+.modal-footer .button-group {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.close-btn, .view-hierarchy-btn {
   margin-bottom: 15px;
   padding: var(--spacing-md) var(--spacing-lg);
   background-color: var(--button-success);
@@ -491,9 +627,13 @@ input[type="range"]::-webkit-slider-thumb:active {
   font-family: var(--main-font);
   transition: background-color var(--transition-speed);
   width: 200px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.close-btn:hover {
+.close-btn:hover, .view-hierarchy-btn:hover {
   background-color: var(--button-success-hover);
 }
 
@@ -687,15 +827,19 @@ input[type="range"]::-webkit-slider-thumb:active {
   flex-direction: column;
   align-items: center;
   transition: opacity 0.3s ease-in-out;
-  opacity: 1; /* Ensure full opacity by default */
+  opacity: 1;
 }
 
-/* Make search less visible when node is selected */
-#nodeInfoDiv[style*="display: block"] ~ #search-container {
+/* Make search less visible when node is selected or modal is open */
+#nodeInfoDiv[style*="display: block"] ~ #search-container,
+.modal[style*="display: block"] ~ #search-container,
+body.node-selected #search-container {
   opacity: 0.2;
 }
 
-#nodeInfoDiv[style*="display: block"] ~ #search-container:hover {
+#nodeInfoDiv[style*="display: block"] ~ #search-container:hover,
+.modal[style*="display: block"] ~ #search-container:hover,
+body.node-selected #search-container:hover {
   opacity: 0.8;
 }
 
@@ -706,7 +850,7 @@ input[type="range"]::-webkit-slider-thumb:active {
   border: 2px solid rgba(100, 219, 255, 0.7);
   background-color: rgba(20, 20, 30, 0.85);
   color: #fff;
-  font-family: 'Exo 2', sans-serif;
+  font-family: var(--body-font);
   font-size: 16px;
   box-shadow: 0 0 15px rgba(100, 219, 255, 0.3);
   outline: none;
@@ -767,7 +911,7 @@ input[type="range"]::-webkit-slider-thumb:active {
 }
 
 .result-title {
-  font-family: 'Exo 2', sans-serif;
+  font-family: var(--body-font);
   font-weight: 600;
   color: #fff;
   font-size: 14px;
@@ -776,7 +920,7 @@ input[type="range"]::-webkit-slider-thumb:active {
 }
 
 .result-metadata {
-  font-family: 'Exo 2', sans-serif;
+  font-family: var(--body-font);
   color: rgba(255, 255, 255, 0.7);
   font-size: 12px;
   display: flex;
@@ -784,7 +928,7 @@ input[type="range"]::-webkit-slider-thumb:active {
 }
 
 .result-doi {
-  font-family: 'Chakra Petch', monospace;
+  font-family: var(--body-font);
   margin-left: 10px;
   font-size: 11px;
   color: rgba(100, 219, 255, 0.9);
@@ -806,18 +950,258 @@ input[type="range"]::-webkit-slider-thumb:active {
     width: 85%;
     bottom: 20px;
   }
-  
+
   .result-title {
     font-size: 13px;
   }
-  
+
   .result-metadata {
     font-size: 11px;
     flex-direction: column;
   }
-  
+
   .result-doi {
     margin-left: 0;
     margin-top: 3px;
   }
+}
+
+/* Time Travel Styles */
+.time-travel-section {
+  background-color: rgba(20, 20, 30, 0.8);
+  border-radius: 10px;
+  padding: 15px;
+  margin-top: 20px;
+  color: white;
+  font-family: var(--body-font);
+  border: 1px solid rgba(100, 219, 255, 0.5);
+  box-shadow: 0 0 10px rgba(100, 219, 255, 0.2);
+}
+
+.time-travel-header h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  text-align: center;
+  color: rgba(100, 219, 255, 1);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: var(--header-font);
+}
+
+.time-travel-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.time-travel-button {
+  background-color: rgba(100, 219, 255, 0.7);
+  border: none;
+  border-radius: 5px;
+  padding: 8px 12px;
+  color: white;
+  font-family: var(--body-font);
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-size: 14px;
+}
+
+.time-travel-button:hover {
+  background-color: rgba(100, 219, 255, 1);
+}
+
+.time-travel-button.playing {
+  background-color: rgba(255, 100, 100, 0.7);
+}
+
+.time-travel-button.playing:hover {
+  background-color: rgba(255, 100, 100, 1);
+}
+
+.time-travel-year {
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  margin: 5px 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: var(--header-font);
+}
+
+.time-travel-progress-container {
+  width: 100%;
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 5px 0;
+}
+
+.time-travel-progress-bar {
+  height: 100%;
+  width: 0;
+  background-color: rgba(100, 219, 255, 0.8);
+  transition: width 0.3s ease;
+}
+
+.time-travel-speed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.time-travel-speed input {
+  flex-grow: 1;
+  height: 4px;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.time-travel-speed input::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(100, 219, 255, 1);
+  cursor: pointer;
+}
+
+.time-travel-instructions {
+  font-size: 12px;
+  margin: 10px 0 0 0;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+  text-align: center;
+  font-family: var(--body-font);
+}
+
+/* Topic Tree Styles */
+.topic-tree-container {
+  width: 100%;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow: auto;
+  padding: 1rem;
+}
+
+.topic-select {
+  padding: 0.5rem;
+  border: 1px solid #444;
+  background-color: #1a1a1a;
+  color: #fff;
+  border-radius: 4px;
+  font-family: 'Exo 2', sans-serif;
+  width: 200px;
+}
+
+.topic-tree-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.5rem;
+  background-color: #1a1a1a;
+  border-radius: 4px;
+  flex-wrap: wrap;
+}
+
+.topic-tree-controls label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff;
+  cursor: pointer;
+}
+
+.topic-tree-controls input[type="radio"] {
+  accent-color: #4CAF50;
+}
+
+#topicTreeSvg {
+  flex: 1;
+  background-color: #1a1a1a;
+  border-radius: 4px;
+  overflow: visible;
+  min-width: 900px;
+  min-height: 700px;
+}
+
+#topicTreeSvg .node circle {
+  fill: #4CAF50;
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+#topicTreeSvg .node text {
+  font: 12px 'Exo 2', sans-serif;
+  fill: #fff;
+}
+
+#topicTreeSvg .node--internal circle {
+  fill: #2E7D32;
+}
+
+#topicTreeSvg .link {
+  fill: none;
+  stroke: #4CAF50;
+  stroke-opacity: 0.4;
+  stroke-width: 1.5px;
+}
+
+.inline-button {
+  background: none;
+  border: none;
+  color: #4CAF50;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  text-decoration: underline;
+}
+
+.inline-button:hover {
+  color: #81C784;
+}
+
+.save-button {
+  padding: 0.5rem 1rem;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Exo 2', sans-serif;
+  transition: background-color 0.3s;
+}
+
+.save-button:hover {
+  background-color: #2E7D32;
+}
+
+/* Topic Tree Modal Specific Styles */
+#topicTreeModal .modal-content {
+  width: 90%;
+  max-width: 1400px;
+  max-height: 96vh;
+  margin: 2vh auto;
+  padding: 20px;
+}
+
+.view-hierarchy-btn {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--button-success);
+  color: var(--text-light);
+  border: none;
+  border-radius: calc(var(--border-radius) / 2);
+  cursor: pointer;
+  font-family: var(--main-font);
+  transition: background-color var(--transition-speed);
+  width: 200px;
+}
+
+.view-hierarchy-btn:hover {
+  background-color: var(--button-success-hover);
 }

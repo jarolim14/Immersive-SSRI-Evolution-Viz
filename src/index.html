@@ -65,10 +65,9 @@
             <div class="instruction-item">
               <h3>Additional Features</h3>
               <ul>
-                <li>
-                  📅 Use the year slider to filter papers by publication date
-                </li>
+                <li>📅 Use the year slider to filter papers by publication date</li>
                 <li>🏷️ Toggle node visibility using the legend</li>
+                <li>⏳ Use <strong>Time Evolution</strong> to watch how clusters developed over time. Select clusters from the legend, adjust the year sliders, and click Play. Use the speed slider to control animation speed.</li>
                 <li>🔍 Search for papers by title or DOI using the search box at the bottom</li>
               </ul>
             </div>
@@ -82,7 +81,10 @@
         </div>
 
         <div class="modal-footer">
-          <button id="instructionsCloseBtn" class="close-btn">Got it!</button>
+          <div class="button-group">
+            <button id="instructionsCloseBtn" class="close-btn">Got it!</button>
+            <button id="viewTopicHierarchyBtn" class="view-hierarchy-btn">View Topic Hierarchy</button>
+          </div>
         </div>
       </div>
     </div>
@@ -112,19 +114,19 @@
             type="range"
             value="1982"
             min="1982"
-            max="2023"
+            max="2025"
           />
           <input
             id="toSlider"
             type="range"
-            value="2023"
+            value="2025"
             min="1982"
-            max="2023"
+            max="2025"
           />
         </div>
         <div class="form_control">
           <span id="fromValue">1982</span>
-          <span id="toValue">2023</span>
+          <span id="toValue">2025</span>
         </div>
       </div>
     </div>
@@ -182,6 +184,29 @@
         </div>
         <div class="modal-footer">
           <button id="creditsCloseBtn" class="close-btn">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Topic Tree Modal -->
+    <div id="topicTreeModal" class="modal">
+      <div class="modal-content">
+        <h2>Topic Hierarchy</h2>
+        <div class="topic-tree-container">
+          <select id="datasetSelect" class="topic-select">
+            <option value="overview" selected>Overview</option>
+            <option value="pharmacology">Pharmacology</option>
+            <option value="indications">Indications</option>
+            <option value="safety">Safety</option>
+            <option value="other">Other</option>
+          </select>
+          <div class="topic-tree-controls">
+            <button id="saveTreeButton" class="save-button">Save as SVG</button>
+          </div>
+          <div id="topicTreeSvg"></div>
+        </div>
+        <div class="modal-footer">
+          <button id="topicTreeCloseBtn" class="close-btn">Close</button>
         </div>
       </div>
     </div>

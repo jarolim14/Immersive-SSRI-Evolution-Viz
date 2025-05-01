@@ -7,8 +7,8 @@ import {
 } from "./dataUtils.js";
 import { loadNodeData } from "./nodesLoader.js";
 import { createNodes } from "./nodesCreation.js";
-import { loadEdgeData } from "./edgesLoader.js";
-import { createEdges } from "./edgeCreation.js";
+import { loadEdgeData, updateEdgeVisibility } from "./edgesLoader.js";
+import { createEdges, showEdgesByYear, setEdgeVisibility } from "./edgeCreation.js";
 import { createScene } from "./sceneCreation.js";
 import {
   raycaster,
@@ -23,6 +23,9 @@ import { visibilityManager } from "./visibilityManager.js";
 import { instructionsModal } from "./instructionsModal.js";
 import { creditsModal } from "./creditsModal.js";
 import { initializeSearch } from "./searchFunctionality.js";
+import { timeTravelController } from "./timeTravel.js";
+import { LODSystem } from "./lodSystem.js";
+import { TopicTree } from './topicTree.js';
 
 const canvas = document.querySelector("canvas.webgl");
 
@@ -53,19 +56,27 @@ async function loadAndCreateNodes(parent, clusterLabelMap, clusterColorMap) {
 }
 
 async function loadAndCreateEdges(parent, clusterColorMap, nodesMap) {
-  const { edgesMap, edgesGeometry } = await loadEdgeData(
+  // Use the new optimized edge loading approach
+  const { edgesMap, edgesGeometry, edgeIndices } = await loadEdgeData(
     CONFIG.edgeDataUrl,
     clusterColorMap
   );
+
   if (!edgesMap.size || !edgesGeometry) {
     throw new Error("Edge data not loaded properly");
   }
-  const edgeObject = createEdges(edgesGeometry, edgesMap, nodesMap);
+
+  // Create edges with our optimized approach, passing edgeIndices
+  const edgeObject = createEdges(edgesGeometry, edgesMap, nodesMap, edgeIndices);
+
   if (!edgeObject) {
     throw new Error("Failed to create edges");
   }
+
   parent.add(edgeObject);
-  return edgeObject;
+
+  // Return both the edge object and maps for external access
+  return { edgeObject, edgesMap, edgesGeometry };
 }
 
 async function initializeScene() {
@@ -79,6 +90,9 @@ async function initializeScene() {
     const { scene, camera, renderer, controls, parent } = createScene(canvas);
     camera.isPerspectiveCamera = true;
 
+    // Initialize LOD system
+    const lodSystem = new LODSystem(camera, scene);
+
     console.log("Starting data loading and visualization process...");
 
     const { clusterColorMap, clusterLabelMap } = await loadMaps();
@@ -91,12 +105,16 @@ async function initializeScene() {
     );
     console.log("Nodes loaded and created successfully");
 
-    const edgeObject = await loadAndCreateEdges(
+    const { edgeObject, edgesMap } = await loadAndCreateEdges(
       parent,
       clusterColorMap,
       nodesMap
     );
     console.log("Edges loaded and created successfully");
+
+    // Set nodes and edges in LOD system
+    lodSystem.setNodes(points);
+    lodSystem.setEdges(edgeObject);
 
     scene.add(parent);
 
@@ -107,16 +125,38 @@ async function initializeScene() {
     sliderContainer.id = "year-slider-container";
     document.body.appendChild(sliderContainer);
 
+    // Updated code for initializeScene()
     initializeYearSlider(sliderContainer, (minYear, maxYear) => {
-      console.log(`Year range changed: ${minYear} - ${maxYear}`);
+      // Only update the visual representation in the slider
+      // Don't actually change visibility here
+      console.log(`Year range display updated: ${minYear} - ${maxYear}`);
+
+      // The actual visibility update will happen when the "yearUpdated" event fires
+      // after the debounce delay
     });
 
-    // Initialize search functionality
-    initializeSearch(nodesMap, camera, controls, scene);
+    // Initialize search functionality with access to edge control
+    initializeSearch(nodesMap, camera, controls, scene, {
+      setEdgeVisibility: setEdgeVisibility  // Pass the new edge visibility function
+    });
     console.log("Search functionality initialized");
 
-    visibilityManager.init();
+    // Initialize time travel functionality with access to optimized edge controls
+    timeTravelController.initialize(camera, controls, scene, {
+      edgeVisibility: {
+        showEdgesByYear,
+        setEdgeVisibility
+      }
+    });
+    console.log("Time travel functionality initialized");
 
+    // Initialize visibility manager with new edge control functions
+    visibilityManager.init({
+      showEdgesByYear,
+      setEdgeVisibility
+    });
+
+    // Add listeners with access to the edge control functions
     addEventListeners(
       nodesMap,
       points,
@@ -126,14 +166,27 @@ async function initializeScene() {
       raycaster,
       mouse,
       scene,
-      canvas
+      canvas,
+      {
+        edges: {
+          object: edgeObject,
+          map: edgesMap,
+          setVisibility: setEdgeVisibility
+        }
+      }
     );
+
+    // Initialize topic tree
+    const topicTree = new TopicTree();
 
     const endTime = performance.now();
     const loadTime = (endTime - startTime) / 1000;
     console.log(`Total load time: ${loadTime.toFixed(2)} seconds`);
 
-    startRendering(scene, camera, controls, renderer);
+    // Modify the startRendering call to include LOD updates
+    startRendering(scene, camera, controls, renderer, () => {
+      lodSystem.update();
+    });
   } catch (error) {
     console.error("Error in initializeScene:", error);
     instructionsModal.showError("Error loading data. Please refresh the page.");

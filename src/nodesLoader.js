@@ -40,30 +40,50 @@
 import * as THREE from "three";
 import { CONFIG } from "./config.js";
 import { loadJSONData } from "./dataUtils.js";
+import { SpatialPartitioning } from "./spatialPartitioning.js";
 
 let nodesMap = new Map();
 let nodesGeometry = null;
+let spatialPartitioning = new SpatialPartitioning();
 
 // BufferGeometry initialization
 function initializeBufferGeometry(nodeCount) {
   nodesGeometry = new THREE.BufferGeometry();
+
+  // Use TypedArrays for better performance
   const positions = new Float32Array(nodeCount * 3); // x, y, z
   const colors = new Float32Array(nodeCount * 3); // r, g, b
   const sizes = new Float32Array(nodeCount); // size
   const visible = new Float32Array(nodeCount).fill(1); // default visible (1)
   const singleNodeSelectionBrightness = new Float32Array(nodeCount).fill(0); // default visible (1)
 
+  // Create buffer attributes with optimized settings
   nodesGeometry.setAttribute(
     "position",
     new THREE.BufferAttribute(positions, 3)
+      .setUsage(THREE.DynamicDrawUsage)
   );
-  nodesGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-  nodesGeometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
-  nodesGeometry.setAttribute("visible", new THREE.BufferAttribute(visible, 1));
+  nodesGeometry.setAttribute(
+    "color",
+    new THREE.BufferAttribute(colors, 3)
+      .setUsage(THREE.DynamicDrawUsage)
+  );
+  nodesGeometry.setAttribute(
+    "size",
+    new THREE.BufferAttribute(sizes, 1)
+      .setUsage(THREE.DynamicDrawUsage)
+  );
+  nodesGeometry.setAttribute(
+    "visible",
+    new THREE.BufferAttribute(visible, 1)
+      .setUsage(THREE.DynamicDrawUsage)
+  );
   nodesGeometry.setAttribute(
     "singleNodeSelectionBrightness",
     new THREE.BufferAttribute(singleNodeSelectionBrightness, 1)
+      .setUsage(THREE.DynamicDrawUsage)
   );
+
   nodesGeometry.name = "nodesGeometry";
 }
 
@@ -106,10 +126,15 @@ function calculateNodeSize(normalizedCentrality) {
 
 // Node color retrieval helper
 function getNodeColor(node, clusterColorMap) {
-  return clusterColorMap[node.cluster];
+  const clusterColor = clusterColorMap[node.cluster];
+  if (!clusterColor) {
+    console.warn(`No color found for cluster ${node.cluster}, using default color`);
+    return new THREE.Color(0xCCCCCC); // Default color
+  }
+  return clusterColor;
 }
 
-// Buffer update
+// Buffer update with batch processing
 function updateNodeData(index, position, color, size) {
   const i3 = index * 3;
   const positions = nodesGeometry.attributes.position.array;
@@ -127,7 +152,32 @@ function updateNodeData(index, position, color, size) {
   sizes[index] = size;
 }
 
-// Main data parsing function
+// Batch update visibility using spatial partitioning
+export function updateNodesVisibility(yearRange, selectedClusters) {
+  const visibleNodes = spatialPartitioning.updateVisibility(yearRange, selectedClusters);
+  const visible = nodesGeometry.attributes.visible.array;
+
+  // Reset all nodes to invisible
+  visible.fill(0);
+
+  // Set visible nodes
+  for (const node of visibleNodes) {
+    visible[node.index] = 1;
+  }
+
+  nodesGeometry.attributes.visible.needsUpdate = true;
+}
+
+// Batch update selection brightness
+export function updateNodesSelectionBrightness(selectedIndices, brightness) {
+  const selectionBrightness = nodesGeometry.attributes.singleNodeSelectionBrightness.array;
+  for (const index of selectedIndices) {
+    selectionBrightness[index] = brightness;
+  }
+  nodesGeometry.attributes.singleNodeSelectionBrightness.needsUpdate = true;
+}
+
+// Main data parsing function with optimized batch processing
 function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
   const totalNodes = data.length;
   const nodesToLoad = Math.floor(totalNodes * percentage);
@@ -136,45 +186,76 @@ function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
   initializeBufferGeometry(nodesToLoad);
   console.log("BufferGeometry initialized");
 
-  const { maxCentrality, minCentrality } = normalizeCentrality(
-    data,
-    nodesToLoad
-  );
+  const { maxCentrality, minCentrality } = normalizeCentrality(data, nodesToLoad);
+
+  // Pre-allocate arrays for batch processing
+  const positions = new Float32Array(nodesToLoad * 3);
+  const colors = new Float32Array(nodesToLoad * 3);
+  const sizes = new Float32Array(nodesToLoad);
+  const visible = new Float32Array(nodesToLoad).fill(1);
+  const singleNodeSelectionBrightness = new Float32Array(nodesToLoad).fill(0);
 
   let loadedNodes = 0;
   for (let i = 0; i < nodesToLoad; i++) {
     const node = data[i];
-    if (
-      CONFIG.loadClusterSubset &&
-      !CONFIG.clustersToLoad.includes(node.cluster)
-    ) {
+    if (CONFIG.loadClusterSubset && !CONFIG.clustersToLoad.includes(node.cluster)) {
       continue;
     }
 
     const nodeId = node.node_index;
     const centrality = parseFloat(node.centrality.toFixed(5));
-
-    const normalizedCentrality =
-      (centrality - minCentrality) / (maxCentrality - minCentrality);
+    const normalizedCentrality = (centrality - minCentrality) / (maxCentrality - minCentrality);
     const position = calculatePosition(node);
     const size = calculateNodeSize(normalizedCentrality);
     const color = getNodeColor(node, clusterColorMap);
 
-    // Use `loadedNodes` as the key and add `nodeId` to the map value
-    nodesMap.set(loadedNodes, {
-      nodeId: nodeId, // Explicitly include nodeId in the value
+    // Create node object for spatial partitioning
+    const nodeObject = {
+      nodeId,
       cluster: node.cluster,
       clusterLabel: clusterLabelMap[node.cluster],
       year: node.year,
       title: node.title,
-      doi: node.doi || "", // Include DOI data
+      doi: node.doi || "",
       centrality,
       color,
-    });
+      position: position.clone(), // Store position for spatial queries
+      index: loadedNodes // Store buffer index for updates
+    };
 
-    updateNodeData(loadedNodes, position, color, size);
+    // Store node metadata
+    nodesMap.set(loadedNodes, nodeObject);
+
+    // Add to spatial partitioning
+    spatialPartitioning.insert(nodeObject);
+
+    // Batch update arrays
+    const i3 = loadedNodes * 3;
+    positions[i3] = position.x;
+    positions[i3 + 1] = position.y;
+    positions[i3 + 2] = position.z;
+
+    colors[i3] = color.r;
+    colors[i3 + 1] = color.g;
+    colors[i3 + 2] = color.b;
+
+    sizes[loadedNodes] = size;
     loadedNodes++;
   }
+
+  // Batch update geometry attributes
+  nodesGeometry.attributes.position.array = positions;
+  nodesGeometry.attributes.color.array = colors;
+  nodesGeometry.attributes.size.array = sizes;
+  nodesGeometry.attributes.visible.array = visible;
+  nodesGeometry.attributes.singleNodeSelectionBrightness.array = singleNodeSelectionBrightness;
+
+  // Mark attributes as updated
+  nodesGeometry.attributes.position.needsUpdate = true;
+  nodesGeometry.attributes.color.needsUpdate = true;
+  nodesGeometry.attributes.size.needsUpdate = true;
+  nodesGeometry.attributes.visible.needsUpdate = true;
+  nodesGeometry.attributes.singleNodeSelectionBrightness.needsUpdate = true;
 
   if (loadedNodes < nodesToLoad) {
     nodesGeometry.setDrawRange(0, loadedNodes);

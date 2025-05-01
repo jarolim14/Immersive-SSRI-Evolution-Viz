@@ -1,7 +1,5 @@
 import { CONFIG } from "./config.js";
 
-let yearUpdateTimeout; // Timeout variable to manage the delay
-
 export function getCurrentYearRange() {
   const fromValue = document.getElementById("fromValue");
   const toValue = document.getElementById("toValue");
@@ -23,10 +21,9 @@ export function initializeYearSlider(container, onYearChange) {
     } else {
       fromValue.textContent = from;
     }
-    // Update the display immediately
-    onYearChange(from, parseInt(toValue.textContent));
-    // Debounce the actual data update
-    debouncedYearUpdate();
+
+    // Dispatch event immediately
+    dispatchYearUpdatedEvent();
   }
 
   function controlToSlider(fromSlider, toSlider) {
@@ -40,20 +37,9 @@ export function initializeYearSlider(container, onYearChange) {
       toValue.textContent = from;
       toSlider.value = from;
     }
-    // Update the display immediately
-    onYearChange(parseInt(fromValue.textContent), to);
-    // Debounce the actual data update
-    debouncedYearUpdate();
-  }
 
-  // Debounced update function
-  function debouncedYearUpdate() {
-    if (yearUpdateTimeout) {
-      clearTimeout(yearUpdateTimeout);
-    }
-    yearUpdateTimeout = setTimeout(() => {
-      dispatchYearUpdatedEvent();
-    }, CONFIG.yearUpdateDelayTime || 1000); // Use 1 second as default delay
+    // Dispatch event immediately
+    dispatchYearUpdatedEvent();
   }
 
   function getParsed(currentFrom, currentTo) {
@@ -71,8 +57,8 @@ export function initializeYearSlider(container, onYearChange) {
       ${sliderColor} 0%,
       ${sliderColor} ${(fromPosition / rangeDistance) * 100}%,
       ${rangeColor} ${(fromPosition / rangeDistance) * 100}%,
-      ${rangeColor} ${(toPosition / rangeDistance) * 100}%, 
-      ${sliderColor} ${(toPosition / rangeDistance) * 100}%, 
+      ${rangeColor} ${(toPosition / rangeDistance) * 100}%,
+      ${sliderColor} ${(toPosition / rangeDistance) * 100}%,
       ${sliderColor} 100%)`;
   }
 
@@ -95,14 +81,15 @@ export function initializeYearSlider(container, onYearChange) {
   fromValue.textContent = fromSlider.value;
   toValue.textContent = toSlider.value;
 
-  // Set initial visibility after a short delay
-  setTimeout(() => {
-    dispatchYearUpdatedEvent();
-  }, 100);
+  // Trigger initial update
+  dispatchYearUpdatedEvent();
 }
 
 // Function to dispatch the custom "yearUpdated" event
 function dispatchYearUpdatedEvent() {
+  const [minYear, maxYear] = getCurrentYearRange();
+  console.log(`Year range updated: ${minYear} - ${maxYear}`);
+
   const event = new Event("yearUpdated");
   window.dispatchEvent(event);
 }
