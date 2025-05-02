@@ -1,8 +1,8 @@
 import { CONFIG } from "./config.js";
 import * as THREE from "three";
 
-// Add a smoothing factor for zoom transitions
-const ZOOM_SMOOTHING = 0.1;
+// Reduced smoothing factor for faster response when zooming
+const ZOOM_SMOOTHING = 0.2;
 
 export function handleScroll(
   event,
@@ -27,23 +27,57 @@ export function handleScroll(
     deltaY *= 0.8;
   }
 
-  const zoomAmount = deltaY * CONFIG.zoomSpeed;
   const currentDistance = camera.position.distanceTo(controls.target);
 
-  // Smoother exponential interpolation for zooming
-  const targetDistance = currentDistance * Math.pow(0.99, zoomAmount);
+  // Increase base speed for faster overall zooming
+  const baseSpeed = CONFIG.zoomSpeed * 1.5;
+
+  // Enhanced progressive factor with stronger scaling at distance
+  // Using higher multiplier to create more aggressive zoom at distance
+  const distanceFactor = Math.log10(1 + currentDistance / 500) * 2;
+
+  // Combine the base speed with the distance factor
+  // First scroll will use lower base speed, preventing the initial jump
+  const adaptiveSpeed = baseSpeed * (1 + distanceFactor);
+
+  // Get the zoom direction from the wheel event
+  // Ensure consistent direction: positive deltaY = zoom out, negative = zoom in
+  const zoomFactor = 1 + (deltaY > 0 ? adaptiveSpeed : -adaptiveSpeed);
+
+  // Calculate new distance based on current distance and zoom factor
+  const targetDistance = currentDistance * zoomFactor;
 
   // Use smoother lerp for distance transition
+  // Higher value gives faster response
   const newDistance = THREE.MathUtils.lerp(
     currentDistance,
     targetDistance,
     ZOOM_SMOOTHING
   );
 
-  // Clamp the new distance within the defined bounds
+  // Check if zooming out beyond the current maxZoom limit
+  // If so, temporarily allow it to go beyond the CONFIG.maxZoom
+  // This effectively allows zooming out further than the default limit
+  let effectiveMaxZoom = CONFIG.maxZoom;
+  let effectiveMinZoom = CONFIG.minZoom;
+
+  // When actively zooming out (positive deltaY), allow exceeding the normal limit
+  if (deltaY > 0 && currentDistance > CONFIG.maxZoom * 0.8) {
+    // Allow zooming out to 3x the normal limit
+    effectiveMaxZoom = CONFIG.maxZoom * 3;
+  }
+
+  // When actively zooming in (negative deltaY), allow going below the normal min limit
+  // This enables zooming in closer than the default limit
+  if (deltaY < 0 && currentDistance < CONFIG.minZoom * 1.2) {
+    // Allow zooming in to 1/3 of the normal limit
+    effectiveMinZoom = CONFIG.minZoom / 3;
+  }
+
+  // Clamp the new distance within the defined bounds, using the adjusted limits
   const clampedDistance = Math.max(
-    CONFIG.minZoom,
-    Math.min(CONFIG.maxZoom, newDistance)
+    effectiveMinZoom,
+    Math.min(effectiveMaxZoom, newDistance)
   );
 
   // Calculate zoom direction vector relative to controls target

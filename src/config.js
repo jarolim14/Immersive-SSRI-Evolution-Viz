@@ -6,6 +6,22 @@ export const CONFIG = {
   gridHelperDivisions: 10,
   axesHelperSize: 1000,
   addAxesHelper: false,
+  // Development Features Configuration
+  // These features are only for development and should be disabled in production
+  development: {
+    // Enable/disable features used only during development
+    enabled: true,
+    // Video recording functionality for creating demo videos
+    videoRecording: {
+      enabled: true,      // Master toggle for video recording feature
+      showButton: true,   // Whether to show the recording button
+      defaultDuration: 30000,  // Default recording duration in milliseconds (30 seconds)
+      defaultFps: 30      // Default frames per second for recording
+    },
+    // Camera position tools for development
+    showDevTools: true,   // Enable camera position tools in the UI
+    savePositionHistory: true  // Save previously used camera positions
+  },
   // Renderer Configuration
   rendererAntialias: false, // Set to true for production Antialiasing is a technique used to reduce the appearance of jagged edges (aliasing) in digital images. These jagged edges are often referred to as "jaggies" and are especially noticeable on diagonal lines or curves. By smoothing these edges, antialiasing improves the visual quality of the rendered image.
   rendererAutoClearColor: true,
@@ -16,6 +32,17 @@ export const CONFIG = {
     height: window.innerHeight, // Initial window height
   },
   // Camera Configuration
+  // initital position
+  cameraPosition: {
+    x: 6177,
+    y: 7310,
+    z: 12122
+  },
+  cameraTarget: {
+    x: 4302,
+    y: 3761,
+    z: 6118
+  },
   cameraFOV: 75, // Field of view in degrees (higher values give a fish-eye effect)
   cameraNearPlane: 0.5, // Near clipping plane (anything closer than this won't be rendered)
   cameraFarPlane: 50000, // Far clipping plane (anything further away from this won't be rendered)
@@ -59,7 +86,7 @@ export const CONFIG = {
   nodeSelectionAccuracyThreshold: 15, //pixels; how accurate the click
   zoomSpeed: 0.015, // Reduced for smoother zooming with new delta handling
   minZoom: 75,
-  maxZoom: 8000,
+  maxZoom: 50000,
 
   // File Paths and URLs
   nodeDataUrl: "/data/nodes_2025-04-22-15-55-44scale2.json",

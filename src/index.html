@@ -21,6 +21,7 @@
       rel="stylesheet"
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.6.3/nouislider.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
@@ -80,6 +81,52 @@
             <button id="instructionsCloseBtn" class="close-btn">Got it!</button>
             <button id="viewTopicHierarchyBtn" class="view-hierarchy-btn">View Topic Hierarchy</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video Recording Modal -->
+    <div id="videoRecordingModal" class="modal">
+      <div class="modal-content">
+        <h2>Video Recording</h2>
+        <div class="video-recording-container">
+          <div id="videoCompatibilityStatus" class="compatibility-status">
+            <h3>Browser Compatibility Check</h3>
+            <div class="compatibility-items">
+              <div class="compatibility-item">
+                <span class="label">MediaRecorder API:</span>
+                <span id="mediaRecorderSupport" class="status">Checking...</span>
+              </div>
+              <div class="compatibility-item">
+                <span class="label">WebM/VP9 Codec:</span>
+                <span id="webmVp9Support" class="status">Checking...</span>
+              </div>
+              <div class="compatibility-item">
+                <span class="label">WebM/VP8 Codec:</span>
+                <span id="webmVp8Support" class="status">Checking...</span>
+              </div>
+              <div class="compatibility-item">
+                <span class="label">MP4 Codec:</span>
+                <span id="mp4Support" class="status">Checking...</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="video-info">
+            <h3>About Video Recording</h3>
+            <p>This feature allows you to create a demonstration video of the visualization with programmed interactions. The video will show:</p>
+            <ul>
+              <li>Overview of the network</li>
+              <li>Year-based filtering</li>
+              <li>Cluster selection</li>
+              <li>Paper search</li>
+              <li>Time evolution</li>
+            </ul>
+            <p><strong>Note:</strong> If your browser doesn't fully support video recording, a fallback method will be used to capture individual frames as images. These can be converted to video using external tools like FFmpeg.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="videoRecordingCloseBtn" class="close-btn">Close</button>
         </div>
       </div>
     </div>

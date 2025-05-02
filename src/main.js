@@ -26,6 +26,7 @@ import { initializeSearch } from "./searchFunctionality.js";
 import { timeTravelController } from "./timeTravel.js";
 import { LODSystem } from "./lodSystem.js";
 import { TopicTree } from './topicTree.js';
+import { videoUI } from './video/index.js';
 
 const canvas = document.querySelector("canvas.webgl");
 
@@ -178,6 +179,11 @@ async function initializeScene() {
 
     // Initialize topic tree
     const topicTree = new TopicTree();
+
+    // Initialize video UI and recorder if enabled
+    if (CONFIG.development.enabled && CONFIG.development.videoRecording.enabled) {
+      videoUI.initialize(canvas, scene, camera, controls);
+    }
 
     const endTime = performance.now();
     const loadTime = (endTime - startTime) / 1000;

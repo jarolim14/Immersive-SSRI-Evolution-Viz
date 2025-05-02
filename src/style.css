@@ -543,6 +543,10 @@ input[type="range"]::-webkit-slider-thumb:active {
   overflow: hidden;
 }
 
+.modal.show {
+  display: block !important;
+}
+
 .modal-content {
   background-color: var(--modal-bg);
   margin: 5vh auto;
@@ -1204,4 +1208,90 @@ body.node-selected #search-container:hover {
 
 .view-hierarchy-btn:hover {
   background-color: var(--button-success-hover);
+}
+
+/* Video Recording Modal Styles */
+.video-recording-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.compatibility-status {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.compatibility-items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.compatibility-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.compatibility-item .label {
+  font-weight: bold;
+}
+
+.compatibility-item .status {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.compatibility-item .status.supported {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+}
+
+.compatibility-item .status.not-supported {
+  background: rgba(244, 67, 54, 0.2);
+  color: #F44336;
+}
+
+.video-info {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.video-info h3 {
+  margin-top: 0;
+}
+
+.video-info ul {
+  padding-left: 20px;
+}
+
+.video-info ul li {
+  margin-bottom: 8px;
+}
+
+.start-recording-btn {
+  cursor: pointer;
+}
+
+.start-recording-btn:disabled {
+  background: #999 !important;
+  cursor: not-allowed;
+}
+
+/* Recording indicator */
+#recording-indicator {
+  display: flex;
+  align-items: center;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .compatibility-items {
+    grid-template-columns: 1fr;
+  }
 }
