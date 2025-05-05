@@ -18,7 +18,7 @@ class TimeTravelController {
     this.isPlaying = false;
     this.currentYear = CONFIG.timeTravel.startYear;
     this.endYear = CONFIG.timeTravel.endYear;
-    this.animationSpeed = CONFIG.timeTravel.defaultSpeed;
+    this.animationSpeed = CONFIG.timeTravel.animationSpeed;
     this.animationId = null;
     this.selectedClusters = new Set();
     this.abortController = null;
@@ -463,20 +463,11 @@ class TimeTravelController {
     title.className = 'legend-section-title';
     title.textContent = 'Time Evolution';
 
-    // Create top row with play button and speed label
-    const topRow = document.createElement('div');
-    topRow.className = 'top-row';
-
-    // Create the button
+    // Create the play button
     this.ui.playButton = document.createElement('button');
     this.ui.playButton.className = 'time-travel-button';
     this.ui.playButton.textContent = 'Play';
     this.ui.playButton.title = 'Play/pause time evolution animation';
-
-    // Speed label at top row
-    const speedLabel = document.createElement('span');
-    speedLabel.className = 'speed-label';
-    speedLabel.textContent = 'Speed:';
 
     // Add hover effects to play button
     this.ui.playButton.addEventListener('mouseover', () => {
@@ -495,44 +486,9 @@ class TimeTravelController {
       }
     });
 
-    // Create bottom row with slider
-    const bottomRow = document.createElement('div');
-    bottomRow.className = 'bottom-row';
-
-    // Create speed slider
-    const speedSlider = document.createElement('input');
-    speedSlider.type = 'range';
-    speedSlider.min = 0;  // Use 0-100 scale for slider
-    speedSlider.max = 100;
-    // Calculate initial slider position based on current animation speed
-    const initialSliderValue = 100 - (
-      ((this.animationSpeed - CONFIG.timeTravel.minSpeed) /
-      (CONFIG.timeTravel.maxSpeed - CONFIG.timeTravel.minSpeed)) * 100
-    );
-    speedSlider.value = initialSliderValue;
-    speedSlider.title = 'Adjust animation speed';
-    speedSlider.id = 'time-travel-speed-slider';
-
-    // Update animation speed when slider changes
-    speedSlider.addEventListener('input', (e) => {
-      // Convert slider value (0-100) to animation speed in correct range
-      // Higher slider value (right) = faster animation = lower delay
-      const sliderPercent = parseInt(e.target.value);
-      this.animationSpeed = CONFIG.timeTravel.maxSpeed -
-        ((sliderPercent / 100) * (CONFIG.timeTravel.maxSpeed - CONFIG.timeTravel.minSpeed));
-    });
-
     // Add elements to container
     container.appendChild(title);
-
-    // Add elements to top row
-    topRow.appendChild(this.ui.playButton);
-    topRow.appendChild(speedLabel);
-    container.appendChild(topRow);
-
-    // Add slider to bottom row
-    bottomRow.appendChild(speedSlider);
-    container.appendChild(bottomRow);
+    container.appendChild(this.ui.playButton);
 
     // Add to the legend container
     const legendDiv = document.getElementById('legendDiv');

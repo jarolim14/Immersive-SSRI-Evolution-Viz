@@ -294,6 +294,9 @@ input[type="range"]::-webkit-slider-thumb:active {
   left: 0;
   right: 0;
   font-family: var(--body-font);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .time-travel-section .legend-section-title {
@@ -302,14 +305,8 @@ input[type="range"]::-webkit-slider-thumb:active {
   margin-bottom: 8px;
   color: #e1c874;
   font-family: var(--header-font);
-}
-
-.time-travel-section .top-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   width: 100%;
-  margin-bottom: 6px;
+  text-align: center;
 }
 
 .time-travel-section .time-travel-button {
@@ -323,7 +320,6 @@ input[type="range"]::-webkit-slider-thumb:active {
   font-weight: bold;
   transition: background-color 0.2s ease;
   min-width: 40px;
-  flex-shrink: 0;
 }
 
 .time-travel-section .time-travel-button:hover {
@@ -336,55 +332,6 @@ input[type="range"]::-webkit-slider-thumb:active {
 
 .time-travel-section .time-travel-button.playing:hover {
   background-color: #ff5252;
-}
-
-.time-travel-section .speed-label {
-  font-size: 10px;
-  color: #e1c874;
-  margin-left: 10px;
-  margin-right: auto;
-  margin-top: -11px;
-  font-family: var(--body-font);
-}
-
-.time-travel-section .bottom-row {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding-left: 50px;
-  margin-top: -9px;
-}
-
-.time-travel-section #time-travel-speed-slider {
-  width: 100%;
-  max-width: 60px;
-  height: 1px;
-  padding: 0;
-  margin: 0;
-  appearance: none;
-  -webkit-appearance: none;
-  background-color: rgba(225, 200, 116, 0.3);
-  border-radius: 1px;
-  outline: none;
-}
-
-.time-travel-section #time-travel-speed-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 6px;
-  height: 10px;
-  border-radius: 2px;
-  background: #e1c874;
-  cursor: pointer;
-}
-
-.time-travel-section #time-travel-speed-slider::-moz-range-thumb {
-  width: 6px;
-  height: 10px;
-  border-radius: 2px;
-  background: #e1c874;
-  cursor: pointer;
-  border: none;
 }
 
 /* Button container for legend buttons */
@@ -1048,31 +995,6 @@ body.node-selected #search-container:hover {
   width: 0;
   background-color: rgba(100, 219, 255, 0.8);
   transition: width 0.3s ease;
-}
-
-.time-travel-speed {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-}
-
-.time-travel-speed input {
-  flex-grow: 1;
-  height: 4px;
-  appearance: none;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
-  cursor: pointer;
-}
-
-.time-travel-speed input::-webkit-slider-thumb {
-  appearance: none;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: rgba(100, 219, 255, 1);
-  cursor: pointer;
 }
 
 .time-travel-instructions {

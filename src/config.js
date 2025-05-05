@@ -115,9 +115,7 @@ export const CONFIG = {
   timeTravel: {
     startYear: 1982,
     endYear: 2025,
-    defaultSpeed: 1000, // Milliseconds between each year (lower = faster)
-    maxSpeed: 1000,
-    minSpeed: 500,
+    animationSpeed: 1000, // Milliseconds between each year step
     maxVisibleNodesWarning: 15000,
     processingDelay: 0, // Delay between batch processing to keep UI responsive
     camera: {
