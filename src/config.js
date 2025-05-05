@@ -10,7 +10,7 @@ export const CONFIG = {
   // These features are only for development and should be disabled in production
   development: {
     // Enable/disable features used only during development
-    enabled: true,
+    enabled: false,
     // Video recording functionality for creating demo videos
     videoRecording: {
       enabled: true,      // Master toggle for video recording feature
@@ -69,7 +69,7 @@ export const CONFIG = {
   singleNodeSelectionBrightness: 0.5,
   // Performance Configuration
   maxNodes: 45000,
-  fractionOfNodesToLoad:1, // //0.5,
+  fractionOfNodesToLoad: 1, // //0.5,
   // All Z Coords
   liftUpZ: 0, //0.15, // lift all nodes by 0.15, so none are negative.
   // Edge Configuration
@@ -79,7 +79,7 @@ export const CONFIG = {
   edgeWidth: 0.2,
   edgeOpacity: 0.15,
   edgeBrightness: 1,
-  fractionOfEdgesToLoad: 1, // 0.75,
+  fractionOfEdgesToLoad: 1, // 0.5,
   // Interaction Configuration
   clickDurationThreshold: 200, // in milliseconds. long clicks are ignored (bc they drag)
   clickDistanceThreshold: 5, // in pixels

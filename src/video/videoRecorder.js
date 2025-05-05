@@ -1,7 +1,10 @@
 import { CONFIG } from '../config.js';
+import { nodesMap } from "../nodesLoader.js";
+
 import { visibilityManager } from '../visibilityManager.js';
 import { timeTravelController } from '../timeTravel.js';
 import { getCurrentYearRange } from '../yearSlider.js';
+import { updateNodeInfo } from '../singleNodeSelection.js';
 
 class VideoRecorder {
   constructor(canvas, scene, camera, controls) {
@@ -918,120 +921,534 @@ class VideoRecorder {
       await new Promise(resolve => setTimeout(resolve, 500));
     }, 1000);
 
-    // NEW: Camera movement - zoom in to specific area of the network
+
+
+  // NEW: Camera movement - circular orbit around the network scene
+  sequencer.addAction(async () => {
+    console.log('Action: Camera orbital movement around network center');
+    this.showOverlay('Orbital Network Perspective');
+
+    // Starting position - First quadrant (X+, Z+)
+    await this.animateCamera(
+      { x: 6177, y: 7310, z: 12122 },
+      { x: 0, y: 0, z: 0 }, // Keeping camera focused on center
+      1000 // Quick initial positioning
+    );
+
+    // Brief pause to establish the starting view
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    this.showOverlay('Exploring Network Structure');
+
+    // Moving to second quadrant (X-, Z+)
+    await this.animateCamera(
+      { x: -9091, y: 8314, z: 9315 },
+      { x: 0, y: 0, z: 0 },
+      8000 // Slow, cinematic movement
+    );
+
+    // Brief pause to appreciate this angle
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    this.showOverlay('Discovering Network Connections');
+
+    // Moving to third quadrant (X-, Z-)
+    await this.animateCamera(
+      { x: -10000, y: 8398, z: -8247 },
+      { x: 0, y: 0, z: 0 },
+      8000 // Consistent slow pace
+    );
+
+    // Brief pause at this unique perspective
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    this.showOverlay('Complete Network Overview');
+
+    // Moving to fourth quadrant (X+, Z-) completing the circle
+    await this.animateCamera(
+      { x: 10318, y: 7508, z: -8700 },
+      { x: 0, y: 0, z: 0 },
+      8000 // Maintaining the slow, deliberate pace
+    );
+
+    // Longer pause at final position to appreciate the full circular journey
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Note: Additional camera movements would continue from here
+
+  }, 1500);
+    // Add interaction to click the Safety cluster fold indicator
     sequencer.addAction(async () => {
-      console.log('Action: Camera movement - zoom in to network center');
-      this.showOverlay('Exploring Network Structure');
+      console.log('Action: Expanding Safety cluster');
+      this.showOverlay('Exploring Safety Research');
 
-      // First, try to find center of visible nodes
-      const positions = this.scene.getObjectByName('points');
-      if (positions && positions.geometry && positions.geometry.attributes.position) {
-        let centerX = 0, centerY = 0, centerZ = 0;
-        let count = 0;
+      // Find the Safety cluster fold indicator element
+      const safetyContainer = Array.from(document.querySelectorAll('.legend-item-container')).find(
+        container => container.textContent.includes('Safety')
+      );
 
-        // Sample visible nodes to find a center point
-        for (let i = 0; i < positions.geometry.attributes.position.count; i += 100) {
-          if (!positions.geometry.attributes.visibility || positions.geometry.attributes.visibility.getX(i) > 0.5) {
-            centerX += positions.geometry.attributes.position.getX(i);
-            centerY += positions.geometry.attributes.position.getY(i);
-            centerZ += positions.geometry.attributes.position.getZ(i);
-            count++;
+      if (safetyContainer) {
+        const foldIndicator = safetyContainer.querySelector('.fold-indicator');
+        if (foldIndicator) {
+          // First, add visual highlight
+          this.addClickEffect(foldIndicator);
+          await new Promise(resolve => setTimeout(resolve, 300));
+
+          // Try multiple approaches to ensure the fold actually happens
+
+          // 1. Direct click - the standard way
+          foldIndicator.click();
+
+          // 2. Dispatch multiple event types
+          ['mousedown', 'mouseup', 'click'].forEach(eventType => {
+            const event = new MouseEvent(eventType, {
+              view: window,
+              bubbles: true,
+              cancelable: true
+            });
+            foldIndicator.dispatchEvent(event);
+          });
+
+          // 3. If there's a specific toggle function in the parent scope
+          try {
+            if (typeof window.toggleFold === 'function') {
+              window.toggleFold('Safety');
+            }
+          } catch (e) {
+            console.log('No toggleFold function available');
           }
+
+          // 4. If all else fails, manually toggle the class or style
+          const childContainer = document.querySelector('.legend-children-Safety');
+          if (childContainer) {
+            // Toggle display style directly
+            if (childContainer.style.display === 'none') {
+              childContainer.style.display = 'block';
+            }
+
+            // Or toggle a class that controls visibility
+            childContainer.classList.remove('hidden');
+            childContainer.classList.add('visible');
+          }
+
+          console.log('Multiple methods used to expand Safety cluster');
+
+          // Longer pause to allow for the animation and make it clearly visible
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        } else {
+          console.error('Safety fold indicator not found');
+        }
+      } else {
+        console.error('Safety container not found');
+      }
+    }, 1000);
+
+    // Add interaction to click the Perinatal Exposure fold indicator
+    sequencer.addAction(async () => {
+      console.log('Action: Expanding Perinatal Exposure subcluster');
+      this.showOverlay('Focusing on Perinatal Exposure Research');
+
+      // Find the Perinatal Exposure subcluster fold indicator
+      const perinatalContainer = Array.from(document.querySelectorAll('.legend-item-container')).find(
+        container => container.textContent.includes('Perinatal Exposure')
+      );
+
+      if (perinatalContainer) {
+        const foldIndicator = perinatalContainer.querySelector('.fold-indicator');
+        if (foldIndicator) {
+          // First, add visual highlight
+          this.addClickEffect(foldIndicator);
+          await new Promise(resolve => setTimeout(resolve, 300));
+
+          // Try multiple approaches to ensure the fold actually happens
+
+          // 1. Direct click - the standard way
+          foldIndicator.click();
+
+          // 2. Dispatch multiple event types
+          ['mousedown', 'mouseup', 'click'].forEach(eventType => {
+            const event = new MouseEvent(eventType, {
+              view: window,
+              bubbles: true,
+              cancelable: true
+            });
+            foldIndicator.dispatchEvent(event);
+          });
+
+          // 3. If all else fails, manually toggle the class or style
+          const childContainer = document.querySelector('.legend-children-Safety-Perinatal\\ Exposure');
+          if (childContainer) {
+            // Toggle display style directly
+            if (childContainer.style.display === 'none') {
+              childContainer.style.display = 'block';
+            }
+
+            // Or toggle a class that controls visibility
+            childContainer.classList.remove('hidden');
+            childContainer.classList.add('visible');
+          }
+
+          console.log('Multiple methods used to expand Perinatal Exposure subcluster');
+
+          // Longer pause to show the expansion
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        } else {
+          console.error('Perinatal Exposure fold indicator not found');
+        }
+      } else {
+        console.error('Perinatal Exposure container not found');
+      }
+    }, 1000);
+
+    // Add interaction to click the Perinatal Exposure checkbox
+    sequencer.addAction(async () => {
+      console.log('Action: Selecting Perinatal Exposure subcluster');
+      this.showOverlay('Selecting Perinatal Exposure Studies');
+
+      // Find the Perinatal Exposure checkbox
+      const perinatalCheckbox = document.getElementById('Safety-Perinatal Exposure');
+      if (perinatalCheckbox) {
+        // Click the checkbox with animation
+        await performAnimatedClick(perinatalCheckbox, 'Select Perinatal Exposure checkbox');
+
+        // Brief pause after selection
+        await new Promise(resolve => setTimeout(resolve, 1200));
+      } else {
+        console.error('Perinatal Exposure checkbox not found');
+      }
+    }, 1000);
+
+    // Add interaction to click the Update Selection button
+    sequencer.addAction(async () => {
+      console.log('Action: Updating visibility based on selection');
+      this.showOverlay('Updating Network Visibility');
+
+      const updateButton = document.getElementById('updateVisibility');
+      if (updateButton) {
+        await performAnimatedClick(updateButton, 'Click Update Selection button');
+
+        // Wait longer for the visibility update to complete
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } else {
+        console.error('Update Selection button not found');
+      }
+
+      // Final overlay after filtering is complete
+      this.showOverlay('Perinatal Exposure Research Network');
+
+      // Longer pause to appreciate the filtered view
+      await new Promise(resolve => setTimeout(resolve, 2500));
+    }, 1500);
+
+    // Move camera to focus on specific node area
+    sequencer.addAction(async () => {
+      console.log('Action: Moving camera to focus on specific node area');
+      this.showOverlay('Focusing on Key Research Node');
+
+      // Move camera to the specified position and target
+      await this.animateCamera(
+        { x: 3853.83, y: 4340.58, z: -4342.09 },
+        { x: 550.88, y: 735.93, z: 156.50 },
+        3000 // Smooth transition
+      );
+
+      // Brief pause to stabilize view
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }, 1000);
+
+    // Select specific node (prenatal exposure)
+    sequencer.addAction(async () => {
+      console.log('Action: Selecting specific node');
+      this.showOverlay('Highlighting Key Research Paper');
+
+      try {
+        // Import needed modules
+        const singleNodeSelection = await import('../singleNodeSelection.js');
+
+        // Get required scene objects
+        const scene = this.scene;
+        const camera = this.camera;
+        const points = scene.getObjectByName('points');
+
+        if (!points) {
+          console.error('Points object not found in scene');
+          return;
         }
 
-        if (count > 0) {
-          centerX /= count;
-          centerY /= count;
-          centerZ /= count;
-
-          // Zoom in to the center
-          await this.animateCamera(
-            {
-              x: centerX + 1000, // Closer than before
-              y: centerY + 1000,
-              z: centerZ + 1000
-            },
-            { x: centerX, y: centerY, z: centerZ },
-            3000
-          );
+        // Use the imported nodesMap (instead of this.nodesMap)
+        // First, verify we have access to it
+        if (!nodesMap) {
+          console.error('nodesMap not available from nodesLoader.js');
+          return;
         }
+
+        // Get target node ID and verify it exists
+        const targetNodeId = 8214;
+        const targetNode = nodesMap.get(targetNodeId);
+
+        if (!targetNode) {
+          console.error(`Node with ID ${targetNodeId} not found in nodesMap`);
+          return;
+        }
+
+        // Log node info for verification
+        console.log(`Found node ${targetNodeId}:`, targetNode);
+
+        // Find the index of the node in the nodeIds array
+        const nodeIds = Array.from(nodesMap.keys());
+        const targetNodeIndex = nodeIds.indexOf(targetNodeId);
+
+        if (targetNodeIndex === -1) {
+          console.error(`Node ID ${targetNodeId} not found in nodesMap keys`);
+          return;
+        }
+
+        console.log(`Node ID ${targetNodeId} found at index ${targetNodeIndex}`);
+
+        // Create a fake intersection object to pass to updateNodeInfo
+        const fakeIntersection = {
+          index: targetNodeIndex,
+          object: points
+        };
+
+        // Use the updateNodeInfo function to select and highlight the node
+        singleNodeSelection.updateNodeInfo(fakeIntersection, nodesMap, points, scene);
+
+        console.log(`Successfully selected node ID: ${targetNodeId} at index: ${targetNodeIndex}`);
+
+        // Longer pause to appreciate the selected node
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      } catch (error) {
+        console.error('Error selecting node:', error);
       }
     }, 1500);
 
-    // NEW: Camera movement - orbit around to show dimensionality
+    // move camera here: Camera position: {x: 5958.632362729798, y: 3988.7886125553723, z: -5293.824484343763}
+    // Camera target: {x: 661.9051685555658, y: 1185.864557741362, z: -1071.4944853485804}
+
     sequencer.addAction(async () => {
-      console.log('Action: Camera movement - orbit around network');
-      this.showOverlay('Exploring Network Connections');
+      console.log('Action: Moving camera to prenatel exposure RODENTS');
+      this.showOverlay('Moving camera to prenatel exposure RODENTS');
 
-      // Get current camera position and target
-      const currentPosition = {
-        x: this.camera.position.x,
-        y: this.camera.position.y,
-        z: this.camera.position.z
-      };
-      const currentTarget = this.controls.target.clone();
-
-      // First part of orbit
       await this.animateCamera(
-        {
-          x: currentPosition.z,
-          y: currentPosition.y,
-          z: -currentPosition.x
-        },
-        {
-          x: currentTarget.x,
-          y: currentTarget.y,
-          z: currentTarget.z
-        },
-        3000
+        { x: 5958.632362729798, y: 3988.7886125553723, z: -5293.824484343763 },
+        { x: 661.9051685555658, y: 1185.864557741362, z: -1071.4944853485804 },
+        3000 // Smooth transition
       );
 
-      // Second part of orbit
-      await this.animateCamera(
-        {
-          x: -currentPosition.x,
-          y: currentPosition.y,
-          z: -currentPosition.z
-        },
-        {
-          x: currentTarget.x,
-          y: currentTarget.y,
-          z: currentTarget.z
-        },
-        3000
-      );
-    }, 1000);
-
-    // NEW: Camera movement - zoom out for final overview
-    sequencer.addAction(async () => {
-      console.log('Action: Camera movement - zoom out for final overview');
-      this.showOverlay('Full Network Visualization');
-
-      // Use exact coordinates for final position instead of multipliers
-      // These can be easily updated after using logCameraPosition()
-      await this.animateCamera(
-        {
-          x: 5000,  // Example values - replace with your preferred coordinates
-          y: 8000,  // Higher up for a better overview
-          z: 5000
-        },
-        {
-          x: 0,     // Example target - replace with your preferred coordinates
-          y: 0,
-          z: 0
-        },
-        3000
-      );
-    }, 2000);
-
-    // 8. End with an overview shot without rapid movement
-    sequencer.addAction(async () => {
-      console.log('Action: Ending with overview');
-      this.showOverlay('Network Visualization Complete');
-
-      // No camera movement here to avoid rapid changes at the end
+      // Brief pause to stabilize view
       await new Promise(resolve => setTimeout(resolve, 1000));
+    }, 500);
+
+    // Select specific node (prenatal exposure RODENTS)
+    sequencer.addAction(async () => {
+      console.log('Action: Selecting specific node');
+      this.showOverlay('Highlighting Key Research Paper');
+
+      try {
+        // Import needed modules
+        const singleNodeSelection = await import('../singleNodeSelection.js');
+
+        // Get required scene objects
+        const scene = this.scene;
+        const camera = this.camera;
+        const points = scene.getObjectByName('points');
+
+        if (!points) {
+          console.error('Points object not found in scene');
+          return;
+        }
+
+        // Use the imported nodesMap (instead of this.nodesMap)
+        // First, verify we have access to it
+        if (!nodesMap) {
+          console.error('nodesMap not available from nodesLoader.js');
+          return;
+        }
+
+        // Get target node ID and verify it exists
+        const targetNodeId = 31059;
+        const targetNode = nodesMap.get(targetNodeId);
+
+        if (!targetNode) {
+          console.error(`Node with ID ${targetNodeId} not found in nodesMap`);
+          return;
+        }
+
+        // Log node info for verification
+        console.log(`Found node ${targetNodeId}:`, targetNode);
+
+        // Find the index of the node in the nodeIds array
+        const nodeIds = Array.from(nodesMap.keys());
+        const targetNodeIndex = nodeIds.indexOf(targetNodeId);
+
+        if (targetNodeIndex === -1) {
+          console.error(`Node ID ${targetNodeId} not found in nodesMap keys`);
+          return;
+        }
+
+        console.log(`Node ID ${targetNodeId} found at index ${targetNodeIndex}`);
+
+        // Create a fake intersection object to pass to updateNodeInfo
+        const fakeIntersection = {
+          index: targetNodeIndex,
+          object: points
+        };
+
+        // Use the updateNodeInfo function to select and highlight the node
+        singleNodeSelection.updateNodeInfo(fakeIntersection, nodesMap, points, scene);
+
+        console.log(`Successfully selected node ID: ${targetNodeId} at index: ${targetNodeIndex}`);
+
+        // Longer pause to appreciate the selected node
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      } catch (error) {
+        console.error('Error selecting node:', error);
+      }
+    }, 1500);
+
+    // click elsewhere to deselect the node
+    sequencer.addAction(async () => {
+      console.log('Action: Clicking elsewhere to deselect the node');
+      this.showOverlay('Deselecting Node');
+
+      // Try to find the main canvas
+      const canvas = document.querySelector('canvas');
+
+      if (canvas) {
+        const rect = canvas.getBoundingClientRect();
+
+        // Click in a corner where there's likely no node
+        const clientX = rect.left + 5;
+        const clientY = rect.top + 5;
+
+        const clickEvent = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          clientX,
+          clientY
+        });
+
+        canvas.dispatchEvent(clickEvent);
+        console.log(`Simulated canvas click at (${clientX}, ${clientY})`);
+      } else {
+        console.warn('Canvas not found, falling back to manual deselection');
+      }
+
+      // Fallback: try calling your deselection function manually
+      try {
+        const { updateNodeInfo, hideVisualSelection } = await import('../singleNodeSelection.js');
+
+        // First approach: Use the updateNodeInfo function with null parameters
+        // This is the proper way to deselect based on the singleNodeSelection.js implementation
+        if (typeof updateNodeInfo === 'function') {
+          updateNodeInfo(null, null, null, this.scene);
+          console.log('Deselected node through updateNodeInfo() API');
+        }
+
+        // Second approach: Directly hide the visual selection
+        if (typeof hideVisualSelection === 'function') {
+          hideVisualSelection();
+          console.log('Called hideVisualSelection() to remove visual indicators');
+        }
+
+        // Third approach: Reset node selection styling
+        const nodeInfoDiv = document.getElementById('nodeInfoDiv');
+        if (nodeInfoDiv) {
+          nodeInfoDiv.style.display = 'none';
+          console.log('Hid node info panel');
+        }
+        document.body.classList.remove('node-selected');
+
+        // Fourth approach: Try to reset any selection state in scene objects
+        if (this.scene) {
+          const points = this.scene.getObjectByName('points');
+          if (points && points.geometry.attributes.singleNodeSelectionBrightness) {
+            points.geometry.attributes.singleNodeSelectionBrightness.array.fill(0.0);
+            points.geometry.attributes.singleNodeSelectionBrightness.needsUpdate = true;
+            console.log('Reset all node brightness values in the scene');
+          }
+        }
+      } catch (error) {
+        console.warn('Could not complete node deselection:', error);
+      }
+
+      // Brief pause to let scene update
+      await new Promise(resolve => setTimeout(resolve, 800));
+    }, 500);
+
+
+    // Move the year slider to 2000
+    sequencer.addAction(async () => {
+      console.log('Action: Adjusting year slider to 2000');
+      this.showOverlay('Filtering by Year: 2000+');
+
+      // Find the year slider
+      const fromSlider = document.getElementById('fromSlider');
+      if (!fromSlider) {
+        console.error('Year slider (fromSlider) not found');
+        return;
+      }
+
+      // First, highlight the slider
+      this.addClickEffect(fromSlider);
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Set the value to 2000
+      const originalValue = fromSlider.value;
+      fromSlider.value = 2000;
+      console.log(`Changed year slider from ${originalValue} to 2000`);
+
+      // Trigger input and change events to ensure the UI updates
+      const inputEvent = new Event('input', { bubbles: true });
+      const changeEvent = new Event('change', { bubbles: true });
+
+      fromSlider.dispatchEvent(inputEvent);
+      fromSlider.dispatchEvent(changeEvent);
+
+      // Allow time for the visualization to update
+      await new Promise(resolve => setTimeout(resolve, 1500));
     }, 1000);
+
+    // Click the Play button for time travel
+    sequencer.addAction(async () => {
+      console.log('Action: Starting time travel animation');
+      this.showOverlay('Time Evolution: 2000 → 2025');
+
+      // Find the play button
+      const playButton = Array.from(document.querySelectorAll('.time-travel-button')).find(
+        button => button.title && button.title.includes('Play/pause')
+      );
+
+      if (!playButton) {
+        console.error('Time travel play button not found');
+        return;
+      }
+
+      // Click the play button with animation
+      await performAnimatedClick(playButton, 'Start time travel animation');
+
+      // Show duration of time travel
+      this.showOverlay('Watching Network Evolution Through Time');
+
+      // Allow time for the full animation to play
+      // The actual duration will depend on your time travel speed settings
+      // We'll use a generous timeout here
+      await new Promise(resolve => setTimeout(resolve, 10000));
+
+      // If needed, pause the animation after it completes
+      // This is optional - remove if you want it to continue running
+      try {
+        // Check if the button now shows as playing (might have different styling)
+        if (playButton && playButton.style.backgroundColor === 'rgb(230, 100, 100)') {
+          await performAnimatedClick(playButton, 'Pause time travel animation');
+          this.showOverlay('Time Evolution Complete');
+        }
+      } catch (error) {
+        console.log('Note: Could not pause animation', error);
+      }
+    }, 1500);
 
     return sequencer;
   }
@@ -1126,6 +1543,15 @@ class VideoRecorder {
     console.log('===========================');
 
     try {
+      // Check if we're running in a user gesture handler
+      const isInUserGesture = document.hasStorageAccess && await document.hasStorageAccess().catch(() => true);
+
+      if (!isInUserGesture) {
+        console.warn('Recording must be started from a user gesture. Adding a record button...');
+        this.createRecordButton(recordingDuration, fps);
+        return;
+      }
+
       // Setup UI and recorder
       const recorder = await this.setupRecorder(recordingDuration, fps);
       if (!recorder) {
@@ -1174,6 +1600,112 @@ class VideoRecorder {
         indicator.remove();
       }
     }
+  }
+
+  /**
+   * Create a record button that will handle user gesture requirements
+   * @param {number} duration - Recording duration in milliseconds
+   * @param {number} fps - Frames per second for recording
+   */
+  createRecordButton(duration, fps) {
+    // Remove any existing button
+    const existingButton = document.getElementById('start-recording-button');
+    if (existingButton) existingButton.remove();
+
+    // Create a new button
+    const recordButton = document.createElement('button');
+    recordButton.id = 'start-recording-button';
+    recordButton.textContent = 'Start Recording';
+    recordButton.style.position = 'fixed';
+    recordButton.style.bottom = '80px';
+    recordButton.style.left = '20px';
+    recordButton.style.padding = '12px 20px';
+    recordButton.style.backgroundColor = '#ff3d5a';
+    recordButton.style.color = 'white';
+    recordButton.style.border = 'none';
+    recordButton.style.borderRadius = '4px';
+    recordButton.style.fontFamily = 'Arial, sans-serif';
+    recordButton.style.fontSize = '16px';
+    recordButton.style.fontWeight = 'bold';
+    recordButton.style.cursor = 'pointer';
+    recordButton.style.zIndex = '10000';
+    recordButton.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+
+    // Add hover effects
+    recordButton.style.transition = 'background-color 0.2s, transform 0.1s';
+    recordButton.addEventListener('mouseover', () => {
+      recordButton.style.backgroundColor = '#ff2040';
+    });
+    recordButton.addEventListener('mouseout', () => {
+      recordButton.style.backgroundColor = '#ff3d5a';
+    });
+    recordButton.addEventListener('mousedown', () => {
+      recordButton.style.transform = 'scale(0.98)';
+    });
+    recordButton.addEventListener('mouseup', () => {
+      recordButton.style.transform = 'scale(1)';
+    });
+
+    // Add a recording icon
+    const recordIcon = document.createElement('span');
+    recordIcon.style.display = 'inline-block';
+    recordIcon.style.width = '12px';
+    recordIcon.style.height = '12px';
+    recordIcon.style.backgroundColor = 'white';
+    recordIcon.style.borderRadius = '50%';
+    recordIcon.style.marginRight = '8px';
+
+    recordButton.prepend(recordIcon);
+
+    // Add the important click handler - this will satisfy the user gesture requirement
+    recordButton.addEventListener('click', async () => {
+      // This is now guaranteed to be a user gesture context
+      console.log('Recording button clicked - this is a valid user gesture');
+
+      // Remove the button first
+      recordButton.remove();
+
+      try {
+        // Setup UI and recorder directly in the click handler
+        const recorder = await this.setupRecorder(duration, fps);
+        if (!recorder) {
+          throw new Error('Failed to set up recorder');
+        }
+        this.showRecordingIndicator();
+
+        // Create demo sequence
+        const sequencer = this.createDemoSequence();
+
+        // Wait a bit before starting to avoid initial camera jumps
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Start recording
+        this.isRecording = true;
+        this.recorder.start();
+        console.log('Recording started from user gesture...');
+
+        // Wait a bit more for stability before starting the sequence
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Start the demo sequence
+        await sequencer.start();
+
+        // Wait for a bit before stopping
+        if (this.recorder && this.recorder.state === 'recording') {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          this.recorder.stop();
+        }
+      } catch (error) {
+        console.error('Error during recording from button click:', error);
+        alert('Recording failed: ' + error.message);
+      }
+    });
+
+    // Add button to the document
+    document.body.appendChild(recordButton);
+
+    // Show a notification to user
+    this.showRecordingWarningMessage('Please click the "Start Recording" button to begin.');
   }
 
   /**

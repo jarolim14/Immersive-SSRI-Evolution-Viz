@@ -53,6 +53,8 @@ async function loadAndCreateNodes(parent, clusterLabelMap, clusterColorMap) {
   }
   const { points } = createNodes(nodesGeometry);
   parent.add(points);
+  console.log('get node 8214')
+  console.log(nodesMap.get(8214).position);
   return { nodesMap, points };
 }
 

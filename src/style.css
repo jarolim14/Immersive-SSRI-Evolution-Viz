@@ -71,6 +71,7 @@ html {
   display: none;
   border-top: var(--border-width) var(--border-style) var(--border-color);
   box-shadow: var(--border-glow);
+  z-index: 1001;
 }
 
 /* Year Slider styles */ /* Year Slider styles */
@@ -839,6 +840,7 @@ input[type="range"]::-webkit-slider-thumb:active {
 .modal[style*="display: block"] ~ #search-container,
 body.node-selected #search-container {
   opacity: 0.2;
+  z-index: 999;
 }
 
 #nodeInfoDiv[style*="display: block"] ~ #search-container:hover,
