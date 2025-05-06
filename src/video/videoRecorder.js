@@ -36,10 +36,10 @@ class VideoRecorder {
    */
   getSupportedMimeTypes() {
     const types = [
+      'video/mp4',
       'video/webm;codecs=vp9',
       'video/webm;codecs=vp8',
-      'video/webm',
-      'video/mp4'
+      'video/webm'
     ];
 
     return types.filter(type => MediaRecorder.isTypeSupported(type));
@@ -206,7 +206,7 @@ class VideoRecorder {
       // Create recorder
       const recorder = new MediaRecorder(stream, {
         mimeType,
-        videoBitsPerSecond: 5000000 // 5 Mbps for good quality
+        videoBitsPerSecond: 8000000 // 8 Mbps for high quality
       });
 
       // Set up data handling
@@ -589,77 +589,229 @@ class VideoRecorder {
   downloadVideo(blob) {
     const url = URL.createObjectURL(blob);
 
-    // Try to find the download button in the UI
-    const downloadButton = document.querySelector('#video-control-buttons button:nth-child(2)');
+    // Check if we need to convert to MP4
+    this.ensureMp4Format(blob).then(finalBlob => {
+      const finalUrl = finalBlob === blob ? url : URL.createObjectURL(finalBlob);
+      const isMP4 = finalBlob.type.includes('mp4');
 
-    if (downloadButton) {
-      // Use the existing button
-      console.log('Using existing download button');
+      console.log(`Downloading video as ${isMP4 ? 'MP4' : 'WebM'} format`);
 
-      // Make it visible
-      downloadButton.style.display = 'flex';
+      // Try to find the download button in the UI
+      const downloadButton = document.querySelector('#video-control-buttons button:nth-child(2)');
 
-      // Set the download attributes
-      downloadButton.onclick = () => {
-        // Create a temporary link to trigger the download
-        const tempLink = document.createElement('a');
-        tempLink.href = url;
-        tempLink.download = 'network-visualization-demo.' + (blob.type.includes('mp4') ? 'mp4' : 'webm');
-        document.body.appendChild(tempLink);
-        tempLink.click();
-        document.body.removeChild(tempLink);
+      if (downloadButton) {
+        // Use the existing button
+        console.log('Using existing download button');
 
-        // Change button appearance after download
-        downloadButton.style.background = '#666';
+        // Make it visible
+        downloadButton.style.display = 'flex';
 
-        // Preserve the download icon but update text
-        const downloadIcon = downloadButton.querySelector('span');
-        if (downloadIcon) {
-          downloadButton.textContent = 'Video Downloaded';
-          downloadButton.prepend(downloadIcon);
-        } else {
-          downloadButton.textContent = 'Video Downloaded';
-        }
+        // Set the download attributes
+        downloadButton.onclick = () => {
+          // Create a temporary link to trigger the download
+          const tempLink = document.createElement('a');
+          tempLink.href = finalUrl;
+          tempLink.download = `network-visualization-demo.${isMP4 ? 'mp4' : 'webm'}`;
+          document.body.appendChild(tempLink);
+          tempLink.click();
+          document.body.removeChild(tempLink);
+
+          // Change button appearance after download
+          downloadButton.style.background = '#666';
+
+          // Preserve the download icon but update text
+          const downloadIcon = downloadButton.querySelector('span');
+          if (downloadIcon) {
+            downloadButton.textContent = 'Video Downloaded';
+            downloadButton.prepend(downloadIcon);
+          } else {
+            downloadButton.textContent = 'Video Downloaded';
+          }
+
+          // Clean up URL after download
+          setTimeout(() => {
+            URL.revokeObjectURL(finalUrl);
+            if (finalUrl !== url) {
+              URL.revokeObjectURL(url);
+            }
+          }, 1000);
+        };
+
+        console.log('Download button ready');
+      } else {
+        // Fallback: Create download link as before
+        console.log('Creating new download link (fallback)');
+        const a = document.createElement('a');
+        a.href = finalUrl;
+        a.download = `network-visualization-demo.${isMP4 ? 'mp4' : 'webm'}`;
+        a.textContent = `Download Video (${isMP4 ? 'MP4' : 'WebM'})`;
+        a.style.position = 'fixed';
+        a.style.bottom = '20px';
+        a.style.left = '200px'; // Position next to record button
+        a.style.zIndex = '1000';
+        a.style.background = '#25daa5';
+        a.style.color = 'white';
+        a.style.padding = '10px 15px';
+        a.style.borderRadius = '4px';
+        a.style.textDecoration = 'none';
+        a.style.fontFamily = 'Arial, sans-serif';
+        a.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.2)';
+        document.body.appendChild(a);
 
         // Clean up URL after download
-        setTimeout(() => {
-          URL.revokeObjectURL(url);
-        }, 1000);
-      };
+        a.addEventListener('click', () => {
+          setTimeout(() => {
+            URL.revokeObjectURL(finalUrl);
+            if (finalUrl !== url) {
+              URL.revokeObjectURL(url);
+            }
+            // Keep the button visible but change its appearance
+            a.style.background = '#666';
+            a.textContent = 'Video Downloaded';
+          }, 1000);
+        });
+      }
 
-      console.log('Download button ready');
-    } else {
-      // Fallback: Create download link as before
-      console.log('Creating new download link (fallback)');
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'network-visualization-demo.' + (blob.type.includes('mp4') ? 'mp4' : 'webm');
-      a.textContent = 'Download Video';
-      a.style.position = 'fixed';
-      a.style.bottom = '20px';
-      a.style.left = '200px'; // Position next to record button
-      a.style.zIndex = '1000';
-      a.style.background = '#25daa5';
-      a.style.color = 'white';
-      a.style.padding = '10px 15px';
-      a.style.borderRadius = '4px';
-      a.style.textDecoration = 'none';
-      a.style.fontFamily = 'Arial, sans-serif';
-      a.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.2)';
-      document.body.appendChild(a);
+      console.log('Video recording complete! Click the download button to save.');
+    }).catch(error => {
+      console.error('Error ensuring MP4 format:', error);
+      // Fall back to original blob if conversion fails
+      this.fallbackDownload(blob, url);
+    });
+  }
 
-      // Clean up URL after download
-      a.addEventListener('click', () => {
-        setTimeout(() => {
-          URL.revokeObjectURL(url);
-          // Keep the button visible but change its appearance
-          a.style.background = '#666';
-          a.textContent = 'Video Downloaded';
-        }, 1000);
-      });
+  /**
+   * Fall back to original blob download if conversion fails
+   * @param {Blob} blob - Original video blob
+   * @param {string} url - Object URL for the blob
+   */
+  fallbackDownload(blob, url) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'network-visualization-demo.' + (blob.type.includes('mp4') ? 'mp4' : 'webm');
+    a.textContent = 'Download Video (Original Format)';
+    a.style.position = 'fixed';
+    a.style.bottom = '20px';
+    a.style.left = '200px';
+    a.style.zIndex = '1000';
+    a.style.background = '#ff3d5a';
+    a.style.color = 'white';
+    a.style.padding = '10px 15px';
+    a.style.borderRadius = '4px';
+    a.style.textDecoration = 'none';
+    document.body.appendChild(a);
+    console.log('Created fallback download link due to conversion failure');
+  }
+
+  /**
+   * Ensure the video is in MP4 format, converting if necessary and supported
+   * @param {Blob} blob - Original video blob
+   * @returns {Promise<Blob>} - Promise resolving to MP4 blob or original if conversion not possible
+   */
+  async ensureMp4Format(blob) {
+    // If already MP4, return as is
+    if (blob.type.includes('mp4')) {
+      console.log('Video is already in MP4 format');
+      return blob;
     }
 
-    console.log('Video recording complete! Click the download button to save.');
+    console.log('Original video format:', blob.type);
+    console.log('Checking if MP4 conversion is possible...');
+
+    // Check if MediaRecorder supports MP4
+    if (!MediaRecorder.isTypeSupported('video/mp4')) {
+      console.warn('MP4 format not supported by MediaRecorder in this browser');
+      this.showRecordingWarningMessage('MP4 not supported by your browser. Using WebM instead.');
+      return blob;
+    }
+
+    try {
+      // Try to use the browser's built-in conversion capability if available
+      console.log('Attempting MP4 conversion...');
+
+      // Create a temporary video element to use for conversion
+      const video = document.createElement('video');
+      video.style.display = 'none';
+      document.body.appendChild(video);
+
+      // Load the WebM video
+      video.src = URL.createObjectURL(blob);
+
+      // Wait for metadata to load
+      await new Promise((resolve, reject) => {
+        video.onloadedmetadata = resolve;
+        video.onerror = reject;
+      });
+
+      // Get video duration and dimensions
+      const duration = video.duration;
+      const width = video.videoWidth;
+      const height = video.videoHeight;
+
+      console.log(`Video metadata: ${width}x${height}, ${duration.toFixed(2)}s`);
+
+      // Only proceed if we can get the video metadata
+      if (!width || !height || !duration) {
+        throw new Error('Could not get video metadata');
+      }
+
+      // Create a canvas and get its context for frame capture
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      // Create a MediaRecorder for the MP4 output
+      const stream = canvas.captureStream(this.fps);
+      const recorder = new MediaRecorder(stream, {
+        mimeType: 'video/mp4',
+        videoBitsPerSecond: 8000000 // 8 Mbps for high quality
+      });
+
+      const chunks = [];
+      recorder.ondataavailable = e => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+
+      // Create a promise that resolves when recording is complete
+      const recordingPromise = new Promise((resolve) => {
+        recorder.onstop = () => {
+          const mp4Blob = new Blob(chunks, { type: 'video/mp4' });
+          resolve(mp4Blob);
+
+          // Clean up
+          URL.revokeObjectURL(video.src);
+          document.body.removeChild(video);
+          document.body.removeChild(canvas);
+        };
+      });
+
+      // Start recording
+      recorder.start();
+
+      // Process video frames at the specified FPS
+      let currentTime = 0;
+      const frameInterval = 1000 / this.fps;
+
+      // Notify user
+      this.showRecordingWarningMessage('Converting WebM to MP4. This may take a moment...');
+
+      // Process video frame by frame
+      while (currentTime < duration * 1000) {
+        video.currentTime = currentTime / 1000;
+        await new Promise(requestAnimationFrame);
+        ctx.drawImage(video, 0, 0, width, height);
+        currentTime += frameInterval;
+      }
+
+      // Stop recording and get the resulting MP4 blob
+      recorder.stop();
+      return await recordingPromise;
+    } catch (error) {
+      console.error('MP4 conversion failed:', error);
+      this.showRecordingWarningMessage('MP4 conversion failed. Using WebM format instead.');
+      return blob; // Fall back to original format
+    }
   }
 
   /**
@@ -1223,16 +1375,17 @@ class VideoRecorder {
       }
     }, 1500);
 
-    // move camera here: Camera position: {x: 5958.632362729798, y: 3988.7886125553723, z: -5293.824484343763}
-    // Camera target: {x: 661.9051685555658, y: 1185.864557741362, z: -1071.4944853485804}
+    // move camera
 
+    // move camera to prenatel exposure RODENTS
     sequencer.addAction(async () => {
       console.log('Action: Moving camera to prenatel exposure RODENTS');
       this.showOverlay('Moving camera to prenatel exposure RODENTS');
 
       await this.animateCamera(
         { x: 5958.632362729798, y: 3988.7886125553723, z: -5293.824484343763 },
-        { x: 661.9051685555658, y: 1185.864557741362, z: -1071.4944853485804 },
+        // camera target as before
+        { x: 550.88, y: 735.93, z: 156.50 },
         3000 // Smooth transition
       );
 
@@ -1379,11 +1532,12 @@ class VideoRecorder {
     }, 500);
 
 
-    // Move the year slider to 2000
+    // Move the year slider to 2010 and control time travel animation in a single sequence
     sequencer.addAction(async () => {
-      console.log('Action: Adjusting year slider to 2000');
-      this.showOverlay('Filtering by Year: 2000+');
+      console.log('Action: Starting year range adjustment and time travel sequence');
+      this.showOverlay('Filtering by Year: 2010+');
 
+      // ---- PART 1: Adjust the year slider ----
       // Find the year slider
       const fromSlider = document.getElementById('fromSlider');
       if (!fromSlider) {
@@ -1395,26 +1549,23 @@ class VideoRecorder {
       this.addClickEffect(fromSlider);
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Set the value to 2000
+      // Set the value to 2010
       const originalValue = fromSlider.value;
-      fromSlider.value = 2000;
-      console.log(`Changed year slider from ${originalValue} to 2000`);
+      fromSlider.value = 2010;
+      console.log(`Changed year slider from ${originalValue} to 2010`);
 
       // Trigger input and change events to ensure the UI updates
       const inputEvent = new Event('input', { bubbles: true });
       const changeEvent = new Event('change', { bubbles: true });
-
       fromSlider.dispatchEvent(inputEvent);
       fromSlider.dispatchEvent(changeEvent);
 
-      // Allow time for the visualization to update
+      // Allow time for the visualization to update after slider change
       await new Promise(resolve => setTimeout(resolve, 1500));
-    }, 1000);
 
-    // Click the Play button for time travel
-    sequencer.addAction(async () => {
-      console.log('Action: Starting time travel animation');
-      this.showOverlay('Time Evolution: 2000 → 2025');
+      // ---- PART 2: Start time travel animation ----
+      console.log('Starting time travel animation');
+      this.showOverlay('Time Evolution: 2010 → 2025');
 
       // Find the play button
       const playButton = Array.from(document.querySelectorAll('.time-travel-button')).find(
@@ -1432,13 +1583,50 @@ class VideoRecorder {
       // Show duration of time travel
       this.showOverlay('Watching Network Evolution Through Time');
 
-      // Allow time for the full animation to play
-      // The actual duration will depend on your time travel speed settings
-      // We'll use a generous timeout here
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      // ---- PART 3: Wait for animation to reach 2025 ----
+      // Find the toSlider to monitor its value
+      const toSlider = document.getElementById('toSlider');
 
-      // If needed, pause the animation after it completes
-      // This is optional - remove if you want it to continue running
+      if (toSlider) {
+        console.log(`Initial toSlider value: ${toSlider.value}`);
+
+        // Create a promise that resolves when the slider reaches 2025 or after a timeout
+        const waitForTimeTravel = new Promise((resolve) => {
+          // Maximum wait time (15 seconds as failsafe to ensure we don't get stuck)
+          const maxWaitTime = 15000;
+          let startTime = Date.now();
+          let lastReportedValue = parseInt(toSlider.value);
+
+          console.log('Starting to monitor year slider progress...');
+
+          // Check the slider value periodically
+          const checkInterval = setInterval(() => {
+            const currentValue = parseInt(toSlider.value);
+
+            // Report progress if the value has changed
+            if (currentValue !== lastReportedValue) {
+              console.log(`Time travel progress: Year ${currentValue}`);
+              lastReportedValue = currentValue;
+            }
+
+            // Check if we've reached the target year or exceeded max wait time
+            if (currentValue >= 2025 || Date.now() - startTime > maxWaitTime) {
+              clearInterval(checkInterval);
+              console.log(`Time travel finished at year: ${currentValue}`);
+              resolve();
+            }
+          }, 200); // Check every 200ms
+        });
+
+        // Wait for the time travel to complete
+        await waitForTimeTravel;
+      } else {
+        // Fallback if we can't find the slider - just wait a reasonable amount of time
+        console.warn('Could not find toSlider, using fixed wait time');
+        await new Promise(resolve => setTimeout(resolve, 10000));
+      }
+
+      // ---- PART 4: Pause the animation ----
       try {
         // Check if the button now shows as playing (might have different styling)
         if (playButton && playButton.style.backgroundColor === 'rgb(230, 100, 100)') {
@@ -1448,6 +1636,157 @@ class VideoRecorder {
       } catch (error) {
         console.log('Note: Could not pause animation', error);
       }
+
+      console.log('Year range adjustment and time travel sequence completed');
+    }, 4000);
+
+     // Click the Reset button to show entire scene again
+    sequencer.addAction(async () => {
+      console.log('Action: Clicking Reset button to show entire scene again');
+
+      // move the from slider back to 1982
+      const fromSlider = document.getElementById('fromSlider');
+      if (!fromSlider) {
+        console.error('Year slider (fromSlider) not found');
+        return;
+      }
+      fromSlider.value = 1982;
+      const inputEvent = new Event('input', { bubbles: true });
+      const changeEvent = new Event('change', { bubbles: true });
+      fromSlider.dispatchEvent(inputEvent);
+      fromSlider.dispatchEvent(changeEvent);
+
+      // Allow time for the visualization to update after slider change
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+
+      // Allow time for the scene to reset
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // move camera to original position Position: (12426, 6937, -8994) Target: (539, 599, -4955)
+      await this.animateCamera(
+        { x: 12426, y: 6937, z: -8994 },
+        { x: 550.88, y: 735.93, z: 156.50 },
+        4000 // Smooth transition
+      );
+
+      // allow time for the scene to reset
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Find the reset button
+      const resetButton = document.getElementById('resetLegend');
+      if (!resetButton) {
+        console.error('Reset button not found');
+        return;
+      }
+
+      // Click the reset button with animation
+      await performAnimatedClick(resetButton, 'Resetting view to show entire scene');
+
+      console.log('Action: Resetting view to show entire scene done');
+    }, 2500);
+
+    // Show search bar functionality
+    sequencer.addAction(async () => {
+      console.log('Action: Click in the search bar');
+
+      // Find the search bar
+      const searchBar = document.getElementById('search-input');
+      if (!searchBar) {
+        console.error('Search bar not found');
+        return;
+      }
+
+      // Click the search bar with animation
+      await performAnimatedClick(searchBar, 'Clicking in the search bar');
+
+      // Focus the search bar
+      searchBar.focus();
+
+      // Allow a moment before typing to simulate user behavior
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Clear any existing value
+      searchBar.value = '';
+
+      // Type in the search bar with a realistic typing effect
+      const searchQuery = 'The rat forced swimming test mo';
+      for (let i = 0; i < searchQuery.length; i++) {
+        // Add one character at a time
+        searchBar.value += searchQuery[i];
+
+        // Trigger input event to update search results as we type
+        searchBar.dispatchEvent(new Event('input', { bubbles: true }));
+
+        // Random delay between keypresses (30-120ms) to simulate human typing
+        await new Promise(resolve => setTimeout(resolve, 80 + Math.random() * 150));
+      }
+
+      // Wait for search results to appear
+      console.log('Waiting for search results to appear...');
+
+      // More generous wait time for search results to populate
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // Check if results container exists and has results
+      const resultsContainer = document.querySelector('.search-results');
+      if (resultsContainer) {
+        console.log(`Search results container found, contains ${resultsContainer.children.length} results`);
+      } else {
+        console.warn('Search results container not found');
+      }
+
+      // Try to find the specific search result
+      let maxAttempts = 5;
+      let searchResult = null;
+
+      // Poll for the result to appear, with multiple attempts
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        searchResult = document.querySelector('.result-title');
+
+        if (searchResult) {
+          console.log('Search result found on attempt', attempt + 1);
+          break;
+        } else {
+          console.log(`Search result not found yet, attempt ${attempt + 1}/${maxAttempts}`);
+          // Wait before trying again
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+
+      // If we found the result, click it
+      if (searchResult) {
+        // Highlight the result first
+        this.showOverlay('Found Research Paper: "Acute and chronic antidepressant..."');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Click the result
+        await performAnimatedClick(searchResult, 'Clicking on search result');
+
+        // Allow time for the camera to move to the selected node
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      } else {
+        console.error('Search result not found after multiple attempts');
+      }
+
+      console.log('Action: Moving to selected paper and finishing animation');
+    }, 3500);
+
+    // Click the Reset button to show entire scene again
+    sequencer.addAction(async () => {
+
+
+      // move camera very slowly further away Camera position
+      await this.animateCamera(
+        { x: -1866, y: 7287, z: -10918 },
+        { x: 550.88, y: 735.93, z: 156.50 },
+        5000 // Smooth transition
+      );
+
+      // allow time for the scene to reset
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      console.log('Action: Resetting view to show entire scene done');
     }, 1500);
 
     return sequencer;

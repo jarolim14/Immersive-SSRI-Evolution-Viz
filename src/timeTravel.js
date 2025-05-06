@@ -91,13 +91,18 @@ class TimeTravelController {
     // Index edges by year
     if (lineSegments && lineSegments.userData && lineSegments.userData.edgeData) {
       lineSegments.userData.edgeData.forEach((edge) => {
-        const year = edge.year;
-        if (year >= CONFIG.timeTravel.startYear && year <= CONFIG.timeTravel.endYear) {
-          this.edgeYearIndex[year].push({
+        // Use minYear for edge indexing to determine when the edge first appears
+        // This is more efficient than indexing by both min and max since we'll check both during visibility
+        const minYear = edge.minYear !== undefined ? edge.minYear : edge.year;
+
+        if (minYear >= CONFIG.timeTravel.startYear && minYear <= CONFIG.timeTravel.endYear) {
+          this.edgeYearIndex[minYear].push({
             startIndex: edge.startIndex,
             endIndex: edge.endIndex,
             sourceCluster: edge.sourceCluster,
-            targetCluster: edge.targetCluster
+            targetCluster: edge.targetCluster,
+            minYear: minYear,
+            maxYear: edge.maxYear !== undefined ? edge.maxYear : edge.year
           });
         }
       });
@@ -392,23 +397,32 @@ class TimeTravelController {
       let visibleNodesCount = 0;
       let visibleEdgesCount = 0;
 
-      // Process nodes for each year up to targetYear
+      // First, identify all visible nodes by year
+      const visibleNodesByCluster = new Map();
+
       for (let year = fromYear; year <= targetYear; year++) {
-        // Get nodes for this year from our index
         const nodesForYear = this.nodeYearIndex[year] || [];
         for (const node of nodesForYear) {
           if (this.selectedClusters.has(node.cluster)) {
             nodeVisArray[node.index] = 1;
             visibleNodesCount++;
+
+            // Track visible nodes by cluster for edge filtering
+            if (!visibleNodesByCluster.has(node.cluster)) {
+              visibleNodesByCluster.set(node.cluster, true);
+            }
           }
         }
       }
 
-      // Process edges for each year up to targetYear
+      // Process all edges that have both nodes in the visible range
       for (let year = fromYear; year <= targetYear; year++) {
-        // Get edges for this year from our index
         const edgesForYear = this.edgeYearIndex[year] || [];
+
         for (const edge of edgesForYear) {
+          // Skip if edge's maxYear is outside our target range
+          if (edge.maxYear > targetYear) continue;
+
           // Check if both clusters are selected
           if (this.selectedClusters.has(edge.sourceCluster) &&
               this.selectedClusters.has(edge.targetCluster)) {

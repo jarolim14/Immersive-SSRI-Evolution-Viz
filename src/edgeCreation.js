@@ -113,6 +113,8 @@ export function createEdges(edgesGeometry, edgesMap, nodesMap, edgeIndices) {
         startIndex: startVertexIndex,
         endIndex: endVertexIndex,
         year: edgeYear,
+        maxYear: edgeYear,
+        minYear: sourceNode && targetNode ? Math.min(sourceNode.year, targetNode.year) : edgeYear
       });
 
       // Check if edge is colored (non-default color)
@@ -157,6 +159,8 @@ export function createEdges(edgesGeometry, edgesMap, nodesMap, edgeIndices) {
         startIndex: startVertexIndex,
         endIndex: endVertexIndex,
         year: year || (sourceNode && targetNode ? Math.max(sourceNode.year, targetNode.year) : 0),
+        maxYear: year || (sourceNode && targetNode ? Math.max(sourceNode.year, targetNode.year) : 0),
+        minYear: sourceNode && targetNode ? Math.min(sourceNode.year, targetNode.year) : (year || 0)
       });
     }
   }

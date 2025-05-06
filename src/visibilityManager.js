@@ -76,14 +76,20 @@ class VisibilityManager {
     let visibleEdgesCount = 0;
 
     edgeData.forEach((edge) => {
-      const isVisible = edge.year >= fromYear && edge.year <= toYear;
+      // An edge is visible only if both its connected nodes are in range
+      // This means: minYear >= fromYear && maxYear <= toYear
+      const minYear = edge.minYear !== undefined ? edge.minYear : edge.year;
+      const maxYear = edge.maxYear !== undefined ? edge.maxYear : edge.year;
+
+      const isVisible = minYear >= fromYear && maxYear <= toYear;
+
       const startIdx = edge.startIndex || edge.startVertexIndex;
       const endIdx = edge.endIndex || edge.endVertexIndex;
 
-      if (startIdx !== undefined && endIdx !== undefined) {
+      if (startIdx !== undefined && endIdx !== undefined && isVisible) {
         for (let j = startIdx; j <= endIdx; j++) {
-          this.edgeYearVisibility[j] = isVisible ? 1 : 0;
-          if (isVisible) visibleEdgesCount++;
+          this.edgeYearVisibility[j] = 1;
+          visibleEdgesCount++;
         }
       }
     });

@@ -10,7 +10,7 @@ export const CONFIG = {
   // These features are only for development and should be disabled in production
   development: {
     // Enable/disable features used only during development
-    enabled: false,
+    enabled: true,
     // Video recording functionality for creating demo videos
     videoRecording: {
       enabled: true,      // Master toggle for video recording feature
@@ -115,7 +115,7 @@ export const CONFIG = {
   timeTravel: {
     startYear: 1982,
     endYear: 2025,
-    animationSpeed: 1000, // Milliseconds between each year step
+    animationSpeed: 750, // Milliseconds between each year step
     maxVisibleNodesWarning: 15000,
     processingDelay: 0, // Delay between batch processing to keep UI responsive
     camera: {
