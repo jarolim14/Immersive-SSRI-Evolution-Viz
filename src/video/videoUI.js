@@ -35,8 +35,8 @@ class VideoUI {
       // Initialize UI components
       this.initializeVideoRecordingModal();
 
-      // Create record button if configured
-      if (CONFIG.development.videoRecording.showButton) {
+      // Create record button if configured and UI elements are enabled
+      if (CONFIG.development.videoRecording.showButton && CONFIG.development.videoRecording.showAllUI) {
         this.createRecordButton();
       }
 

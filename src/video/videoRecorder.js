@@ -36,13 +36,30 @@ class VideoRecorder {
    */
   getSupportedMimeTypes() {
     const types = [
-      'video/mp4',
       'video/webm;codecs=vp9',
       'video/webm;codecs=vp8',
-      'video/webm'
+      'video/webm',
+      'video/mp4'
     ];
 
     return types.filter(type => MediaRecorder.isTypeSupported(type));
+  }
+
+  /**
+   * Get the preferred MIME type based on config settings and browser support
+   * @returns {string} - The preferred MIME type
+   */
+  getPreferredMimeType() {
+    // Get user preference from config
+    const preferredFormat = CONFIG.development.videoRecording.preferredFormat || 'webm';
+
+    // Filter supported types by preferred format
+    const formatTypes = this.supportedMimeTypes.filter(type =>
+      preferredFormat === 'webm' ? type.includes('webm') : type.includes('mp4')
+    );
+
+    // Return the first matching type, or fall back to any supported type
+    return formatTypes.length > 0 ? formatTypes[0] : this.supportedMimeTypes[0];
   }
 
   /**
@@ -84,7 +101,9 @@ class VideoRecorder {
       console.log('User agent:', navigator.userAgent);
 
       // Create debug element to track capture type
-      this.createCaptureTypeIndicator('Initializing...');
+      if (CONFIG.development.videoRecording.showAllUI) {
+        this.createCaptureTypeIndicator('Initializing...');
+      }
 
       // Check if we're running on localhost/127.0.0.1, which counts as secure
       const isLocalhost = window.location.hostname === 'localhost' ||
@@ -101,18 +120,22 @@ class VideoRecorder {
 
       if (!hasSecureContext) {
         console.warn('Screen Capture API requires a secure context (HTTPS or localhost)');
-        this.updateCaptureTypeIndicator('Not in secure context, using canvas only');
-        this.showRecordingErrorMessage("Screen capture requires HTTPS. Using canvas-only recording.");
+        if (CONFIG.development.videoRecording.showAllUI) {
+          this.updateCaptureTypeIndicator('Not in secure context, using canvas only');
+          this.showRecordingErrorMessage("Screen capture requires HTTPS. Using canvas-only recording.");
+        }
       }
 
       // Try to use screen capture first (will capture modals and UI elements)
       if (hasDisplayMedia && hasSecureContext) {
         try {
           console.log('Attempting to use screen capture for recording...');
-          this.updateCaptureTypeIndicator('Waiting for screen selection...');
+          if (CONFIG.development.videoRecording.showAllUI) {
+            this.updateCaptureTypeIndicator('Waiting for screen selection...');
 
-          // Create a message to guide user through screen selection
-          this.showScreenSelectionGuide();
+            // Create a message to guide user through screen selection
+            this.showScreenSelectionGuide();
+          }
 
           // Prompt user to select screen/window to capture
           const displayStream = await navigator.mediaDevices.getDisplayMedia({
@@ -141,7 +164,9 @@ class VideoRecorder {
           this.screenCaptureStream = displayStream;
 
           // Hide the guide once selection is complete
-          this.hideScreenSelectionGuide();
+          if (CONFIG.development.videoRecording.showAllUI) {
+            this.hideScreenSelectionGuide();
+          }
 
           // Check what was captured
           const videoTrack = displayStream.getVideoTracks()[0];
@@ -166,7 +191,9 @@ class VideoRecorder {
               console.log('Using screen capture for recording - this should include UI elements');
               stream = displayStream;
               usedScreenCapture = true;
-              this.updateCaptureTypeIndicator('Recording with screen capture (includes UI)');
+              if (CONFIG.development.videoRecording.showAllUI) {
+                this.updateCaptureTypeIndicator('Recording with screen capture (includes UI)');
+              }
             } else {
               console.log('Screen capture is capturing a different surface, not the browser tab');
               console.log('Selected surface appears to be: ', videoTrack.label);
@@ -178,29 +205,37 @@ class VideoRecorder {
 
               // Use canvas capture as fallback
               stream = this.canvas.captureStream(fps);
-              this.updateCaptureTypeIndicator('Using canvas capture (no UI elements)');
+              if (CONFIG.development.videoRecording.showAllUI) {
+                this.updateCaptureTypeIndicator('Using canvas capture (no UI elements)');
+              }
             }
           } else {
             console.warn('No video track found in screen capture stream');
             stream = this.canvas.captureStream(fps);
-            this.updateCaptureTypeIndicator('No video track - using canvas only');
+            if (CONFIG.development.videoRecording.showAllUI) {
+              this.updateCaptureTypeIndicator('No video track - using canvas only');
+            }
           }
         } catch (error) {
           console.warn('Screen capture failed:', error.message);
           console.log('Falling back to canvas capture method');
-          this.updateCaptureTypeIndicator('Screen capture failed - using canvas only');
+          if (CONFIG.development.videoRecording.showAllUI) {
+            this.updateCaptureTypeIndicator('Screen capture failed - using canvas only');
+          }
           // If the user denied permission or there was an error, use canvas capture
           stream = this.canvas.captureStream(fps);
         }
       } else {
         // Screen capture not supported, use canvas capture
         console.log('Screen capture not available, using canvas capture method');
-        this.updateCaptureTypeIndicator('Screen capture not available - using canvas only');
+        if (CONFIG.development.videoRecording.showAllUI) {
+          this.updateCaptureTypeIndicator('Screen capture not available - using canvas only');
+        }
         stream = this.canvas.captureStream(fps);
       }
 
       // Set up recorder with the selected stream
-      const mimeType = this.supportedMimeTypes[0];
+      const mimeType = this.getPreferredMimeType();
       console.log(`Using MIME type: ${mimeType}`);
 
       // Create recorder
@@ -224,7 +259,9 @@ class VideoRecorder {
         console.log(`Recording finished. Size: ${(blob.size / (1024 * 1024)).toFixed(2)} MB`);
 
         // Remove indicator
-        this.removeCaptureTypeIndicator();
+        if (CONFIG.development.videoRecording.showAllUI) {
+          this.removeCaptureTypeIndicator();
+        }
 
         // Download video
         this.downloadVideo(blob);
@@ -241,7 +278,9 @@ class VideoRecorder {
       return recorder;
     } catch (error) {
       console.error('Error setting up recorder:', error);
-      this.showRecordingErrorMessage(`Failed to setup recorder: ${error.message}`);
+      if (CONFIG.development.videoRecording.showAllUI) {
+        this.showRecordingErrorMessage(`Failed to setup recorder: ${error.message}`);
+      }
       return this.setupFallbackRecorder(duration, fps);
     }
   }
@@ -638,8 +677,8 @@ class VideoRecorder {
         };
 
         console.log('Download button ready');
-      } else {
-        // Fallback: Create download link as before
+      } else if (CONFIG.development.videoRecording.showAllUI) {
+        // Fallback: Create download link as before - only if UI is enabled
         console.log('Creating new download link (fallback)');
         const a = document.createElement('a');
         a.href = finalUrl;
@@ -670,6 +709,24 @@ class VideoRecorder {
             a.textContent = 'Video Downloaded';
           }, 1000);
         });
+      } else {
+        // If UI is disabled, still provide a download through the browser
+        console.log('UI disabled - using direct download without visual elements');
+        // Create a temporary link to trigger the download without showing UI
+        const tempLink = document.createElement('a');
+        tempLink.href = finalUrl;
+        tempLink.download = `network-visualization-demo.${isMP4 ? 'mp4' : 'webm'}`;
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        document.body.removeChild(tempLink);
+
+        // Clean up URL
+        setTimeout(() => {
+          URL.revokeObjectURL(finalUrl);
+          if (finalUrl !== url) {
+            URL.revokeObjectURL(url);
+          }
+        }, 1000);
       }
 
       console.log('Video recording complete! Click the download button to save.');
@@ -880,7 +937,7 @@ class VideoRecorder {
     // NEW: Initial camera movement - slow zoom out for overview
     sequencer.addAction(async () => {
       console.log('Action: Initial camera movement - overview zoom out');
-      this.showOverlay('Academic Network Visualization');
+      this.showOverlay('Immersive Network of SSRI Papers');
 
       // Get current camera position and target
       const currentPosition = {
@@ -938,9 +995,9 @@ class VideoRecorder {
 
       const instructionsContainer = document.querySelector('.instructions-container');
       if (instructionsContainer) {
-        // Scroll to the bottom of the instructions more quickly
+        // Scroll to the bottom of the instructions more slowly
         const scrollHeight = instructionsContainer.scrollHeight;
-        const duration = 1500; // 1.5 seconds for faster scrolling
+        const duration = 4000; // 4 seconds for slower, more natural scrolling
         const startTime = performance.now();
 
         return new Promise(resolve => {
@@ -948,8 +1005,8 @@ class VideoRecorder {
             const elapsed = timestamp - startTime;
             const progress = Math.min(elapsed / duration, 1);
 
-            // Use easing for natural scroll
-            const eased = this.easeInOutCubic(progress);
+            // Use custom easing for more natural scroll
+            const eased = this.naturalEasing(progress);
             const scrollPosition = scrollHeight * eased;
 
             instructionsContainer.scrollTop = scrollPosition;
@@ -1011,7 +1068,7 @@ class VideoRecorder {
     // New action: Scroll in the topic hierarchy visualization
     sequencer.addAction(async () => {
       console.log('Action: Scrolling in topic hierarchy visualization');
-      this.showOverlay('Exploring Topic Hierarchy');
+      this.showOverlay('Exploring Safety Cluster');
 
       const topicTreeSvg = document.getElementById('topicTreeSvg');
       if (topicTreeSvg) {
@@ -1028,9 +1085,9 @@ class VideoRecorder {
         if (scrollableContainer && scrollableContainer.scrollHeight > scrollableContainer.clientHeight) {
           console.log('Found scrollable container for topic hierarchy');
 
-          // Scroll down gradually to show all content - faster now
+          // Scroll down gradually to show all content - slower now
           const scrollHeight = scrollableContainer.scrollHeight;
-          const duration = 1000; // 1 second for scrolling (even faster)
+          const duration = 3500; // 3.5 seconds for a more gradual scroll
           const startTime = performance.now();
 
           return new Promise(resolve => {
@@ -1038,8 +1095,8 @@ class VideoRecorder {
               const elapsed = timestamp - startTime;
               const progress = Math.min(elapsed / duration, 1);
 
-              // Use easing for natural scroll
-              const eased = this.easeInOutCubic(progress);
+              // Use natural easing for smooth scroll
+              const eased = this.naturalEasing(progress);
               const scrollPosition = scrollHeight * eased;
 
               scrollableContainer.scrollTop = scrollPosition;
@@ -1064,7 +1121,7 @@ class VideoRecorder {
     // 7. Press close button to exit the topic hierarchy modal
     sequencer.addAction(async () => {
       console.log('Action: Closing topic hierarchy modal');
-      this.showOverlay('Closing Topic Hierarchy');
+      this.showOverlay('Fold the Legend');
 
       const closeBtn = document.getElementById('topicTreeCloseBtn');
       await performAnimatedClick(closeBtn, 'Close topic hierarchy');
@@ -1489,14 +1546,15 @@ class VideoRecorder {
         console.warn('Canvas not found, falling back to manual deselection');
       }
 
-      // Fallback: try calling your deselection function manually
+      // Fallback: try calling deselection function directly
       try {
         const { updateNodeInfo, hideVisualSelection } = await import('../singleNodeSelection.js');
+        const { nodesMap } = await import('../nodesLoader.js');
 
         // First approach: Use the updateNodeInfo function with null parameters
         // This is the proper way to deselect based on the singleNodeSelection.js implementation
         if (typeof updateNodeInfo === 'function') {
-          updateNodeInfo(null, null, null, this.scene);
+          updateNodeInfo(null, nodesMap, null, this.scene);
           console.log('Deselected node through updateNodeInfo() API');
         }
 
@@ -1527,9 +1585,11 @@ class VideoRecorder {
         console.warn('Could not complete node deselection:', error);
       }
 
-      // Brief pause to let scene update
-      await new Promise(resolve => setTimeout(resolve, 800));
-    }, 500);
+      // Give more time for the deselection to take effect
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      console.log('Action: Deselecting node done');
+    }, 2000);
 
 
     // Move the year slider to 2010 and control time travel animation in a single sequence
@@ -1779,7 +1839,11 @@ class VideoRecorder {
       // move camera very slowly further away Camera position
       await this.animateCamera(
         { x: -1866, y: 7287, z: -10918 },
-        { x: 550.88, y: 735.93, z: 156.50 },
+        {
+          x: -1238.9637451171875,
+          y: 2362.824462890625,
+          z: -3621.242919921875
+        },
         5000 // Smooth transition
       );
 
@@ -1789,8 +1853,46 @@ class VideoRecorder {
       console.log('Action: Resetting view to show entire scene done');
     }, 1500);
 
+
+    // click elsewhere to deselect the node
+    sequencer.addAction(async () => {
+      console.log('Action: Clicking elsewhere to deselect the node');
+      this.showOverlay('Deselecting Node');
+
+      // Try to find the main canvas
+      const canvas = document.querySelector('canvas');
+
+      if (canvas) {
+        const rect = canvas.getBoundingClientRect();
+
+        // Click in a corner where there's likely no node
+        const clientX = rect.left + 5;
+        const clientY = rect.top + 5;
+
+        const clickEvent = new MouseEvent('click', {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          clientX,
+          clientY
+        });
+
+        canvas.dispatchEvent(clickEvent);
+        console.log(`Simulated canvas click at (${clientX}, ${clientY})`);
+      } else {
+        console.warn('Canvas not found, falling back to manual deselection');
+      }
+
+      console.log('Action: Deselecting node done');
+    }, 2000);
+
+
     return sequencer;
   }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////// DONE WITH DEMO SEQUENCE //////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
 
   /**
    * Creates a simple visual click effect on an element
@@ -1886,8 +1988,12 @@ class VideoRecorder {
       const isInUserGesture = document.hasStorageAccess && await document.hasStorageAccess().catch(() => true);
 
       if (!isInUserGesture) {
-        console.warn('Recording must be started from a user gesture. Adding a record button...');
-        this.createRecordButton(recordingDuration, fps);
+        console.warn('Recording must be started from a user gesture.');
+        // Only create a button if UI elements are enabled
+        if (CONFIG.development.videoRecording.showAllUI) {
+          console.log('Adding a record button...');
+          this.createRecordButton(recordingDuration, fps);
+        }
         return;
       }
 
@@ -1947,6 +2053,12 @@ class VideoRecorder {
    * @param {number} fps - Frames per second for recording
    */
   createRecordButton(duration, fps) {
+    // Only create button if UI elements are enabled
+    if (!CONFIG.development.videoRecording.showAllUI) {
+      console.log('UI elements are disabled - skipping record button creation');
+      return null;
+    }
+
     // Remove any existing button
     const existingButton = document.getElementById('start-recording-button');
     if (existingButton) existingButton.remove();
@@ -2044,7 +2156,11 @@ class VideoRecorder {
     document.body.appendChild(recordButton);
 
     // Show a notification to user
-    this.showRecordingWarningMessage('Please click the "Start Recording" button to begin.');
+    if (CONFIG.development.videoRecording.showAllUI) {
+      this.showRecordingWarningMessage('Please click the "Start Recording" button to begin.');
+    }
+
+    return recordButton;
   }
 
   /**
@@ -2218,27 +2334,58 @@ class VideoRecorder {
     indicator.prepend(circle);
     document.body.appendChild(indicator);
 
-    // Add a "Log Camera Position" button
-    const logPositionBtn = document.createElement('button');
-    logPositionBtn.textContent = 'Log Camera Position';
-    logPositionBtn.style.position = 'fixed';
-    logPositionBtn.style.top = '60px';
-    logPositionBtn.style.right = '20px';
-    logPositionBtn.style.background = 'rgba(37, 218, 165, 0.9)';
-    logPositionBtn.style.color = 'white';
-    logPositionBtn.style.border = 'none';
-    logPositionBtn.style.padding = '8px 16px';
-    logPositionBtn.style.borderRadius = '4px';
-    logPositionBtn.style.fontFamily = 'Arial, sans-serif';
-    logPositionBtn.style.zIndex = '1000';
-    logPositionBtn.style.cursor = 'pointer';
+    // Add a "Log Camera Position" button only if camera tools are enabled
+    let logPositionBtn = null;
+    if (CONFIG.development.videoRecording.showCameraTools) {
+      logPositionBtn = document.createElement('button');
+      logPositionBtn.textContent = 'Log Camera Position';
+      logPositionBtn.style.background = 'rgba(37, 218, 165, 0.9)';
+      logPositionBtn.style.color = 'white';
+      logPositionBtn.style.border = 'none';
+      logPositionBtn.style.padding = '8px 16px';
+      logPositionBtn.style.borderRadius = '4px';
+      logPositionBtn.style.fontFamily = 'Arial, sans-serif';
+      logPositionBtn.style.cursor = 'pointer';
+      logPositionBtn.style.fontSize = '14px';
+      logPositionBtn.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
 
-    // Add event listener to log camera position
-    logPositionBtn.addEventListener('click', () => {
-      this.logCameraPosition();
-    });
+      // Add event listener
+      logPositionBtn.addEventListener('click', () => {
+        const cameraData = this.logCameraPosition();
 
-    document.body.appendChild(logPositionBtn);
+        if (cameraData) {
+          // Copy to clipboard functionality
+          const positionStr = `position: { x: ${cameraData.position.x.toFixed(2)}, y: ${cameraData.position.y.toFixed(2)}, z: ${cameraData.position.z.toFixed(2)} }`;
+          const targetStr = `target: { x: ${cameraData.target.x.toFixed(2)}, y: ${cameraData.target.y.toFixed(2)}, z: ${cameraData.target.z.toFixed(2)} }`;
+          const fullStr = `${positionStr}, ${targetStr}`;
+
+          try {
+            navigator.clipboard.writeText(fullStr).then(() => {
+              // Show confirmation tooltip
+              const tooltip = document.createElement('div');
+              tooltip.textContent = 'Copied to clipboard!';
+              tooltip.style.position = 'fixed';
+              tooltip.style.bottom = '80px';
+              tooltip.style.right = '20px';
+              tooltip.style.background = 'rgba(0,0,0,0.8)';
+              tooltip.style.color = 'white';
+              tooltip.style.padding = '5px 10px';
+              tooltip.style.borderRadius = '4px';
+              tooltip.style.fontSize = '12px';
+              tooltip.style.zIndex = '1001';
+              document.body.appendChild(tooltip);
+
+              // Remove after 2 seconds
+              setTimeout(() => tooltip.remove(), 2000);
+            });
+          } catch (err) {
+            console.error('Could not copy to clipboard:', err);
+          }
+        }
+      });
+
+      document.body.appendChild(logPositionBtn);
+    }
 
     // Store original onstop function
     const originalOnStop = this.recorder.onstop;
@@ -2258,7 +2405,8 @@ class VideoRecorder {
         style.remove();
       }
 
-      if (logPositionBtn.parentNode) {
+      // Remove camera position button if it exists
+      if (logPositionBtn && logPositionBtn.parentNode) {
         logPositionBtn.remove();
       }
     };
@@ -2596,6 +2744,11 @@ class VideoRecorder {
    * Useful for debugging and finding exact coordinates
    */
   logCameraPosition() {
+    // Only log positions if camera tools are enabled
+    if (!CONFIG.development.videoRecording.showCameraTools) {
+      return null;
+    }
+
     console.log('=== Current Camera State ===');
     console.log('Camera position:', {
       x: this.camera.position.x,
@@ -2669,6 +2822,11 @@ class VideoRecorder {
    * Create development tools for camera control and debugging
    */
   createDevTools() {
+    // Only create dev tools if showDevTools is enabled
+    if (!CONFIG.development || !CONFIG.development.videoRecording.showCameraTools) {
+      return;
+    }
+
     // Create container for development tools
     const devToolsContainer = document.createElement('div');
     devToolsContainer.id = 'camera-dev-tools';
@@ -2697,32 +2855,34 @@ class VideoRecorder {
     logPositionBtn.addEventListener('click', () => {
       const cameraData = this.logCameraPosition();
 
-      // Copy to clipboard functionality
-      const positionStr = `position: { x: ${cameraData.position.x.toFixed(2)}, y: ${cameraData.position.y.toFixed(2)}, z: ${cameraData.position.z.toFixed(2)} }`;
-      const targetStr = `target: { x: ${cameraData.target.x.toFixed(2)}, y: ${cameraData.target.y.toFixed(2)}, z: ${cameraData.target.z.toFixed(2)} }`;
-      const fullStr = `${positionStr}, ${targetStr}`;
+      if (cameraData) {
+        // Copy to clipboard functionality
+        const positionStr = `position: { x: ${cameraData.position.x.toFixed(2)}, y: ${cameraData.position.y.toFixed(2)}, z: ${cameraData.position.z.toFixed(2)} }`;
+        const targetStr = `target: { x: ${cameraData.target.x.toFixed(2)}, y: ${cameraData.target.y.toFixed(2)}, z: ${cameraData.target.z.toFixed(2)} }`;
+        const fullStr = `${positionStr}, ${targetStr}`;
 
-      try {
-        navigator.clipboard.writeText(fullStr).then(() => {
-          // Show confirmation tooltip
-          const tooltip = document.createElement('div');
-          tooltip.textContent = 'Copied to clipboard!';
-          tooltip.style.position = 'fixed';
-          tooltip.style.bottom = '80px';
-          tooltip.style.right = '20px';
-          tooltip.style.background = 'rgba(0,0,0,0.8)';
-          tooltip.style.color = 'white';
-          tooltip.style.padding = '5px 10px';
-          tooltip.style.borderRadius = '4px';
-          tooltip.style.fontSize = '12px';
-          tooltip.style.zIndex = '1001';
-          document.body.appendChild(tooltip);
+        try {
+          navigator.clipboard.writeText(fullStr).then(() => {
+            // Show confirmation tooltip
+            const tooltip = document.createElement('div');
+            tooltip.textContent = 'Copied to clipboard!';
+            tooltip.style.position = 'fixed';
+            tooltip.style.bottom = '80px';
+            tooltip.style.right = '20px';
+            tooltip.style.background = 'rgba(0,0,0,0.8)';
+            tooltip.style.color = 'white';
+            tooltip.style.padding = '5px 10px';
+            tooltip.style.borderRadius = '4px';
+            tooltip.style.fontSize = '12px';
+            tooltip.style.zIndex = '1001';
+            document.body.appendChild(tooltip);
 
-          // Remove after 2 seconds
-          setTimeout(() => tooltip.remove(), 2000);
-        });
-      } catch (err) {
-        console.error('Could not copy to clipboard:', err);
+            // Remove after 2 seconds
+            setTimeout(() => tooltip.remove(), 2000);
+          });
+        } catch (err) {
+          console.error('Could not copy to clipboard:', err);
+        }
       }
     });
 
@@ -2937,6 +3097,18 @@ class VideoRecorder {
     });
 
     container.appendChild(presetList);
+  }
+
+  /**
+   * More natural easing function for scrolling
+   * Combines ease-in-out with a slight pause at the beginning and acceleration in the middle
+   * @param {number} t - Progress from 0 to 1
+   * @returns {number} - Eased value
+   */
+  naturalEasing(t) {
+    // Using a simpler, smoother cubic bezier-like curve
+    // This avoids the stuttering from segment transitions in the previous implementation
+    return t * t * (3 - 2 * t);
   }
 }
 

@@ -13,10 +13,13 @@ export const CONFIG = {
     enabled: true,
     // Video recording functionality for creating demo videos
     videoRecording: {
-      enabled: true,      // Master toggle for video recording feature
+      enabled: false,      // Master toggle for video recording feature
       showButton: true,   // Whether to show the recording button
       defaultDuration: 30000,  // Default recording duration in milliseconds (30 seconds)
-      defaultFps: 30      // Default frames per second for recording
+      defaultFps: 60,     // Default frames per second for recording
+      preferredFormat: 'webm', // Preferred video format: 'webm' or 'mp4'
+      showAllUI: true,    // Whether to show ALL video recording related UI elements
+      showCameraTools: true // Whether to show camera position logging tools
     },
     // Camera position tools for development
     showDevTools: true,   // Enable camera position tools in the UI
