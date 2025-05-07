@@ -13,20 +13,37 @@ export const CONFIG = {
     enabled: true,
     // Video recording functionality for creating demo videos
     videoRecording: {
-      enabled: false,      // Master toggle for video recording feature
+      enabled: true,      // Master toggle for video recording feature
       showButton: true,   // Whether to show the recording button
       defaultDuration: 30000,  // Default recording duration in milliseconds (30 seconds)
       defaultFps: 60,     // Default frames per second for recording
       preferredFormat: 'webm', // Preferred video format: 'webm' or 'mp4'
       showAllUI: true,    // Whether to show ALL video recording related UI elements
-      showCameraTools: true // Whether to show camera position logging tools
+      showCameraTools: true, // Whether to show camera position logging tools
+      // Audio narration settings
+      narration: {
+        enabled: true,    // Master toggle for narration
+        waitForNarration: true, // Whether to wait for narration to complete before next action
+        // Map sequence IDs to audio filenames (without extension)
+        sequences: {
+          intro: "intro",
+          orbitalView: "orbital_view",
+          safetyCluster: "safety_cluster",
+          perinatalExposure: "perinatal_exposure",
+          yearRangeFilter: "year_range_filter",
+          searchFunction: "search_function",
+          zoomToCluster: "zoom_to_cluster",
+          paperHighlight: "paper_highlight",
+          conclusion: "conclusion"
+        }
+      }
     },
     // Camera position tools for development
     showDevTools: true,   // Enable camera position tools in the UI
     savePositionHistory: true  // Save previously used camera positions
   },
   // Renderer Configuration
-  rendererAntialias: false, // Set to true for production Antialiasing is a technique used to reduce the appearance of jagged edges (aliasing) in digital images. These jagged edges are often referred to as "jaggies" and are especially noticeable on diagonal lines or curves. By smoothing these edges, antialiasing improves the visual quality of the rendered image.
+  rendererAntialias: true, // Set to true for production Antialiasing is a technique used to reduce the appearance of jagged edges (aliasing) in digital images. These jagged edges are often referred to as "jaggies" and are especially noticeable on diagonal lines or curves. By smoothing these edges, antialiasing improves the visual quality of the rendered image.
   rendererAutoClearColor: true,
   devicePixelRatio: Math.min(window.devicePixelRatio, 2),
   windowSizes: {

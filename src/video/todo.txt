@@ -1,3 +1,0 @@
-2. inital camera orbiting the scene
-3. slower scrolling
-4. click on credits to finish off

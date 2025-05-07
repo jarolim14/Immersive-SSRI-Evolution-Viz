@@ -5,8 +5,10 @@
 
 import { VideoRecorder } from './videoRecorder.js';
 import { videoUI } from './videoUI.js';
+import { audioNarration } from './sound/audioNarration.js';
 
 export {
   VideoRecorder,
-  videoUI
+  videoUI,
+  audioNarration
 };

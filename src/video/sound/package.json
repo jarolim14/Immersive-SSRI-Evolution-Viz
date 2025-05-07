@@ -1,0 +1,14 @@
+{
+  "name": "audio-narration-generator",
+  "version": "1.0.0",
+  "description": "Generates audio narration files for the network visualization demo video",
+  "main": "generate-narration.js",
+  "scripts": {
+    "generate": "node generate-narration.js"
+  },
+  "dependencies": {
+    "microsoft-cognitiveservices-speech-sdk": "^1.33.0",
+    "dotenv": "^16.3.1"
+  },
+  "private": true
+}

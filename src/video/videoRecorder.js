@@ -5,6 +5,8 @@ import { visibilityManager } from '../visibilityManager.js';
 import { timeTravelController } from '../timeTravel.js';
 import { getCurrentYearRange } from '../yearSlider.js';
 import { updateNodeInfo } from '../singleNodeSelection.js';
+// Import audio narration system
+import { audioNarration } from './sound/audioNarration.js';
 
 class VideoRecorder {
   constructor(canvas, scene, camera, controls) {
@@ -192,7 +194,7 @@ class VideoRecorder {
               stream = displayStream;
               usedScreenCapture = true;
               if (CONFIG.development.videoRecording.showAllUI) {
-                this.updateCaptureTypeIndicator('Recording with screen capture (includes UI)');
+                this.updateCaptureTypeIndicator('Recording with screen capture');
               }
             } else {
               console.log('Screen capture is capturing a different surface, not the browser tab');
@@ -627,13 +629,21 @@ class VideoRecorder {
    */
   downloadVideo(blob) {
     const url = URL.createObjectURL(blob);
+    const preferredFormat = CONFIG.development.videoRecording.preferredFormat || 'webm';
+    const shouldConvert = preferredFormat === 'mp4' && !blob.type.includes('mp4');
 
-    // Check if we need to convert to MP4
-    this.ensureMp4Format(blob).then(finalBlob => {
+    console.log(`Video recorded in format: ${blob.type}`);
+    console.log(`Preferred format in config: ${preferredFormat}`);
+    console.log(`Should attempt conversion: ${shouldConvert}`);
+
+    // Only perform conversion if specifically requested in config AND needed
+    const processBlob = shouldConvert ? this.ensureMp4Format(blob) : Promise.resolve(blob);
+
+    processBlob.then(finalBlob => {
       const finalUrl = finalBlob === blob ? url : URL.createObjectURL(finalBlob);
-      const isMP4 = finalBlob.type.includes('mp4');
+      const format = finalBlob.type.includes('mp4') ? 'mp4' : 'webm';
 
-      console.log(`Downloading video as ${isMP4 ? 'MP4' : 'WebM'} format`);
+      console.log(`Downloading video as ${format} format`);
 
       // Try to find the download button in the UI
       const downloadButton = document.querySelector('#video-control-buttons button:nth-child(2)');
@@ -650,7 +660,7 @@ class VideoRecorder {
           // Create a temporary link to trigger the download
           const tempLink = document.createElement('a');
           tempLink.href = finalUrl;
-          tempLink.download = `network-visualization-demo.${isMP4 ? 'mp4' : 'webm'}`;
+          tempLink.download = `network-visualization-demo.${format}`;
           document.body.appendChild(tempLink);
           tempLink.click();
           document.body.removeChild(tempLink);
@@ -682,8 +692,8 @@ class VideoRecorder {
         console.log('Creating new download link (fallback)');
         const a = document.createElement('a');
         a.href = finalUrl;
-        a.download = `network-visualization-demo.${isMP4 ? 'mp4' : 'webm'}`;
-        a.textContent = `Download Video (${isMP4 ? 'MP4' : 'WebM'})`;
+        a.download = `network-visualization-demo.${format}`;
+        a.textContent = `Download Video (${format.toUpperCase()})`;
         a.style.position = 'fixed';
         a.style.bottom = '20px';
         a.style.left = '200px'; // Position next to record button
@@ -694,7 +704,7 @@ class VideoRecorder {
         a.style.borderRadius = '4px';
         a.style.textDecoration = 'none';
         a.style.fontFamily = 'Arial, sans-serif';
-        a.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.2)';
+        a.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
         document.body.appendChild(a);
 
         // Clean up URL after download
@@ -715,7 +725,7 @@ class VideoRecorder {
         // Create a temporary link to trigger the download without showing UI
         const tempLink = document.createElement('a');
         tempLink.href = finalUrl;
-        tempLink.download = `network-visualization-demo.${isMP4 ? 'mp4' : 'webm'}`;
+        tempLink.download = `network-visualization-demo.${format}`;
         document.body.appendChild(tempLink);
         tempLink.click();
         document.body.removeChild(tempLink);
@@ -729,10 +739,10 @@ class VideoRecorder {
         }, 1000);
       }
 
-      console.log('Video recording complete! Click the download button to save.');
+      console.log('Video recording complete! Download ready in selected format.');
     }).catch(error => {
-      console.error('Error ensuring MP4 format:', error);
-      // Fall back to original blob if conversion fails
+      console.error('Error processing video:', error);
+      // Fall back to original blob if processing fails
       this.fallbackDownload(blob, url);
     });
   }
@@ -870,7 +880,9 @@ class VideoRecorder {
       return blob; // Fall back to original format
     }
   }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////// DEMO SEQUENCE //////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
   /**
    * Create a demo interaction sequence
    * @returns {InteractionSequencer} - The configured sequencer
@@ -932,7 +944,7 @@ class VideoRecorder {
 
       // Brief pause before starting the sequence
       await new Promise(resolve => setTimeout(resolve, 300));
-    }, 300);
+    }, 300, 'intro');
 
     // NEW: Initial camera movement - slow zoom out for overview
     sequencer.addAction(async () => {
@@ -961,7 +973,7 @@ class VideoRecorder {
         },
         4000 // Slower movement for dramatic effect
       );
-    }, 1000);
+    }, 1000, 'intro');
 
     // 2. Open the instructions modal
     sequencer.addAction(async () => {
@@ -975,6 +987,183 @@ class VideoRecorder {
       // Wait for modal to animate in
       await new Promise(resolve => setTimeout(resolve, 400));
     }, 600);
+
+    // NEW: Camera movement - circular orbit around the network scene
+    sequencer.addAction(async () => {
+      console.log('Action: Camera orbital movement around network center');
+      this.showOverlay('Orbital Network Perspective');
+
+      // Starting position - First quadrant (X+, Z+)
+      await this.animateCamera(
+        { x: 6177, y: 7310, z: 12122 },
+        { x: 0, y: 0, z: 0 }, // Keeping camera focused on center
+        1000 // Quick initial positioning
+      );
+
+      // Brief pause to establish the starting view
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      this.showOverlay('Exploring Network Structure');
+
+      // Moving to second quadrant (X-, Z+)
+      await this.animateCamera(
+        { x: -9091, y: 8314, z: 9315 },
+        { x: 0, y: 0, z: 0 },
+        8000 // Slow, cinematic movement
+      );
+
+      // Brief pause to appreciate this angle
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      this.showOverlay('Discovering Network Connections');
+
+      // Moving to third quadrant (X-, Z-)
+      await this.animateCamera(
+        { x: -10000, y: 8398, z: -8247 },
+        { x: 0, y: 0, z: 0 },
+        8000 // Consistent slow pace
+      );
+
+      // Brief pause at this unique perspective
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      this.showOverlay('Complete Network Overview');
+
+      // Moving to fourth quadrant (X+, Z-) completing the circle
+      await this.animateCamera(
+        { x: 10318, y: 7508, z: -8700 },
+        { x: 0, y: 0, z: 0 },
+        8000 // Maintaining the slow, deliberate pace
+      );
+
+      // Longer pause at final position to appreciate the full circular journey
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Note: Additional camera movements would continue from here
+    }, 1500, 'orbitalView');
+
+    // Add interaction to click the Safety cluster fold indicator
+    sequencer.addAction(async () => {
+      console.log('Action: Expanding Safety cluster');
+      this.showOverlay('Exploring Safety Research');
+
+      // Find the Safety cluster fold indicator element
+      const safetyContainer = Array.from(document.querySelectorAll('.legend-item-container')).find(
+        container => container.textContent.includes('Safety')
+      );
+
+      if (safetyContainer) {
+        const foldIndicator = safetyContainer.querySelector('.fold-indicator');
+        if (foldIndicator) {
+          // First, add visual highlight
+          this.addClickEffect(foldIndicator);
+          await new Promise(resolve => setTimeout(resolve, 300));
+
+          // Try multiple approaches to ensure the fold actually happens
+
+          // 1. Direct click - the standard way
+          foldIndicator.click();
+
+          // 2. Dispatch multiple event types
+          ['mousedown', 'mouseup', 'click'].forEach(eventType => {
+            const event = new MouseEvent(eventType, {
+              view: window,
+              bubbles: true,
+              cancelable: true
+            });
+            foldIndicator.dispatchEvent(event);
+          });
+
+          // 3. If there's a specific toggle function in the parent scope
+          try {
+            if (typeof window.toggleFold === 'function') {
+              window.toggleFold('Safety');
+            }
+          } catch (e) {
+            console.log('No toggleFold function available');
+          }
+
+          // 4. If all else fails, manually toggle the class or style
+          const childContainer = document.querySelector('.legend-children-Safety');
+          if (childContainer) {
+            // Toggle display style directly
+            if (childContainer.style.display === 'none') {
+              childContainer.style.display = 'block';
+            }
+
+            // Or toggle a class that controls visibility
+            childContainer.classList.remove('hidden');
+            childContainer.classList.add('visible');
+          }
+
+          console.log('Multiple methods used to expand Safety cluster');
+
+          // Longer pause to allow for the animation and make it clearly visible
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        } else {
+          console.error('Safety fold indicator not found');
+        }
+      } else {
+        console.error('Safety container not found');
+      }
+    }, 1000, 'safetyCluster');
+
+    // Add interaction to click the Perinatal Exposure fold indicator
+    sequencer.addAction(async () => {
+      console.log('Action: Expanding Perinatal Exposure subcluster');
+      this.showOverlay('Focusing on Perinatal Exposure Research');
+
+      // Find the Perinatal Exposure subcluster fold indicator
+      const perinatalContainer = Array.from(document.querySelectorAll('.legend-item-container')).find(
+        container => container.textContent.includes('Perinatal Exposure')
+      );
+
+      if (perinatalContainer) {
+        const foldIndicator = perinatalContainer.querySelector('.fold-indicator');
+        if (foldIndicator) {
+          // First, add visual highlight
+          this.addClickEffect(foldIndicator);
+          await new Promise(resolve => setTimeout(resolve, 300));
+
+          // Try multiple approaches to ensure the fold actually happens
+
+          // 1. Direct click - the standard way
+          foldIndicator.click();
+
+          // 2. Dispatch multiple event types
+          ['mousedown', 'mouseup', 'click'].forEach(eventType => {
+            const event = new MouseEvent(eventType, {
+              view: window,
+              bubbles: true,
+              cancelable: true
+            });
+            foldIndicator.dispatchEvent(event);
+          });
+
+          // 3. If all else fails, manually toggle the class or style
+          const childContainer = document.querySelector('.legend-children-Safety-Perinatal\\ Exposure');
+          if (childContainer) {
+            // Toggle display style directly
+            if (childContainer.style.display === 'none') {
+              childContainer.style.display = 'block';
+            }
+
+            // Or toggle a class that controls visibility
+            childContainer.classList.remove('hidden');
+            childContainer.classList.add('visible');
+          }
+
+          console.log('Multiple methods used to expand Perinatal Exposure subcluster');
+
+          // Longer pause to show the expansion
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        } else {
+          console.error('Perinatal Exposure fold indicator not found');
+        }
+      } else {
+        console.error('Perinatal Exposure container not found');
+      }
+    }, 1000, 'perinatalExposure');
 
     // 3. Start with showing the beginning of instructions
     sequencer.addAction(async () => {
@@ -1128,185 +1317,6 @@ class VideoRecorder {
 
       // Wait for the modal to close
       await new Promise(resolve => setTimeout(resolve, 500));
-    }, 1000);
-
-
-
-  // NEW: Camera movement - circular orbit around the network scene
-  sequencer.addAction(async () => {
-    console.log('Action: Camera orbital movement around network center');
-    this.showOverlay('Orbital Network Perspective');
-
-    // Starting position - First quadrant (X+, Z+)
-    await this.animateCamera(
-      { x: 6177, y: 7310, z: 12122 },
-      { x: 0, y: 0, z: 0 }, // Keeping camera focused on center
-      1000 // Quick initial positioning
-    );
-
-    // Brief pause to establish the starting view
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    this.showOverlay('Exploring Network Structure');
-
-    // Moving to second quadrant (X-, Z+)
-    await this.animateCamera(
-      { x: -9091, y: 8314, z: 9315 },
-      { x: 0, y: 0, z: 0 },
-      8000 // Slow, cinematic movement
-    );
-
-    // Brief pause to appreciate this angle
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    this.showOverlay('Discovering Network Connections');
-
-    // Moving to third quadrant (X-, Z-)
-    await this.animateCamera(
-      { x: -10000, y: 8398, z: -8247 },
-      { x: 0, y: 0, z: 0 },
-      8000 // Consistent slow pace
-    );
-
-    // Brief pause at this unique perspective
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    this.showOverlay('Complete Network Overview');
-
-    // Moving to fourth quadrant (X+, Z-) completing the circle
-    await this.animateCamera(
-      { x: 10318, y: 7508, z: -8700 },
-      { x: 0, y: 0, z: 0 },
-      8000 // Maintaining the slow, deliberate pace
-    );
-
-    // Longer pause at final position to appreciate the full circular journey
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Note: Additional camera movements would continue from here
-
-  }, 1500);
-    // Add interaction to click the Safety cluster fold indicator
-    sequencer.addAction(async () => {
-      console.log('Action: Expanding Safety cluster');
-      this.showOverlay('Exploring Safety Research');
-
-      // Find the Safety cluster fold indicator element
-      const safetyContainer = Array.from(document.querySelectorAll('.legend-item-container')).find(
-        container => container.textContent.includes('Safety')
-      );
-
-      if (safetyContainer) {
-        const foldIndicator = safetyContainer.querySelector('.fold-indicator');
-        if (foldIndicator) {
-          // First, add visual highlight
-          this.addClickEffect(foldIndicator);
-          await new Promise(resolve => setTimeout(resolve, 300));
-
-          // Try multiple approaches to ensure the fold actually happens
-
-          // 1. Direct click - the standard way
-          foldIndicator.click();
-
-          // 2. Dispatch multiple event types
-          ['mousedown', 'mouseup', 'click'].forEach(eventType => {
-            const event = new MouseEvent(eventType, {
-              view: window,
-              bubbles: true,
-              cancelable: true
-            });
-            foldIndicator.dispatchEvent(event);
-          });
-
-          // 3. If there's a specific toggle function in the parent scope
-          try {
-            if (typeof window.toggleFold === 'function') {
-              window.toggleFold('Safety');
-            }
-          } catch (e) {
-            console.log('No toggleFold function available');
-          }
-
-          // 4. If all else fails, manually toggle the class or style
-          const childContainer = document.querySelector('.legend-children-Safety');
-          if (childContainer) {
-            // Toggle display style directly
-            if (childContainer.style.display === 'none') {
-              childContainer.style.display = 'block';
-            }
-
-            // Or toggle a class that controls visibility
-            childContainer.classList.remove('hidden');
-            childContainer.classList.add('visible');
-          }
-
-          console.log('Multiple methods used to expand Safety cluster');
-
-          // Longer pause to allow for the animation and make it clearly visible
-          await new Promise(resolve => setTimeout(resolve, 1500));
-        } else {
-          console.error('Safety fold indicator not found');
-        }
-      } else {
-        console.error('Safety container not found');
-      }
-    }, 1000);
-
-    // Add interaction to click the Perinatal Exposure fold indicator
-    sequencer.addAction(async () => {
-      console.log('Action: Expanding Perinatal Exposure subcluster');
-      this.showOverlay('Focusing on Perinatal Exposure Research');
-
-      // Find the Perinatal Exposure subcluster fold indicator
-      const perinatalContainer = Array.from(document.querySelectorAll('.legend-item-container')).find(
-        container => container.textContent.includes('Perinatal Exposure')
-      );
-
-      if (perinatalContainer) {
-        const foldIndicator = perinatalContainer.querySelector('.fold-indicator');
-        if (foldIndicator) {
-          // First, add visual highlight
-          this.addClickEffect(foldIndicator);
-          await new Promise(resolve => setTimeout(resolve, 300));
-
-          // Try multiple approaches to ensure the fold actually happens
-
-          // 1. Direct click - the standard way
-          foldIndicator.click();
-
-          // 2. Dispatch multiple event types
-          ['mousedown', 'mouseup', 'click'].forEach(eventType => {
-            const event = new MouseEvent(eventType, {
-              view: window,
-              bubbles: true,
-              cancelable: true
-            });
-            foldIndicator.dispatchEvent(event);
-          });
-
-          // 3. If all else fails, manually toggle the class or style
-          const childContainer = document.querySelector('.legend-children-Safety-Perinatal\\ Exposure');
-          if (childContainer) {
-            // Toggle display style directly
-            if (childContainer.style.display === 'none') {
-              childContainer.style.display = 'block';
-            }
-
-            // Or toggle a class that controls visibility
-            childContainer.classList.remove('hidden');
-            childContainer.classList.add('visible');
-          }
-
-          console.log('Multiple methods used to expand Perinatal Exposure subcluster');
-
-          // Longer pause to show the expansion
-          await new Promise(resolve => setTimeout(resolve, 1500));
-        } else {
-          console.error('Perinatal Exposure fold indicator not found');
-        }
-      } else {
-        console.error('Perinatal Exposure container not found');
-      }
     }, 1000);
 
     // Add interaction to click the Perinatal Exposure checkbox
@@ -1855,6 +1865,7 @@ class VideoRecorder {
 
 
     // click elsewhere to deselect the node
+    // click elsewhere to deselect the node
     sequencer.addAction(async () => {
       console.log('Action: Clicking elsewhere to deselect the node');
       this.showOverlay('Deselecting Node');
@@ -1882,6 +1893,48 @@ class VideoRecorder {
       } else {
         console.warn('Canvas not found, falling back to manual deselection');
       }
+
+      // Fallback: try calling deselection function directly
+      try {
+        const { updateNodeInfo, hideVisualSelection } = await import('../singleNodeSelection.js');
+        const { nodesMap } = await import('../nodesLoader.js');
+
+        // First approach: Use the updateNodeInfo function with null parameters
+        // This is the proper way to deselect based on the singleNodeSelection.js implementation
+        if (typeof updateNodeInfo === 'function') {
+          updateNodeInfo(null, nodesMap, null, this.scene);
+          console.log('Deselected node through updateNodeInfo() API');
+        }
+
+        // Second approach: Directly hide the visual selection
+        if (typeof hideVisualSelection === 'function') {
+          hideVisualSelection();
+          console.log('Called hideVisualSelection() to remove visual indicators');
+        }
+
+        // Third approach: Reset node selection styling
+        const nodeInfoDiv = document.getElementById('nodeInfoDiv');
+        if (nodeInfoDiv) {
+          nodeInfoDiv.style.display = 'none';
+          console.log('Hid node info panel');
+        }
+        document.body.classList.remove('node-selected');
+
+        // Fourth approach: Try to reset any selection state in scene objects
+        if (this.scene) {
+          const points = this.scene.getObjectByName('points');
+          if (points && points.geometry.attributes.singleNodeSelectionBrightness) {
+            points.geometry.attributes.singleNodeSelectionBrightness.array.fill(0.0);
+            points.geometry.attributes.singleNodeSelectionBrightness.needsUpdate = true;
+            console.log('Reset all node brightness values in the scene');
+          }
+        }
+      } catch (error) {
+        console.warn('Could not complete node deselection:', error);
+      }
+
+      // Give more time for the deselection to take effect
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       console.log('Action: Deselecting node done');
     }, 2000);
@@ -1969,6 +2022,11 @@ class VideoRecorder {
       return;
     }
 
+    // Check narration readiness if enabled
+    if (CONFIG.development?.videoRecording?.narration?.enabled) {
+      this.checkNarrationReadiness();
+    }
+
     // Log camera position and target for reference
     console.log('=== Current Camera State ===');
     console.log('Camera position:', {
@@ -1995,6 +2053,16 @@ class VideoRecorder {
           this.createRecordButton(recordingDuration, fps);
         }
         return;
+      }
+
+      // Preload audio narration if enabled
+      if (CONFIG.development?.videoRecording?.narration?.enabled) {
+        console.log('Preloading audio narration files...');
+        try {
+          await audioNarration.loadAudioFiles();
+        } catch (error) {
+          console.warn('Failed to load audio narration, continuing without audio:', error);
+        }
       }
 
       // Setup UI and recorder
@@ -2037,6 +2105,11 @@ class VideoRecorder {
         } catch (stopError) {
           console.error('Error stopping recorder:', stopError);
         }
+      }
+
+      // Stop any playing audio
+      if (CONFIG.development?.videoRecording?.narration?.enabled) {
+        audioNarration.stop();
       }
 
       // Remove recording indicator if it exists
@@ -2728,6 +2801,11 @@ class VideoRecorder {
       this.isRecording = false;
       this.recorder.stop();
 
+      // Stop any playing audio
+      if (CONFIG.development?.videoRecording?.narration?.enabled) {
+        audioNarration.stop();
+      }
+
       // Clean up any additional resources
       if (this.screenCaptureStream) {
         this.screenCaptureStream.getTracks().forEach(track => track.stop());
@@ -3110,6 +3188,39 @@ class VideoRecorder {
     // This avoids the stuttering from segment transitions in the previous implementation
     return t * t * (3 - 2 * t);
   }
+
+  /**
+   * Check if narration is ready and display helpful messages if not
+   * This helps guide users through the process of generating audio files
+   */
+  checkNarrationReadiness() {
+    // Check if any audio files exist in the expected directory
+    const narrationSequences = CONFIG.development?.videoRecording?.narration?.sequences || {};
+    const hasAnyNarrationConfig = Object.keys(narrationSequences).length > 0;
+
+    if (!hasAnyNarrationConfig) {
+      console.warn('Narration is enabled but no sequences are configured in CONFIG.development.videoRecording.narration.sequences');
+      this.showRecordingWarningMessage('Narration is enabled but not configured properly. Check the console for details.');
+      return;
+    }
+
+    // Only display a guide message on first run when UI is enabled
+    if (CONFIG.development.videoRecording.showAllUI) {
+      console.log('Narration is enabled. Audio for sequences will play if available.');
+      console.log('If you get audio loading errors, you may need to generate the audio files:');
+      console.log('1. cd src/video/sound');
+      console.log('2. npm install');
+      console.log('3. node generate-narration.js');
+
+      // Check specifically for intro.mp3 since you have this file
+      if (!audioNarration.hasNarration('intro')) {
+        this.showRecordingWarningMessage(
+          'You have narration enabled but some audio files may be missing. ' +
+          'See console for instructions to generate them, or disable narration in config.js'
+        );
+      }
+    }
+  }
 }
 
 /**
@@ -3129,10 +3240,11 @@ class InteractionSequencer {
    * Add an action to the sequence
    * @param {Function} callback - Async function to execute
    * @param {number} duration - Duration in milliseconds
+   * @param {string} [narrationId] - Optional ID of narration to play during this action
    * @returns {InteractionSequencer} - This instance for chaining
    */
-  addAction(callback, duration) {
-    this.actions.push({ callback, duration });
+  addAction(callback, duration, narrationId) {
+    this.actions.push({ callback, duration, narrationId });
     return this;
   }
 
@@ -3148,13 +3260,33 @@ class InteractionSequencer {
     // Execute all actions in sequence
     for (let i = 0; i < this.actions.length && this.isPlaying; i++) {
       this.currentStep = i;
-      const { callback, duration } = this.actions[i];
+      const { callback, duration, narrationId } = this.actions[i];
 
       // Execute the action
+      let narrationPromise = Promise.resolve();
+
+      // Play narration if specified and enabled
+      if (narrationId && CONFIG.development?.videoRecording?.narration?.enabled) {
+        console.log(`Playing narration for step ${i}: ${narrationId}`);
+        // Start narration but don't wait for it to complete (non-blocking)
+        narrationPromise = audioNarration.play(narrationId);
+      }
+
+      // Execute the action callback
       await callback();
 
       // Wait for specified duration
       await new Promise(resolve => setTimeout(resolve, duration));
+
+      // Optionally wait for narration to complete if it's still playing
+      if (CONFIG.development?.videoRecording?.narration?.waitForNarration) {
+        await narrationPromise;
+      }
+    }
+
+    // Ensure any playing audio is stopped when sequence completes
+    if (CONFIG.development?.videoRecording?.narration?.enabled) {
+      audioNarration.stop();
     }
 
     this.isPlaying = false;
@@ -3165,6 +3297,11 @@ class InteractionSequencer {
    */
   stop() {
     this.isPlaying = false;
+
+    // Stop any playing audio when sequence is manually stopped
+    if (CONFIG.development?.videoRecording?.narration?.enabled) {
+      audioNarration.stop();
+    }
   }
 }
 
