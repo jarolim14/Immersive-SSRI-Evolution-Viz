@@ -13,16 +13,16 @@ export const CONFIG = {
     enabled: true,
     // Video recording functionality for creating demo videos
     videoRecording: {
-      enabled: true,      // Master toggle for video recording feature
-      showButton: true,   // Whether to show the recording button
-      defaultDuration: 30000,  // Default recording duration in milliseconds (30 seconds)
-      defaultFps: 60,     // Default frames per second for recording
-      preferredFormat: 'webm', // Preferred video format: 'webm' or 'mp4'
-      showAllUI: true,    // Whether to show ALL video recording related UI elements
+      enabled: true, // Master toggle for video recording feature
+      showButton: true, // Whether to show the recording button
+      defaultDuration: 30000, // Default recording duration in milliseconds (30 seconds)
+      defaultFps: 60, // Default frames per second for recording
+      preferredFormat: "webm", // Preferred video format: 'webm' or 'mp4'
+      showAllUI: true, // Whether to show ALL video recording related UI elements
       showCameraTools: true, // Whether to show camera position logging tools
       // Audio narration settings
       narration: {
-        enabled: true,    // Master toggle for narration
+        enabled: true, // Master toggle for narration
         waitForNarration: true, // Whether to wait for narration to complete before next action
         // Map sequence IDs to audio filenames (without extension)
         sequences: {
@@ -34,13 +34,13 @@ export const CONFIG = {
           searchFunction: "search_function",
           zoomToCluster: "zoom_to_cluster",
           paperHighlight: "paper_highlight",
-          conclusion: "conclusion"
-        }
-      }
+          conclusion: "conclusion",
+        },
+      },
     },
     // Camera position tools for development
-    showDevTools: true,   // Enable camera position tools in the UI
-    savePositionHistory: true  // Save previously used camera positions
+    showDevTools: true, // Enable camera position tools in the UI
+    savePositionHistory: true, // Save previously used camera positions
   },
   // Renderer Configuration
   rendererAntialias: true, // Set to true for production Antialiasing is a technique used to reduce the appearance of jagged edges (aliasing) in digital images. These jagged edges are often referred to as "jaggies" and are especially noticeable on diagonal lines or curves. By smoothing these edges, antialiasing improves the visual quality of the rendered image.
@@ -56,12 +56,12 @@ export const CONFIG = {
   cameraPosition: {
     x: 6177,
     y: 7310,
-    z: 12122
+    z: 12122,
   },
   cameraTarget: {
     x: 4302,
     y: 3761,
-    z: 6118
+    z: 6118,
   },
   cameraFOV: 75, // Field of view in degrees (higher values give a fish-eye effect)
   cameraNearPlane: 0.5, // Near clipping plane (anything closer than this won't be rendered)
@@ -119,16 +119,16 @@ export const CONFIG = {
 
   // Search Functionality Configuration
   search: {
-    resultsLimit: 10,              // Maximum number of search results to display
-    debounceTime: 200,             // Delay in ms before search is executed while typing
+    resultsLimit: 10, // Maximum number of search results to display
+    debounceTime: 200, // Delay in ms before search is executed while typing
     camera: {
-      baseDistance: 1500,           // Base distance for camera when viewing a search result
-      extraHeight: 500,            // Extra height added to camera position
-      centralityDistanceMultiplier: 50,  // How much to increase distance based on node centrality
-      transitionDuration: 2500,    // Camera transition duration in ms
-      viewOffsetUpward: 0.9,       // Upward view offset component (Z in rotated system)
-      viewOffsetCenter: 0.5        // Center view offset component
-    }
+      baseDistance: 1500, // Base distance for camera when viewing a search result
+      extraHeight: 500, // Extra height added to camera position
+      centralityDistanceMultiplier: 50, // How much to increase distance based on node centrality
+      transitionDuration: 2500, // Camera transition duration in ms
+      viewOffsetUpward: 0.9, // Upward view offset component (Z in rotated system)
+      viewOffsetCenter: 0.5, // Center view offset component
+    },
   },
 
   // Time Travel Configuration
@@ -142,7 +142,7 @@ export const CONFIG = {
       distance: 4000,
       height: 4000,
       fieldOfView: 40,
-    }
+    },
   },
 
   // Shader Effects Configuration
@@ -195,7 +195,6 @@ export const CONFIG = {
       // - Lower values make them more transparent
       // - 1.0 is neutral
       brightness: 1.0,
-    }
-  }
+    },
+  },
 };
-

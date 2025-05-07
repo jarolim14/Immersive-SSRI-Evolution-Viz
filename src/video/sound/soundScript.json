@@ -1,0 +1,15 @@
+{
+  "introduction": "The visualization in this project includes the comprehensive literature on the most commonly prescribed class of antidepressants, SSRIs. It includes more than 35,000 research papers, published between 1982 and 2025. Links between nodes represent citations and semantic similarities. Take a moment to scroll through these instructions to learn about all available features before diving in. To focus on specific research areas, click the 'View Topic Hierarchy' button. From the dropdown menu, select a research domain - we're choosing 'Safety' here. This view shows how research topics are organized in the legend.",
+
+  "legend_panel_interaction": "In the legend panel, click the arrow next to any topic to expand its subcategories. Here we're expanding the Safety cluster to see more specific research areas. To filter the visualization, simply check the boxes next to topics you're interested in.",
+
+  "single_node_selection": "To examine individual papers, simply click on any node. This displays detailed information about the publication in the side panel, such as the title and cluster label.",
+
+  "year_slider_adjusted": "Use the time slider at the top to filter papers and links by publication year in either direction. Here we're setting it to 2010 to show only more recent publications.",
+
+  "time_travel_animation": "Click the play button to animate the appearance of papers chronologically. This helps you visualize how clusters and interconnectivity evolved over time. You can pause the animation at any point by clicking the button again.",
+
+  "typing_in_search_bar": "For a targeted search of a single paper, use the search bar to quickly locate papers by title or DOI. Here we're searching for studies using the 'rat forced swimming test.' The camera will automatically move to highlight the selected study.",
+
+  "reset_button_clicked": "To return to the full dataset view at any time, click the 'Reset' button. This clears all filters and shows the complete research network, ready for you to immerse yourself and explore the evolution of different fields of study and their interconnections over time."
+}
