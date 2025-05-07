@@ -23,7 +23,7 @@ require('dotenv').config();
 const sdk = require('microsoft-cognitiveservices-speech-sdk');
 const fs = require('fs');
 const path = require('path');
-const { NARRATION_CONFIG } = require('./narrationConfigCJS');
+const { NARRATION_CONFIG, AUDIO_CONFIG } = require('./narrationConfig');
 
 // Check for environment variables
 if (!process.env.AZURE_SPEECH_KEY || !process.env.AZURE_SPEECH_REGION) {
@@ -131,33 +131,19 @@ async function generateNarrationAudio() {
 }
 
 /**
- * Determine the target path from the config file (if it exists)
+ * Determine the target path from AUDIO_CONFIG
  * @param {string} id - The narration ID
  * @param {string} defaultFilename - The default filename to use if config doesn't specify
- * @returns {string} The target path
+ * @returns {string} The target filename without extension
  */
 function getTargetPath(id, defaultFilename) {
-  try {
-    // Check if CONFIG_EXAMPLE is exported from narrationConfig
-    const { CONFIG_EXAMPLE } = require('./narrationConfigCJS');
+  // Get the path from AUDIO_CONFIG if it exists
+  const configPath = AUDIO_CONFIG?.sequences?.[id];
 
-    // Get the path from the config if it exists
-    const configPath = CONFIG_EXAMPLE?.development?.videoRecording?.narration?.sequences?.[id];
-
-    if (configPath) {
-      console.log(`Found target path in config: ${configPath}`);
-
-      // Extract filename and extension
-      const pathParts = configPath.split('/');
-      const filenameWithExt = pathParts[pathParts.length - 1];
-
-      // Remove extension if present
-      const filename = filenameWithExt.split('.')[0];
-
-      return filename;
-    }
-  } catch (error) {
-    console.warn(`Could not determine target path from config: ${error.message}`);
+  if (configPath) {
+    console.log(`Found target path in config: ${configPath}`);
+    // Remove extension if present
+    return configPath.split('.')[0];
   }
 
   // Fallback to default
