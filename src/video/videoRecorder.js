@@ -226,7 +226,7 @@ class VideoRecorder {
     const sequencer = this.sequencer;
 
     // Clear any previous actions
-    sequencer.actions = [];
+    sequencer.actions = new Map();
 
     // Helper to perform click with animation first
     const performAnimatedClick = async (element, description) => {
@@ -247,12 +247,255 @@ class VideoRecorder {
       console.log(`Performed animated click: ${description}`);
     };
 
-    // 1. Start with ensuring instructions modal is closed
-    sequencer.addAction(
-      async () => {
-        console.log("Action: Ensuring clean starting state");
+    // Helper function for smooth scrolling
+    const smoothScroll = async (container, duration = 4000) => {
+      if (!container) {
+        console.error("Scroll container not found");
+        return;
+      }
 
-        // First make sure all modals are closed
+      console.log("Starting smooth scroll with container:", container);
+      console.log("Container scroll height:", container.scrollHeight);
+      console.log("Container client height:", container.clientHeight);
+
+      const scrollHeight = container.scrollHeight;
+      const clientHeight = container.clientHeight;
+      const scrollDistance = scrollHeight - clientHeight;
+
+      // If there's nothing to scroll, return early
+      if (scrollDistance <= 0) {
+        console.warn("Container doesn't need scrolling (not enough content)");
+        return;
+      }
+
+      // Ensure the container is scrollable
+      container.style.overflow = "auto";
+
+      // Reset to top before starting
+      container.scrollTop = 0;
+
+      // Give the browser a moment to process the scroll reset
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const startTime = performance.now();
+
+      return new Promise((resolve) => {
+        const scrollStep = (timestamp) => {
+          const elapsed = timestamp - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+
+          // Use custom easing for more natural scroll
+          const eased = naturalEasing(progress);
+          const scrollPosition = scrollDistance * eased;
+
+          // Update scroll position
+          container.scrollTop = scrollPosition;
+
+          // Force layout recalculation
+          container.getBoundingClientRect();
+
+          if (progress < 1) {
+            requestAnimationFrame(scrollStep);
+          } else {
+            console.log("Smooth scroll completed");
+            resolve();
+          }
+        };
+
+        requestAnimationFrame(scrollStep);
+      });
+    };
+
+    // Enhanced helper for finding a scrollable container
+    const findScrollableContainer = (element) => {
+      if (!element) {
+        console.error("No element provided to findScrollableContainer");
+        return null;
+      }
+
+      console.log("Finding scrollable container for:", element);
+
+      // First, try the element itself
+      if (element.scrollHeight > element.clientHeight) {
+        console.log("Element itself is scrollable");
+        return element;
+      }
+
+      // Then look for parent elements
+      let container = element.parentElement;
+      let depth = 0;
+      const maxDepth = 10; // Prevent infinite loops
+
+      while (container && depth < maxDepth) {
+        if (container === document.body) {
+          console.log("Reached document.body");
+          break;
+        }
+
+        // Check if this container is scrollable
+        const style = window.getComputedStyle(container);
+        const overflowY = style.getPropertyValue("overflow-y");
+
+        if (
+          container.scrollHeight > container.clientHeight &&
+          (overflowY === "auto" || overflowY === "scroll")
+        ) {
+          console.log("Found scrollable parent:", container);
+          return container;
+        }
+
+        // Move up to parent
+        container = container.parentElement;
+        depth++;
+      }
+
+      // If we reach here, try some common containers by ID or class
+      const commonScrollContainers = [
+        document.querySelector(".modal-body"),
+        document.querySelector(".topic-tree-container"),
+        document.getElementById("topicTreeModal")?.querySelector(".modal-body"),
+        document
+          .getElementById("instructionsModal")
+          ?.querySelector(".modal-body"),
+      ];
+
+      for (const container of commonScrollContainers) {
+        if (container && container.scrollHeight > container.clientHeight) {
+          console.log("Found common scrollable container:", container);
+          return container;
+        }
+      }
+
+      console.warn("No scrollable container found");
+      return null;
+    };
+
+    // Helper for selecting a specific node
+    const selectNode = async (nodeId, scene) => {
+      try {
+        // Get required scene objects
+        const points = scene.getObjectByName("points");
+        if (!points) {
+          console.error("Points object not found in scene");
+          return;
+        }
+
+        // Verify we have access to nodesMap
+        if (!nodesMap) {
+          console.error("nodesMap not available from nodesLoader.js");
+          return;
+        }
+
+        // Get target node and verify it exists
+        const targetNode = nodesMap.get(nodeId);
+        if (!targetNode) {
+          console.error(`Node with ID ${nodeId} not found in nodesMap`);
+          return;
+        }
+
+        // Find the index of the node in the nodeIds array
+        const nodeIds = Array.from(nodesMap.keys());
+        const targetNodeIndex = nodeIds.indexOf(nodeId);
+        if (targetNodeIndex === -1) {
+          console.error(`Node ID ${nodeId} not found in nodesMap keys`);
+          return;
+        }
+
+        // Create a fake intersection object to pass to updateNodeInfo
+        const fakeIntersection = {
+          index: targetNodeIndex,
+          object: points,
+        };
+
+        // Select and highlight the node
+        updateNodeInfo(fakeIntersection, nodesMap, points, scene);
+        console.log(
+          `Successfully selected node ID: ${nodeId} at index: ${targetNodeIndex}`
+        );
+
+        // Pause to appreciate the selected node
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      } catch (error) {
+        console.error(`Error selecting node ${nodeId}:`, error);
+      }
+    };
+
+    // Helper for deselecting a node
+    const deselectNode = async (scene) => {
+      console.log("Action: Deselecting node");
+      showOverlay("Deselecting Node");
+
+      // Try to find the main canvas
+      const canvas = document.querySelector("canvas");
+      if (canvas) {
+        const rect = canvas.getBoundingClientRect();
+        // Click in a corner where there's likely no node
+        const clickEvent = new MouseEvent("click", {
+          bubbles: true,
+          cancelable: true,
+          view: window,
+          clientX: rect.left + 5,
+          clientY: rect.top + 5,
+        });
+        canvas.dispatchEvent(clickEvent);
+      }
+
+      // Multiple fallback approaches to ensure deselection
+      try {
+        // Approach 1: Use the updateNodeInfo function with null parameters
+        if (typeof updateNodeInfo === "function") {
+          updateNodeInfo(null, nodesMap, null, scene);
+        }
+
+        // Approach 2: Directly hide the visual selection
+        if (typeof hideVisualSelection === "function") {
+          hideVisualSelection();
+        }
+
+        // Approach 3: Reset node selection styling
+        const nodeInfoDiv = document.getElementById("nodeInfoDiv");
+        if (nodeInfoDiv) {
+          nodeInfoDiv.style.display = "none";
+        }
+        document.body.classList.remove("node-selected");
+
+        // Approach 4: Reset any selection state in scene objects
+        if (scene) {
+          const points = scene.getObjectByName("points");
+          if (
+            points &&
+            points.geometry.attributes.singleNodeSelectionBrightness
+          ) {
+            points.geometry.attributes.singleNodeSelectionBrightness.array.fill(
+              0.0
+            );
+            points.geometry.attributes.singleNodeSelectionBrightness.needsUpdate = true;
+          }
+        }
+      } catch (error) {
+        console.warn("Could not complete node deselection:", error);
+      }
+
+      // Give time for the deselection to take effect
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    };
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // 1. Start with an initial orbit around the network
+    sequencer.addAction(
+      "orbiting_network_1",
+      async () => {
+        console.log("Action: Starting with initial orbit around the network");
+
+        // First ensure any existing modals are closed
         const modals = document.querySelectorAll(
           ".modal, #instructionsModal, #topicTreeModal"
         );
@@ -261,9 +504,6 @@ class VideoRecorder {
             modal &&
             (modal.style.display === "block" || modal.style.display === "flex")
           ) {
-            console.log(`Closing modal: ${modal.id || "unnamed modal"}`);
-
-            // Try to find and click the close button
             const closeBtn = modal.querySelector(
               '.close-btn, .close, [id$="CloseBtn"]'
             );
@@ -273,81 +513,19 @@ class VideoRecorder {
                 `Close ${modal.id || "modal"}`
               );
             } else {
-              // Manually hide if button not found
               modal.style.display = "none";
               if (modal.classList.contains("show")) {
                 modal.classList.remove("show");
               }
             }
-
-            // Brief pause to let animation complete
             await new Promise((resolve) => setTimeout(resolve, 200));
           }
         }
 
-        // Ensure we start with a clean view
+        // Reset controls for clean state
         this.controls.reset();
-
-        // Brief pause before starting the sequence
         await new Promise((resolve) => setTimeout(resolve, 300));
-      },
-      300,
-      "intro"
-    );
 
-    // NEW: Initial camera movement - slow zoom out for overview
-    sequencer.addAction(
-      async () => {
-        console.log("Action: Initial camera movement - overview zoom out");
-        showOverlay("Immersive Network of SSRI Papers");
-
-        // Get current camera position and target
-        const currentPosition = {
-          x: this.camera.position.x,
-          y: this.camera.position.y,
-          z: this.camera.position.z,
-        };
-        const currentTarget = this.controls.target.clone();
-
-        // Zoom out to show the full network
-
-        await animateCamera(
-          this.camera, // Pass your camera object
-          this.controls, // Pass your controls object
-          easeInOutCubic, // Use the imported easing function
-          {
-            x: currentPosition.x * 1.5,
-            y: currentPosition.y * 1.5,
-            z: currentPosition.z * 1.5,
-          },
-          {
-            x: currentTarget.x,
-            y: currentTarget.y,
-            z: currentTarget.z,
-          },
-          4000 // Slower movement for dramatic effect
-        );
-      },
-      1000,
-      "intro"
-    );
-
-    // 2. Open the instructions modal
-    sequencer.addAction(async () => {
-      console.log("Action: Opening instructions modal");
-      showOverlay("Opening Instructions");
-
-      // Find and open the instructions modal
-      const helpButton = document.getElementById("helpButton");
-      await performAnimatedClick(helpButton, "Open instructions");
-
-      // Wait for modal to animate in
-      await new Promise((resolve) => setTimeout(resolve, 400));
-    }, 600);
-
-    // NEW: Camera movement - circular orbit around the network scene
-    sequencer.addAction(
-      async () => {
         console.log("Action: Camera orbital movement around network center");
         showOverlay("Orbital Network Perspective");
 
@@ -411,12 +589,223 @@ class VideoRecorder {
 
         // Note: Additional camera movements would continue from here
       },
-      1500,
-      "orbitalView"
+      1500
     );
 
-    // Add interaction to click the Safety cluster fold indicator
+    // 2. Open the instructions modal
     sequencer.addAction(
+      "instructions_modal_1",
+      async () => {
+        console.log("Action: Opening instructions modal");
+        showOverlay("Showing Instructions Modal");
+        const helpButton = document.getElementById("helpButton");
+        await performAnimatedClick(helpButton, "Open instructions");
+
+        // Wait for modal to appear
+        await new Promise((resolve) => setTimeout(resolve, 400));
+      },
+      300
+    );
+    // 3. Scroll down in instructions modal
+    sequencer.addAction(
+      "instructions_modal_2",
+      async () => {
+        console.log("Action: Scrolling in instructions modal");
+        showOverlay("Reading Instructions");
+
+        const instructionsContainer = document.querySelector(
+          ".instructions-container"
+        );
+        await smoothScroll(instructionsContainer);
+
+        // Wait for narration to complete
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      },
+      1000
+    );
+
+    // 3. Click on "View Topic Hierarchy" button
+    sequencer.addAction(
+      "topic_hierarchy_1",
+      async () => {
+        console.log("Action: Opening topic hierarchy");
+        showOverlay("Opening Topic Hierarchy");
+
+        const viewHierarchyBtn = document.getElementById(
+          "viewTopicHierarchyBtn"
+        );
+        await performAnimatedClick(viewHierarchyBtn, "Open topic hierarchy");
+
+        // Wait for topic tree modal to open
+        await new Promise((resolve) => setTimeout(resolve, 400));
+      },
+      800
+    );
+
+    // 4. Scroll down in topic hierarchy
+    sequencer.addAction(
+      "topic_hierarchy_2",
+      async () => {
+        console.log("Action: Scrolling in topic hierarchy");
+        showOverlay("Exploring Topic Structure");
+
+        const topicTreeSvg = document.getElementById("topicTreeSvg");
+        console.log("Found topic tree SVG:", topicTreeSvg);
+
+        // Try multiple approaches to find the scrollable container
+        let scrollableContainer = null;
+
+        // Approach 1: Use the helper function
+        scrollableContainer = findScrollableContainer(topicTreeSvg);
+
+        // Approach 2: Try modal-specific selectors
+        if (!scrollableContainer) {
+          const modalBody = document.querySelector(
+            "#topicTreeModal .modal-body"
+          );
+          if (modalBody) {
+            console.log("Using modal body as scroll container");
+            scrollableContainer = modalBody;
+          }
+        }
+
+        // Approach 3: Force the container to be scrollable
+        if (!scrollableContainer && topicTreeSvg) {
+          const parent = topicTreeSvg.parentElement;
+          if (parent) {
+            console.log("Forcing parent to be scrollable");
+            parent.style.height = "80vh";
+            parent.style.overflow = "auto";
+            scrollableContainer = parent;
+          }
+        }
+
+        if (scrollableContainer) {
+          console.log("Found scrollable container for topic hierarchy");
+
+          // Make one single smooth scroll
+          await smoothScroll(scrollableContainer, 3500);
+        } else {
+          console.log("No scrollable container found for topic hierarchy");
+
+          // Fallback: Try to scroll the document body
+          document.body.scrollTop = 0;
+          document.documentElement.scrollTop = 0;
+
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
+          await smoothScroll(document.body, 3500);
+        }
+      },
+      800
+    );
+
+    // 5. Change dropdown from "Overview" to "Safety"
+    sequencer.addAction(
+      "topic_hierarchy_3",
+      async () => {
+        console.log("Action: Changing to Safety topic");
+        showOverlay("Selecting Safety Topic");
+
+        const datasetSelect = document.getElementById("datasetSelect");
+        if (datasetSelect) {
+          // Add visual effect to the dropdown
+          addClickEffect(datasetSelect);
+          await new Promise((resolve) => setTimeout(resolve, 150));
+
+          // Create custom visual representation
+          await createVisualDropdown(datasetSelect, "safety");
+
+          // Change the value and trigger update
+          datasetSelect.value = "safety";
+          datasetSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+          // Wait for visualization to update
+          await new Promise((resolve) => setTimeout(resolve, 800));
+        }
+      },
+      800
+    );
+
+    // 6. Scroll down in the updated topic hierarchy
+    sequencer.addAction(
+      "topic_hierarchy_4",
+      async () => {
+        console.log("Action: Scrolling in safety topic hierarchy");
+        showOverlay("Exploring Safety Cluster");
+
+        const topicTreeSvg = document.getElementById("topicTreeSvg");
+        let scrollableContainer = null;
+
+        // Try multiple approaches to find the scrollable container
+        // Approach 1: Use the helper function
+        scrollableContainer = findScrollableContainer(topicTreeSvg);
+
+        // Approach 2: Try modal-specific selectors
+        if (!scrollableContainer) {
+          const modalBody = document.querySelector(
+            "#topicTreeModal .modal-body"
+          );
+          if (modalBody) {
+            console.log("Using modal body as scroll container");
+            scrollableContainer = modalBody;
+          }
+        }
+
+        // Approach 3: Try to find by content
+        if (!scrollableContainer) {
+          const containers = Array.from(document.querySelectorAll("div"));
+          scrollableContainer = containers.find(
+            (el) =>
+              el.scrollHeight > el.clientHeight &&
+              (el.textContent.includes("Safety") ||
+                el.innerHTML.includes("topic-tree"))
+          );
+
+          if (scrollableContainer) {
+            console.log("Found container by content search");
+          }
+        }
+
+        if (scrollableContainer) {
+          // Reset scroll position first
+          scrollableContainer.scrollTop = 0;
+          await new Promise((resolve) => setTimeout(resolve, 300));
+
+          // Make one single smooth scroll
+          console.log("Scrolling safety topic hierarchy");
+          await smoothScroll(scrollableContainer, 4000);
+        } else {
+          console.warn(
+            "No scrollable container found for safety topic hierarchy"
+          );
+        }
+
+        // Wait after scrolling
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      },
+      600
+    );
+
+    // 7. Close the topic hierarchy modal
+    sequencer.addAction(
+      "topic_hierarchy_5",
+      async () => {
+        console.log("Action: Closing topic hierarchy modal");
+        showOverlay("Returning to Main View");
+
+        const closeBtn = document.getElementById("topicTreeCloseBtn");
+        await performAnimatedClick(closeBtn, "Close topic hierarchy");
+
+        // Wait for modal to close
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      },
+      1000
+    );
+
+    // Add interaction to click the Safety cluster fold indicator in the legend.
+    sequencer.addAction(
+      "legend_safety_1",
       async () => {
         console.log("Action: Expanding Safety cluster");
         showOverlay("Exploring Safety Research");
@@ -484,12 +873,12 @@ class VideoRecorder {
           console.error("Safety container not found");
         }
       },
-      1000,
-      "safetyCluster"
+      1000
     );
 
     // Add interaction to click the Perinatal Exposure fold indicator
     sequencer.addAction(
+      "legend_perinatal_exposure",
       async () => {
         console.log("Action: Expanding Perinatal Exposure subcluster");
         showOverlay("Focusing on Perinatal Exposure Research");
@@ -552,838 +941,382 @@ class VideoRecorder {
           console.error("Perinatal Exposure container not found");
         }
       },
-      1000,
-      "perinatalExposure"
+      1000
     );
 
-    // 3. Start with showing the beginning of instructions
-    sequencer.addAction(async () => {
-      console.log("Action: Reset scroll position to top");
-      showOverlay("Reading Instructions");
+    // Add interaction to select the checkbox and update visibility
+    sequencer.addAction(
+      "legend_select_perinatal_checkbox",
+      async () => {
+        console.log("Action: Selecting Perinatal Exposure checkbox");
+        showOverlay("Selecting Perinatal Exposure Papers");
 
-      const instructionsContainer = document.querySelector(
-        ".instructions-container"
-      );
-      if (instructionsContainer) {
-        // Make sure we start at the top of the instructions
-        instructionsContainer.scrollTop = 0;
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
-    }, 400);
+        // Find and click the checkbox
+        const perinatalCheckbox = document.getElementById(
+          "Safety-Perinatal Exposure"
+        );
+        if (perinatalCheckbox) {
+          // Visual effect before clicking
+          addClickEffect(perinatalCheckbox);
+          await new Promise((resolve) => setTimeout(resolve, 300));
 
-    // 4. Scroll down in the instructions modal to show all content
-    sequencer.addAction(async () => {
-      console.log("Action: Scrolling in instructions modal");
+          // Click the checkbox
+          perinatalCheckbox.click();
 
-      const instructionsContainer = document.querySelector(
-        ".instructions-container"
-      );
-      if (instructionsContainer) {
-        // Scroll to the bottom of the instructions more slowly
-        const scrollHeight = instructionsContainer.scrollHeight;
-        const duration = 4000; // 4 seconds for slower, more natural scrolling
-        const startTime = performance.now();
+          // Ensure it's checked
+          if (!perinatalCheckbox.checked) {
+            perinatalCheckbox.checked = true;
+            perinatalCheckbox.dispatchEvent(
+              new Event("change", { bubbles: true })
+            );
+          }
 
-        return new Promise((resolve) => {
-          const scrollStep = (timestamp) => {
-            const elapsed = timestamp - startTime;
-            const progress = Math.min(elapsed / duration, 1);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
 
-            // Use custom easing for more natural scroll
-            const eased = naturalEasing(progress);
-            const scrollPosition = scrollHeight * eased;
+          // Click the update button
+          const updateButton = document.getElementById("updateVisibility");
+          if (updateButton) {
+            addClickEffect(updateButton);
+            await new Promise((resolve) => setTimeout(resolve, 300));
 
-            instructionsContainer.scrollTop = scrollPosition;
+            updateButton.click();
+            console.log("Clicked update visibility button");
 
-            if (progress < 1) {
-              requestAnimationFrame(scrollStep);
-            } else {
-              resolve();
-            }
-          };
-
-          requestAnimationFrame(scrollStep);
-        });
-      }
-    }, 1000);
-
-    // 5. Click on the "View Topic Hierarchy" button
-    sequencer.addAction(async () => {
-      console.log("Action: Clicking View Topic Hierarchy button");
-      showOverlay("Opening Topic Hierarchy");
-
-      const viewHierarchyBtn = document.getElementById("viewTopicHierarchyBtn");
-      await performAnimatedClick(viewHierarchyBtn, "Open topic hierarchy");
-
-      // Wait for the topic tree modal to open
-      await new Promise((resolve) => setTimeout(resolve, 400));
-    }, 800);
-
-    // 6. Change dropdown from "Overview" to "Safety"
-    sequencer.addAction(async () => {
-      console.log("Action: Changing topic selection from Overview to Safety");
-      showOverlay("Selecting Safety Topic");
-
-      const datasetSelect = document.getElementById("datasetSelect");
-      if (datasetSelect) {
-        // Add visual effect to the dropdown
-        addClickEffect(datasetSelect);
-
-        // Brief pause before showing the dropdown
-        await new Promise((resolve) => setTimeout(resolve, 150));
-
-        // Create a custom visual representation of the dropdown
-        await createVisualDropdown(datasetSelect, "safety");
-
-        // After visual representation, actually change the value
-        datasetSelect.value = "safety";
-
-        // Trigger change event to update the visualization
-        const changeEvent = new Event("change", { bubbles: true });
-        datasetSelect.dispatchEvent(changeEvent);
-
-        // Wait for the visualization to update
-        await new Promise((resolve) => setTimeout(resolve, 800));
-      } else {
-        console.error("Dataset select dropdown not found");
-      }
-    }, 800);
-
-    // New action: Scroll in the topic hierarchy visualization
-    sequencer.addAction(async () => {
-      console.log("Action: Scrolling in topic hierarchy visualization");
-      showOverlay("Exploring Safety Cluster");
-
-      const topicTreeSvg = document.getElementById("topicTreeSvg");
-      if (topicTreeSvg) {
-        // Find the container that might be scrollable
-        let scrollableContainer = topicTreeSvg.parentElement;
-
-        // Try to find a scrollable container
-        while (
-          scrollableContainer &&
-          scrollableContainer.scrollHeight <=
-            scrollableContainer.clientHeight &&
-          scrollableContainer !== document.body
-        ) {
-          scrollableContainer = scrollableContainer.parentElement;
-        }
-
-        if (
-          scrollableContainer &&
-          scrollableContainer.scrollHeight > scrollableContainer.clientHeight
-        ) {
-          console.log("Found scrollable container for topic hierarchy");
-
-          // Scroll down gradually to show all content - slower now
-          const scrollHeight = scrollableContainer.scrollHeight;
-          const duration = 3500; // 3.5 seconds for a more gradual scroll
-          const startTime = performance.now();
-
-          return new Promise((resolve) => {
-            const scrollStep = (timestamp) => {
-              const elapsed = timestamp - startTime;
-              const progress = Math.min(elapsed / duration, 1);
-
-              // Use natural easing for smooth scroll
-              const eased = naturalEasing(progress);
-              const scrollPosition = scrollHeight * eased;
-
-              scrollableContainer.scrollTop = scrollPosition;
-
-              if (progress < 1) {
-                requestAnimationFrame(scrollStep);
-              } else {
-                resolve();
-              }
-            };
-
-            requestAnimationFrame(scrollStep);
-          });
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+          } else {
+            console.error("Update visibility button not found");
+          }
         } else {
-          console.log(
-            "No scrollable container found for topic hierarchy or no scroll needed"
-          );
+          console.error("Perinatal Exposure checkbox not found");
         }
-      } else {
-        console.error("Topic tree SVG not found");
-      }
-    }, 600);
-
-    // 7. Press close button to exit the topic hierarchy modal
-    sequencer.addAction(async () => {
-      console.log("Action: Closing topic hierarchy modal");
-      showOverlay("Fold the Legend");
-
-      const closeBtn = document.getElementById("topicTreeCloseBtn");
-      await performAnimatedClick(closeBtn, "Close topic hierarchy");
-
-      // Wait for the modal to close
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }, 1000);
-
-    // Add interaction to click the Perinatal Exposure checkbox
-    sequencer.addAction(async () => {
-      console.log("Action: Selecting Perinatal Exposure subcluster");
-      showOverlay("Selecting Perinatal Exposure Studies");
-
-      // Find the Perinatal Exposure checkbox
-      const perinatalCheckbox = document.getElementById(
-        "Safety-Perinatal Exposure"
-      );
-      if (perinatalCheckbox) {
-        // Click the checkbox with animation
-        await performAnimatedClick(
-          perinatalCheckbox,
-          "Select Perinatal Exposure checkbox"
-        );
-
-        // Brief pause after selection
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-      } else {
-        console.error("Perinatal Exposure checkbox not found");
-      }
-    }, 1000);
-
-    // Add interaction to click the Update Selection button
-    sequencer.addAction(async () => {
-      console.log("Action: Updating visibility based on selection");
-      showOverlay("Updating Network Visibility");
-
-      const updateButton = document.getElementById("updateVisibility");
-      if (updateButton) {
-        await performAnimatedClick(
-          updateButton,
-          "Click Update Selection button"
-        );
-
-        // Wait longer for the visibility update to complete
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-      } else {
-        console.error("Update Selection button not found");
-      }
-
-      // Final overlay after filtering is complete
-      showOverlay("Perinatal Exposure Research Network");
-
-      // Longer pause to appreciate the filtered view
-      await new Promise((resolve) => setTimeout(resolve, 2500));
-    }, 1500);
+      },
+      1000
+    );
 
     // Move camera to focus on specific node area
-    sequencer.addAction(async () => {
-      console.log("Action: Moving camera to focus on specific node area");
-      showOverlay("Focusing on Key Research Node");
+    sequencer.addAction(
+      "camera_focus_safety_1",
+      async () => {
+        console.log("Action: Moving camera to focus on specific node area");
+        showOverlay("Focusing on Key Research Node");
 
-      // Move camera to the specified position and target
-      await animateCamera(
-        this.camera, // Pass your camera object
-        this.controls, // Pass your controls object
-        easeInOutCubic, // Use the imported easing function
-        { x: 3853.83, y: 4340.58, z: -4342.09 },
-        { x: 550.88, y: 735.93, z: 156.5 },
-        3000 // Smooth transition
-      );
+        await animateCamera(
+          this.camera,
+          this.controls,
+          easeInOutCubic,
+          { x: 3853.83, y: 4340.58, z: -4342.09 },
+          { x: 550.88, y: 735.93, z: 156.5 },
+          3000
+        );
 
-      // Brief pause to stabilize view
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }, 1000);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      },
+      1000
+    );
 
     // Select specific node (prenatal exposure)
-    sequencer.addAction(async () => {
-      console.log("Action: Selecting specific node");
-      showOverlay("Highlighting Key Research Paper");
+    sequencer.addAction(
+      "single_node_selection_1",
+      async () => {
+        console.log("Action: Selecting research paper node");
+        showOverlay("Highlighting Key Research Paper");
 
-      try {
-        // Get required scene objects
-        const scene = this.scene;
-        const camera = this.camera;
-        const points = scene.getObjectByName("points");
+        await selectNode(8214, this.scene);
+      },
+      1500
+    );
 
-        if (!points) {
-          console.error("Points object not found in scene");
-          return;
-        }
+    // Move camera to prenatal exposure RODENTS
+    sequencer.addAction(
+      "single_node_selection_2",
+      async () => {
+        console.log("Action: Moving to prenatal exposure RODENTS view");
+        showOverlay("Moving to Prenatal Exposure in Rodents");
 
-        // Use the imported nodesMap (instead of this.nodesMap)
-        // First, verify we have access to it
-        if (!nodesMap) {
-          console.error("nodesMap not available from nodesLoader.js");
-          return;
-        }
-
-        // Get target node ID and verify it exists
-        const targetNodeId = 8214;
-        const targetNode = nodesMap.get(targetNodeId);
-
-        if (!targetNode) {
-          console.error(`Node with ID ${targetNodeId} not found in nodesMap`);
-          return;
-        }
-
-        // Log node info for verification
-        console.log(`Found node ${targetNodeId}:`, targetNode);
-
-        // Find the index of the node in the nodeIds array
-        const nodeIds = Array.from(nodesMap.keys());
-        const targetNodeIndex = nodeIds.indexOf(targetNodeId);
-
-        if (targetNodeIndex === -1) {
-          console.error(`Node ID ${targetNodeId} not found in nodesMap keys`);
-          return;
-        }
-
-        console.log(
-          `Node ID ${targetNodeId} found at index ${targetNodeIndex}`
+        await animateCamera(
+          this.camera,
+          this.controls,
+          easeInOutCubic,
+          {
+            x: 5958.632362729798,
+            y: 3988.7886125553723,
+            z: -5293.824484343763,
+          },
+          { x: 550.88, y: 735.93, z: 156.5 },
+          3000
         );
 
-        // Create a fake intersection object to pass to updateNodeInfo
-        const fakeIntersection = {
-          index: targetNodeIndex,
-          object: points,
-        };
-
-        // Use the updateNodeInfo function to select and highlight the node
-        updateNodeInfo(fakeIntersection, nodesMap, points, scene);
-
-        console.log(
-          `Successfully selected node ID: ${targetNodeId} at index: ${targetNodeIndex}`
-        );
-
-        // Longer pause to appreciate the selected node
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-      } catch (error) {
-        console.error("Error selecting node:", error);
-      }
-    }, 1500);
-
-    // move camera
-
-    // move camera to prenatel exposure RODENTS
-    sequencer.addAction(async () => {
-      console.log("Action: Moving camera to prenatel exposure RODENTS");
-      showOverlay("Moving camera to prenatel exposure RODENTS");
-
-      await animateCamera(
-        this.camera, // Pass your camera object
-        this.controls, // Pass your controls object
-        easeInOutCubic, // Use the imported easing function
-        { x: 5958.632362729798, y: 3988.7886125553723, z: -5293.824484343763 },
-        // camera target as before
-        { x: 550.88, y: 735.93, z: 156.5 },
-        3000 // Smooth transition
-      );
-
-      // Brief pause to stabilize view
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }, 500);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      },
+      500
+    );
 
     // Select specific node (prenatal exposure RODENTS)
-    sequencer.addAction(async () => {
-      console.log("Action: Selecting specific node");
-      showOverlay("Highlighting Key Research Paper");
+    sequencer.addAction(
+      "single_node_selection_3",
+      async () => {
+        console.log("Action: Selecting rodent studies node");
+        showOverlay("Highlighting Rodent Studies");
 
-      try {
-        // Get required scene objects
-        const scene = this.scene;
-        const camera = this.camera;
-        const points = scene.getObjectByName("points");
+        await selectNode(31059, this.scene);
+      },
+      1500
+    );
 
-        if (!points) {
-          console.error("Points object not found in scene");
-          return;
+    // Deselect node
+    sequencer.addAction(
+      "single_node_selection_4",
+      async () => {
+        await deselectNode(this.scene);
+      },
+      2000
+    );
+
+    // Move the year slider to 2010 and control time travel animation
+    sequencer.addAction(
+      "time_travel_1",
+      async () => {
+        console.log("Action: Year filtering and time travel");
+        showOverlay("Filtering by Year: 2010+");
+
+        // Adjust the year slider
+        const fromSlider = document.getElementById("fromSlider");
+        if (fromSlider) {
+          addClickEffect(fromSlider);
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
+          fromSlider.value = 2010;
+          fromSlider.dispatchEvent(new Event("input", { bubbles: true }));
+          fromSlider.dispatchEvent(new Event("change", { bubbles: true }));
+
+          await new Promise((resolve) => setTimeout(resolve, 1500));
         }
 
-        // Use the imported nodesMap (instead of this.nodesMap)
-        // First, verify we have access to it
-        if (!nodesMap) {
-          console.error("nodesMap not available from nodesLoader.js");
-          return;
-        }
+        // Start time travel animation
+        console.log("Starting time travel animation");
+        showOverlay("Time Evolution: 2010 → 2025");
 
-        // Get target node ID and verify it exists
-        const targetNodeId = 31059;
-        const targetNode = nodesMap.get(targetNodeId);
+        const playButton = Array.from(
+          document.querySelectorAll(".time-travel-button")
+        ).find((button) => button.title && button.title.includes("Play/pause"));
 
-        if (!targetNode) {
-          console.error(`Node with ID ${targetNodeId} not found in nodesMap`);
-          return;
-        }
+        if (playButton) {
+          await performAnimatedClick(playButton, "Start time travel animation");
+          showOverlay("Watching Network Evolution Through Time");
 
-        // Log node info for verification
-        console.log(`Found node ${targetNodeId}:`, targetNode);
+          // Wait for animation to reach 2025
+          const toSlider = document.getElementById("toSlider");
+          if (toSlider) {
+            const waitForTimeTravel = new Promise((resolve) => {
+              const maxWaitTime = 15000;
+              let startTime = Date.now();
+              let lastReportedValue = parseInt(toSlider.value);
 
-        // Find the index of the node in the nodeIds array
-        const nodeIds = Array.from(nodesMap.keys());
-        const targetNodeIndex = nodeIds.indexOf(targetNodeId);
+              const checkInterval = setInterval(() => {
+                const currentValue = parseInt(toSlider.value);
 
-        if (targetNodeIndex === -1) {
-          console.error(`Node ID ${targetNodeId} not found in nodesMap keys`);
-          return;
-        }
+                if (currentValue !== lastReportedValue) {
+                  console.log(`Time travel progress: Year ${currentValue}`);
+                  lastReportedValue = currentValue;
+                }
 
-        console.log(
-          `Node ID ${targetNodeId} found at index ${targetNodeIndex}`
-        );
+                if (
+                  currentValue >= 2025 ||
+                  Date.now() - startTime > maxWaitTime
+                ) {
+                  clearInterval(checkInterval);
+                  console.log(`Time travel finished at year: ${currentValue}`);
+                  resolve();
+                }
+              }, 200);
+            });
 
-        // Create a fake intersection object to pass to updateNodeInfo
-        const fakeIntersection = {
-          index: targetNodeIndex,
-          object: points,
-        };
+            await waitForTimeTravel;
+          } else {
+            await new Promise((resolve) => setTimeout(resolve, 10000));
+          }
 
-        // Use the updateNodeInfo function to select and highlight the node
-        updateNodeInfo(fakeIntersection, nodesMap, points, scene);
-
-        console.log(
-          `Successfully selected node ID: ${targetNodeId} at index: ${targetNodeIndex}`
-        );
-
-        // Longer pause to appreciate the selected node
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-      } catch (error) {
-        console.error("Error selecting node:", error);
-      }
-    }, 1500);
-
-    // click elsewhere to deselect the node
-    sequencer.addAction(async () => {
-      console.log("Action: Clicking elsewhere to deselect the node");
-      showOverlay("Deselecting Node");
-
-      // Try to find the main canvas
-      const canvas = document.querySelector("canvas");
-
-      if (canvas) {
-        const rect = canvas.getBoundingClientRect();
-
-        // Click in a corner where there's likely no node
-        const clientX = rect.left + 5;
-        const clientY = rect.top + 5;
-
-        const clickEvent = new MouseEvent("click", {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-          clientX,
-          clientY,
-        });
-
-        canvas.dispatchEvent(clickEvent);
-        console.log(`Simulated canvas click at (${clientX}, ${clientY})`);
-      } else {
-        console.warn("Canvas not found, falling back to manual deselection");
-      }
-
-      // Fallback: try calling deselection function directly
-      try {
-        const { nodesMap } = await import("../nodesLoader.js");
-
-        // First approach: Use the updateNodeInfo function with null parameters
-        // This is the proper way to deselect based on the singleNodeSelection.js implementation
-        if (typeof updateNodeInfo === "function") {
-          updateNodeInfo(null, nodesMap, null, this.scene);
-          console.log("Deselected node through updateNodeInfo() API");
-        }
-
-        // Second approach: Directly hide the visual selection
-        if (typeof hideVisualSelection === "function") {
-          hideVisualSelection();
-          console.log(
-            "Called hideVisualSelection() to remove visual indicators"
-          );
-        }
-
-        // Third approach: Reset node selection styling
-        const nodeInfoDiv = document.getElementById("nodeInfoDiv");
-        if (nodeInfoDiv) {
-          nodeInfoDiv.style.display = "none";
-          console.log("Hid node info panel");
-        }
-        document.body.classList.remove("node-selected");
-
-        // Fourth approach: Try to reset any selection state in scene objects
-        if (this.scene) {
-          const points = this.scene.getObjectByName("points");
-          if (
-            points &&
-            points.geometry.attributes.singleNodeSelectionBrightness
-          ) {
-            points.geometry.attributes.singleNodeSelectionBrightness.array.fill(
-              0.0
-            );
-            points.geometry.attributes.singleNodeSelectionBrightness.needsUpdate = true;
-            console.log("Reset all node brightness values in the scene");
+          // Pause the animation
+          try {
+            if (
+              playButton &&
+              playButton.style.backgroundColor === "rgb(230, 100, 100)"
+            ) {
+              await performAnimatedClick(
+                playButton,
+                "Pause time travel animation"
+              );
+              showOverlay("Time Evolution Complete");
+            }
+          } catch (error) {
+            console.log("Note: Could not pause animation", error);
           }
         }
-      } catch (error) {
-        console.warn("Could not complete node deselection:", error);
-      }
+      },
+      4000
+    );
 
-      // Give more time for the deselection to take effect
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Reset to show entire scene again
+    sequencer.addAction(
+      "time_travel_2",
+      async () => {
+        console.log("Action: Resetting view");
 
-      console.log("Action: Deselecting node done");
-    }, 2000);
-
-    // Move the year slider to 2010 and control time travel animation in a single sequence
-    sequencer.addAction(async () => {
-      console.log(
-        "Action: Starting year range adjustment and time travel sequence"
-      );
-      showOverlay("Filtering by Year: 2010+");
-
-      // ---- PART 1: Adjust the year slider ----
-      // Find the year slider
-      const fromSlider = document.getElementById("fromSlider");
-      if (!fromSlider) {
-        console.error("Year slider (fromSlider) not found");
-        return;
-      }
-
-      // First, highlight the slider
-      addClickEffect(fromSlider);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Set the value to 2010
-      const originalValue = fromSlider.value;
-      fromSlider.value = 2010;
-      console.log(`Changed year slider from ${originalValue} to 2010`);
-
-      // Trigger input and change events to ensure the UI updates
-      const inputEvent = new Event("input", { bubbles: true });
-      const changeEvent = new Event("change", { bubbles: true });
-      fromSlider.dispatchEvent(inputEvent);
-      fromSlider.dispatchEvent(changeEvent);
-
-      // Allow time for the visualization to update after slider change
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // ---- PART 2: Start time travel animation ----
-      console.log("Starting time travel animation");
-      showOverlay("Time Evolution: 2010 → 2025");
-
-      // Find the play button
-      const playButton = Array.from(
-        document.querySelectorAll(".time-travel-button")
-      ).find((button) => button.title && button.title.includes("Play/pause"));
-
-      if (!playButton) {
-        console.error("Time travel play button not found");
-        return;
-      }
-
-      // Click the play button with animation
-      await performAnimatedClick(playButton, "Start time travel animation");
-
-      // Show duration of time travel
-      showOverlay("Watching Network Evolution Through Time");
-
-      // ---- PART 3: Wait for animation to reach 2025 ----
-      // Find the toSlider to monitor its value
-      const toSlider = document.getElementById("toSlider");
-
-      if (toSlider) {
-        console.log(`Initial toSlider value: ${toSlider.value}`);
-
-        // Create a promise that resolves when the slider reaches 2025 or after a timeout
-        const waitForTimeTravel = new Promise((resolve) => {
-          // Maximum wait time (15 seconds as failsafe to ensure we don't get stuck)
-          const maxWaitTime = 15000;
-          let startTime = Date.now();
-          let lastReportedValue = parseInt(toSlider.value);
-
-          console.log("Starting to monitor year slider progress...");
-
-          // Check the slider value periodically
-          const checkInterval = setInterval(() => {
-            const currentValue = parseInt(toSlider.value);
-
-            // Report progress if the value has changed
-            if (currentValue !== lastReportedValue) {
-              console.log(`Time travel progress: Year ${currentValue}`);
-              lastReportedValue = currentValue;
-            }
-
-            // Check if we've reached the target year or exceeded max wait time
-            if (currentValue >= 2025 || Date.now() - startTime > maxWaitTime) {
-              clearInterval(checkInterval);
-              console.log(`Time travel finished at year: ${currentValue}`);
-              resolve();
-            }
-          }, 200); // Check every 200ms
-        });
-
-        // Wait for the time travel to complete
-        await waitForTimeTravel;
-      } else {
-        // Fallback if we can't find the slider - just wait a reasonable amount of time
-        console.warn("Could not find toSlider, using fixed wait time");
-        await new Promise((resolve) => setTimeout(resolve, 10000));
-      }
-
-      // ---- PART 4: Pause the animation ----
-      try {
-        // Check if the button now shows as playing (might have different styling)
-        if (
-          playButton &&
-          playButton.style.backgroundColor === "rgb(230, 100, 100)"
-        ) {
-          await performAnimatedClick(playButton, "Pause time travel animation");
-          showOverlay("Time Evolution Complete");
+        // Reset year slider to 1982
+        const fromSlider = document.getElementById("fromSlider");
+        if (fromSlider) {
+          fromSlider.value = 1982;
+          fromSlider.dispatchEvent(new Event("input", { bubbles: true }));
+          fromSlider.dispatchEvent(new Event("change", { bubbles: true }));
+          await new Promise((resolve) => setTimeout(resolve, 3000));
         }
-      } catch (error) {
-        console.log("Note: Could not pause animation", error);
-      }
 
-      console.log("Year range adjustment and time travel sequence completed");
-    }, 4000);
-
-    // Click the Reset button to show entire scene again
-    sequencer.addAction(async () => {
-      console.log("Action: Clicking Reset button to show entire scene again");
-
-      // move the from slider back to 1982
-      const fromSlider = document.getElementById("fromSlider");
-      if (!fromSlider) {
-        console.error("Year slider (fromSlider) not found");
-        return;
-      }
-      fromSlider.value = 1982;
-      const inputEvent = new Event("input", { bubbles: true });
-      const changeEvent = new Event("change", { bubbles: true });
-      fromSlider.dispatchEvent(inputEvent);
-      fromSlider.dispatchEvent(changeEvent);
-
-      // Allow time for the visualization to update after slider change
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      // Allow time for the scene to reset
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // move camera to original position Position: (12426, 6937, -8994) Target: (539, 599, -4955)
-      await animateCamera(
-        this.camera, // Pass your camera object
-        this.controls, // Pass your controls object
-        easeInOutCubic, // Use the imported easing function
-        { x: 12426, y: 6937, z: -8994 },
-        { x: 550.88, y: 735.93, z: 156.5 },
-        4000 // Smooth transition
-      );
-
-      // allow time for the scene to reset
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Find the reset button
-      const resetButton = document.getElementById("resetLegend");
-      if (!resetButton) {
-        console.error("Reset button not found");
-        return;
-      }
-
-      // Click the reset button with animation
-      await performAnimatedClick(
-        resetButton,
-        "Resetting view to show entire scene"
-      );
-
-      console.log("Action: Resetting view to show entire scene done");
-    }, 2500);
-
-    // Show search bar functionality
-    sequencer.addAction(async () => {
-      console.log("Action: Click in the search bar");
-
-      // Find the search bar
-      const searchBar = document.getElementById("search-input");
-      if (!searchBar) {
-        console.error("Search bar not found");
-        return;
-      }
-
-      // Click the search bar with animation
-      await performAnimatedClick(searchBar, "Clicking in the search bar");
-
-      // Focus the search bar
-      searchBar.focus();
-
-      // Allow a moment before typing to simulate user behavior
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // Clear any existing value
-      searchBar.value = "";
-
-      // Type in the search bar with a realistic typing effect
-      const searchQuery = "The rat forced swimming test mo";
-      for (let i = 0; i < searchQuery.length; i++) {
-        // Add one character at a time
-        searchBar.value += searchQuery[i];
-
-        // Trigger input event to update search results as we type
-        searchBar.dispatchEvent(new Event("input", { bubbles: true }));
-
-        // Random delay between keypresses (30-120ms) to simulate human typing
-        await new Promise((resolve) =>
-          setTimeout(resolve, 80 + Math.random() * 150)
+        // Move camera to original position
+        await animateCamera(
+          this.camera,
+          this.controls,
+          easeInOutCubic,
+          { x: 12426, y: 6937, z: -8994 },
+          { x: 550.88, y: 735.93, z: 156.5 },
+          4000
         );
-      }
 
-      // Wait for search results to appear
-      console.log("Waiting for search results to appear...");
-
-      // More generous wait time for search results to populate
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Check if results container exists and has results
-      const resultsContainer = document.querySelector(".search-results");
-      if (resultsContainer) {
-        console.log(
-          `Search results container found, contains ${resultsContainer.children.length} results`
-        );
-      } else {
-        console.warn("Search results container not found");
-      }
-
-      // Try to find the specific search result
-      let maxAttempts = 5;
-      let searchResult = null;
-
-      // Poll for the result to appear, with multiple attempts
-      for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        searchResult = document.querySelector(".result-title");
-
-        if (searchResult) {
-          console.log("Search result found on attempt", attempt + 1);
-          break;
-        } else {
-          console.log(
-            `Search result not found yet, attempt ${attempt + 1}/${maxAttempts}`
-          );
-          // Wait before trying again
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }
-      }
-
-      // If we found the result, click it
-      if (searchResult) {
-        // Highlight the result first
-        showOverlay(
-          'Found Research Paper: "Acute and chronic antidepressant..."'
-        );
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        // Click the result
-        await performAnimatedClick(searchResult, "Clicking on search result");
-
-        // Allow time for the camera to move to the selected node
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-      } else {
-        console.error("Search result not found after multiple attempts");
-      }
-
-      console.log("Action: Moving to selected paper and finishing animation");
-    }, 3500);
-
-    // Click the Reset button to show entire scene again
-    sequencer.addAction(async () => {
-      // move camera very slowly further away Camera position
-      await animateCamera(
-        this.camera, // Pass your camera object
-        this.controls, // Pass your controls object
-        easeInOutCubic, // Use the imported easing function
-        { x: -1866, y: 7287, z: -10918 },
-        {
-          x: -1238.9637451171875,
-          y: 2362.824462890625,
-          z: -3621.242919921875,
-        },
-        5000 // Smooth transition
-      );
-
-      // allow time for the scene to reset
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      console.log("Action: Resetting view to show entire scene done");
-    }, 1500);
-
-    // click elsewhere to deselect the node
-    // click elsewhere to deselect the node
-    sequencer.addAction(async () => {
-      console.log("Action: Clicking elsewhere to deselect the node");
-      showOverlay("Deselecting Node");
-
-      // Try to find the main canvas
-      const canvas = document.querySelector("canvas");
-
-      if (canvas) {
-        const rect = canvas.getBoundingClientRect();
-
-        // Click in a corner where there's likely no node
-        const clientX = rect.left + 5;
-        const clientY = rect.top + 5;
-
-        const clickEvent = new MouseEvent("click", {
-          bubbles: true,
-          cancelable: true,
-          view: window,
-          clientX,
-          clientY,
-        });
-
-        canvas.dispatchEvent(clickEvent);
-        console.log(`Simulated canvas click at (${clientX}, ${clientY})`);
-      } else {
-        console.warn("Canvas not found, falling back to manual deselection");
-      }
-
-      // Fallback: try calling deselection function directly
-      try {
-        // First approach: Use the updateNodeInfo function with null parameters
-        // This is the proper way to deselect based on the singleNodeSelection.js implementation
-        if (typeof updateNodeInfo === "function") {
-          updateNodeInfo(null, nodesMap, null, this.scene);
-          console.log("Deselected node through updateNodeInfo() API");
+        // Click reset button
+        const resetButton = document.getElementById("resetLegend");
+        if (resetButton) {
+          await performAnimatedClick(resetButton, "Reset view");
         }
+      },
+      2500
+    );
 
-        // Second approach: Directly hide the visual selection
-        if (typeof hideVisualSelection === "function") {
-          hideVisualSelection();
-          console.log(
-            "Called hideVisualSelection() to remove visual indicators"
-          );
-        }
+    // Show search bar functionality
+    sequencer.addAction(
+      "search_1",
+      async () => {
+        console.log("Action: Demonstrating search functionality");
+        showOverlay("Using Search Functionality");
 
-        // Third approach: Reset node selection styling
-        const nodeInfoDiv = document.getElementById("nodeInfoDiv");
-        if (nodeInfoDiv) {
-          nodeInfoDiv.style.display = "none";
-          console.log("Hid node info panel");
-        }
-        document.body.classList.remove("node-selected");
+        const searchBar = document.getElementById("search-input");
+        if (searchBar) {
+          await performAnimatedClick(searchBar, "Click search bar");
+          searchBar.focus();
+          await new Promise((resolve) => setTimeout(resolve, 800));
 
-        // Fourth approach: Try to reset any selection state in scene objects
-        if (this.scene) {
-          const points = this.scene.getObjectByName("points");
-          if (
-            points &&
-            points.geometry.attributes.singleNodeSelectionBrightness
-          ) {
-            points.geometry.attributes.singleNodeSelectionBrightness.array.fill(
-              0.0
+          // Clear existing value and type search query
+          searchBar.value = "";
+          const searchQuery = "The rat forced swimming test mo";
+
+          for (let i = 0; i < searchQuery.length; i++) {
+            searchBar.value += searchQuery[i];
+            searchBar.dispatchEvent(new Event("input", { bubbles: true }));
+            await new Promise((resolve) =>
+              setTimeout(resolve, 80 + Math.random() * 150)
             );
-            points.geometry.attributes.singleNodeSelectionBrightness.needsUpdate = true;
-            console.log("Reset all node brightness values in the scene");
+          }
+
+          // Wait for search results
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+
+          // Find and click a search result
+          let maxAttempts = 5;
+          let attempt = 0;
+          let searchResult = null;
+
+          while (!searchResult && attempt < maxAttempts) {
+            searchResult = document.querySelector(".result-title");
+            if (!searchResult) {
+              await new Promise((resolve) => setTimeout(resolve, 500));
+              attempt++;
+            }
+          }
+
+          if (searchResult) {
+            showOverlay(
+              'Found Research Paper: "Acute and chronic antidepressant..."'
+            );
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            await performAnimatedClick(searchResult, "Click search result");
+            await new Promise((resolve) => setTimeout(resolve, 3000));
           }
         }
-      } catch (error) {
-        console.warn("Could not complete node deselection:", error);
-      }
+      },
+      3500
+    );
 
-      // Give more time for the deselection to take effect
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Final camera movement
+    sequencer.addAction(
+      "search_2",
+      async () => {
+        console.log("Action: Final camera movement");
+        showOverlay("Overview of Research Network");
 
-      console.log("Action: Deselecting node done");
-    }, 2000);
+        await animateCamera(
+          this.camera,
+          this.controls,
+          easeInOutCubic,
+          { x: -1866, y: 7287, z: -10918 },
+          {
+            x: -1238.9637451171875,
+            y: 2362.824462890625,
+            z: -3621.242919921875,
+          },
+          5000
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      },
+      1500
+    );
+
+    // Final deselection
+    sequencer.addAction(
+      "closing_1",
+      async () => {
+        await deselectNode(this.scene);
+      },
+      2000
+    );
+
+    // Define execution order (if different from addition order)
+    sequencer.setExecutionOrder([
+      "orbiting_network_1",
+      "instructions_modal_1",
+      "instructions_modal_2",
+      "topic_hierarchy_1",
+      "topic_hierarchy_2",
+      "topic_hierarchy_3",
+      "topic_hierarchy_4",
+      "topic_hierarchy_5",
+      "legend_safety_1",
+      "legend_perinatal_exposure",
+      "legend_select_perinatal_checkbox",
+      "camera_focus_safety_1",
+      "single_node_selection_1",
+      "single_node_selection_2",
+      "single_node_selection_3",
+      "single_node_selection_4",
+      "time_travel_1",
+      "time_travel_2",
+      "search_1",
+      "search_2",
+      "closing_1",
+    ]);
+
+    // Add long narration spanning multiple actions
+    sequencer.addLongNarration(
+      "intro_audio", // Narration ID
+      "orbiting_network_1", // Start action
+      "topic_hierarchy_5", // End action (wait for completion)
+      { volume: 0.8 } // Optional parameters
+    );
+
+    // Add narrations for individual actions
+    sequencer.addNarrationForAction("legend_safety_1", "safetyCluster_audio");
+    // Add narrations for individual actions
+    sequencer.addNarrationForAction("time_travel_1", "intro_audio");
 
     return sequencer;
   }
@@ -1571,25 +1504,135 @@ class VideoRecorder {
 /**
  * Class to sequence programmatic interactions
  */
+
 class InteractionSequencer {
   constructor(scene, camera, controls) {
     this.scene = scene;
     this.camera = camera;
     this.controls = controls;
-    this.actions = [];
-    this.currentStep = 0;
+    this.actions = new Map(); // Map of actions by ID
+    this.executionOrder = []; // Ordered list of action IDs to execute
+    this.narrations = new Map(); // Map of narration configurations
     this.isPlaying = false;
+    this.activeNarrationPromise = null;
   }
 
   /**
-   * Add an action to the sequence
+   * Add an action with a unique ID
+   * @param {string} id - Unique identifier for this action
    * @param {Function} callback - Async function to execute
    * @param {number} duration - Duration in milliseconds
-   * @param {string} [narrationId] - Optional ID of narration to play during this action
    * @returns {InteractionSequencer} - This instance for chaining
    */
-  addAction(callback, duration, narrationId) {
-    this.actions.push({ callback, duration, narrationId });
+  addAction(id, callback, duration) {
+    if (this.actions.has(id)) {
+      console.warn(`Action with ID "${id}" already exists. Overwriting.`);
+    }
+
+    this.actions.set(id, { callback, duration });
+
+    // Add to execution order if not already present
+    if (!this.executionOrder.includes(id)) {
+      this.executionOrder.push(id);
+    }
+
+    return this;
+  }
+
+  /**
+   * Set the order of action execution
+   * @param {string[]} orderIds - Array of action IDs in execution order
+   * @returns {InteractionSequencer} - This instance for chaining
+   */
+  setExecutionOrder(orderIds) {
+    // Validate that all IDs exist
+    const missingIds = orderIds.filter((id) => !this.actions.has(id));
+    if (missingIds.length > 0) {
+      console.error(
+        `Cannot set execution order: Missing action IDs: ${missingIds.join(
+          ", "
+        )}`
+      );
+      return this;
+    }
+
+    this.executionOrder = [...orderIds];
+    return this;
+  }
+
+  /**
+   * Add a narration that plays during a single action
+   * @param {string} actionId - ID of the action to narrate
+   * @param {string} narrationId - ID of narration audio to play
+   * @param {Object} options - Additional options
+   * @returns {InteractionSequencer} - This instance for chaining
+   */
+  addNarrationForAction(actionId, narrationId, options = {}) {
+    if (!this.actions.has(actionId)) {
+      console.error(
+        `Cannot add narration: Action "${actionId}" does not exist`
+      );
+      return this;
+    }
+
+    this.narrations.set(actionId, {
+      type: "single",
+      narrationId,
+      waitForCompletion: options.waitForCompletion || false,
+      ...options,
+    });
+
+    return this;
+  }
+
+  /**
+   * Add a narration that spans multiple actions
+   * @param {string} narrationId - ID of narration audio to play
+   * @param {string} startActionId - ID of action to start narration
+   * @param {string} endActionId - ID of action to end narration (wait for completion)
+   * @param {Object} options - Additional options
+   * @returns {InteractionSequencer} - This instance for chaining
+   */
+  addLongNarration(narrationId, startActionId, endActionId, options = {}) {
+    if (!this.actions.has(startActionId)) {
+      console.error(
+        `Cannot add narration: Start action "${startActionId}" does not exist`
+      );
+      return this;
+    }
+
+    if (!this.actions.has(endActionId)) {
+      console.error(
+        `Cannot add narration: End action "${endActionId}" does not exist`
+      );
+      return this;
+    }
+
+    // Find indices in execution order
+    const startIndex = this.executionOrder.indexOf(startActionId);
+    const endIndex = this.executionOrder.indexOf(endActionId);
+
+    if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) {
+      console.error(
+        `Invalid start/end actions for long narration: ${startActionId} -> ${endActionId}`
+      );
+      return this;
+    }
+
+    // Mark start action to begin narration
+    this.narrations.set(startActionId, {
+      type: "start_long",
+      narrationId,
+      ...options,
+    });
+
+    // Mark end action to wait for narration
+    this.narrations.set(endActionId, {
+      type: "end_long",
+      waitForCompletion: true,
+      ...options,
+    });
+
     return this;
   }
 
@@ -1600,44 +1643,71 @@ class InteractionSequencer {
   async start() {
     if (this.isPlaying) return;
     this.isPlaying = true;
-    this.currentStep = 0;
 
-    // Execute all actions in sequence
-    for (let i = 0; i < this.actions.length && this.isPlaying; i++) {
-      this.currentStep = i;
-      const { callback, duration, narrationId } = this.actions[i];
+    try {
+      // Execute actions in the defined order
+      for (let i = 0; i < this.executionOrder.length && this.isPlaying; i++) {
+        const actionId = this.executionOrder[i];
+        const action = this.actions.get(actionId);
 
-      // Execute the action
-      let narrationPromise = Promise.resolve();
+        if (!action) {
+          console.warn(`Action "${actionId}" not found, skipping.`);
+          continue;
+        }
 
-      // Play narration if specified and enabled
-      if (
-        narrationId &&
-        CONFIG.development?.videoRecording?.narration?.enabled
-      ) {
-        console.log(`Playing narration for step ${i}: ${narrationId}`);
-        // Start narration but don't wait for it to complete (non-blocking)
-        narrationPromise = audioNarration.play(narrationId);
+        console.log(`Executing action: ${actionId}`);
+
+        // Handle narration for this action
+        let narrationPromise = Promise.resolve();
+        const narrationConfig = this.narrations.get(actionId);
+
+        if (
+          narrationConfig &&
+          CONFIG.development?.videoRecording?.narration?.enabled
+        ) {
+          if (
+            narrationConfig.type === "single" ||
+            narrationConfig.type === "start_long"
+          ) {
+            // Start new narration
+            console.log(
+              `Starting narration: ${narrationConfig.narrationId} for action: ${actionId}`
+            );
+            this.activeNarrationPromise = audioNarration.play(
+              narrationConfig.narrationId
+            );
+            narrationPromise = this.activeNarrationPromise;
+          }
+        }
+
+        // Execute the action
+        await action.callback();
+
+        // Wait for specified duration
+        await new Promise((resolve) => setTimeout(resolve, action.duration));
+
+        // Wait for narration to complete if needed
+        const shouldWaitForNarration =
+          narrationConfig &&
+          (narrationConfig.waitForCompletion ||
+            narrationConfig.type === "end_long");
+
+        if (shouldWaitForNarration && this.activeNarrationPromise) {
+          console.log(
+            `Waiting for narration to complete at action: ${actionId}`
+          );
+          await this.activeNarrationPromise;
+          this.activeNarrationPromise = null;
+        }
       }
-
-      // Execute the action callback
-      await callback();
-
-      // Wait for specified duration
-      await new Promise((resolve) => setTimeout(resolve, duration));
-
-      // Optionally wait for narration to complete if it's still playing
-      if (CONFIG.development?.videoRecording?.narration?.waitForNarration) {
-        await narrationPromise;
+    } finally {
+      // Clean up at the end
+      if (CONFIG.development?.videoRecording?.narration?.enabled) {
+        audioNarration.stop();
       }
+      this.activeNarrationPromise = null;
+      this.isPlaying = false;
     }
-
-    // Ensure any playing audio is stopped when sequence completes
-    if (CONFIG.development?.videoRecording?.narration?.enabled) {
-      audioNarration.stop();
-    }
-
-    this.isPlaying = false;
   }
 
   /**
@@ -1646,10 +1716,29 @@ class InteractionSequencer {
   stop() {
     this.isPlaying = false;
 
-    // Stop any playing audio when sequence is manually stopped
+    // Stop any playing audio
     if (CONFIG.development?.videoRecording?.narration?.enabled) {
       audioNarration.stop();
     }
+    this.activeNarrationPromise = null;
+  }
+
+  /**
+   * Get a section of the sequence (subset of actions)
+   * @param {string} startId - First action ID in section
+   * @param {string} endId - Last action ID in section
+   * @returns {string[]} - Array of action IDs in section
+   */
+  getSection(startId, endId) {
+    const startIndex = this.executionOrder.indexOf(startId);
+    const endIndex = this.executionOrder.indexOf(endId);
+
+    if (startIndex === -1 || endIndex === -1 || startIndex > endIndex) {
+      console.error(`Invalid section range: ${startId} -> ${endId}`);
+      return [];
+    }
+
+    return this.executionOrder.slice(startIndex, endIndex + 1);
   }
 }
 

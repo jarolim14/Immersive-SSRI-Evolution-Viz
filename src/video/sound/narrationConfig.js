@@ -7,27 +7,33 @@
 // Narration texts for TTS generation
 const NARRATION_CONFIG = {
   texts: {
-    intro: "Welcome to the test",
-    // Uncomment and add more narration texts as needed
-    // safetyCluster: "Here we're focusing on the Safety research cluster...",
-    // perinatalExposure: "Within the Safety research, this subcluster...",
-  }
+    intro_audio: "Welcome to the test",
+    safetyCluster_audio: "this is the safety cluster",
+    // perinatalExposure_audio: "Within the Safety research, this subcluster...",
+  },
 };
 
 // Audio file configuration
 const AUDIO_CONFIG = {
   enabled: true,
-  basePath: "video/sound/audio/",
+  // Base path for loading audio files during playback
+  basePath: "video/sound/audio_files/",
+  // Output paths for generating audio files
+  outputPaths: {
+    // Path to save public files (relative to project root)
+    public: "public/assets/audio",
+    // Path to save local files (relative to script directory)
+    local: "./audio_files",
+  },
   sequences: {
-    intro: "intro.mp3",
-    // Uncomment and add more sequences as needed
-    // safetyCluster: "safety_cluster.mp3",
-    // perinatalExposure: "perinatal_exposure.mp3",
-  }
+    intro_audio: "intro_audio.mp3",
+    safetyCluster_audio: "safety_cluster_audio.mp3",
+    // perinatalExposure_audio: "perinatal_exposure_audio.mp3",
+  },
 };
 
 // Support both ES modules and CommonJS
 export { NARRATION_CONFIG, AUDIO_CONFIG };
-if (typeof module !== 'undefined') {
+if (typeof module !== "undefined") {
   module.exports = { NARRATION_CONFIG, AUDIO_CONFIG };
 }

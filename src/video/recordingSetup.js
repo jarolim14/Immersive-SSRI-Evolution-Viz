@@ -10,6 +10,8 @@ import {
  */
 export function getSupportedMimeTypes() {
   const types = [
+    "video/webm;codecs=vp9,opus",
+    "video/webm;codecs=vp8,opus",
     "video/webm;codecs=vp9",
     "video/webm;codecs=vp8",
     "video/webm",
@@ -122,6 +124,29 @@ export async function setupRecorder(canvas, duration = 60000, fps = 30) {
       }
     }
 
+    // Try to get system audio stream first
+    let audioStream = null;
+    try {
+      console.log("Attempting to capture system audio...");
+      // Try to request audio capture - this works in Chrome with proper permissions
+      if (hasSecureContext && navigator.mediaDevices) {
+        const constraints = {
+          audio: {
+            // Try to get system audio (what the user hears)
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+          },
+        };
+
+        audioStream = await navigator.mediaDevices.getUserMedia(constraints);
+        console.log("Audio capture successful!");
+      }
+    } catch (audioError) {
+      console.warn("Could not capture system audio:", audioError.message);
+      console.log("Continuing without audio capture");
+    }
+
     // Try to use screen capture first (will capture modals and UI elements)
     if (hasDisplayMedia && hasSecureContext) {
       try {
@@ -154,7 +179,8 @@ export async function setupRecorder(canvas, duration = 60000, fps = 30) {
             width: { ideal: window.innerWidth },
             height: { ideal: window.innerHeight },
           },
-          audio: false,
+          // In Chrome, we can capture audio with the screen
+          audio: true,
           // These are experimental options for Chrome
           ...(navigator.userAgent.includes("Chrome")
             ? {
@@ -178,6 +204,21 @@ export async function setupRecorder(canvas, duration = 60000, fps = 30) {
           console.log("Screen capture video track info:", videoTrack.label);
           const settings = videoTrack.getSettings();
           console.log("Video track settings:", settings);
+
+          // Check if we got audio from the screen capture
+          const screenAudioTracks = displayStream.getAudioTracks();
+          if (screenAudioTracks.length > 0) {
+            console.log(
+              "Screen capture includes audio tracks:",
+              screenAudioTracks.length
+            );
+            // We'll use the screen audio instead of the separate audio stream
+            if (audioStream) {
+              // Stop the separate audio stream as we'll use the screen audio
+              audioStream.getAudioTracks().forEach((track) => track.stop());
+              audioStream = null;
+            }
+          }
 
           // Determine if we're capturing the correct content
           const isLikelyBrowserContent =
@@ -248,24 +289,47 @@ export async function setupRecorder(canvas, duration = 60000, fps = 30) {
     } else {
       // Screen capture not supported, use canvas capture
       console.log("Screen capture not available, using canvas capture method");
+      stream = canvas.captureStream(fps);
       if (CONFIG.development.videoRecording.showAllUI) {
         updateCaptureTypeIndicator(
           captureTypeIndicator,
-          "Screen capture not available - using canvas only"
+          "Using canvas capture only"
         );
       }
-      stream = canvas.captureStream(fps);
     }
 
-    // Set up recorder with the selected stream
+    // If we have a separate audio stream and are using canvas capture, combine them
+    if (audioStream && !usedScreenCapture) {
+      console.log("Combining canvas video with audio stream");
+      // Create a new MediaStream with both video and audio tracks
+      const combinedStream = new MediaStream();
+
+      // Add all video tracks from the canvas stream
+      stream.getVideoTracks().forEach((track) => {
+        combinedStream.addTrack(track);
+      });
+
+      // Add all audio tracks from the audio stream
+      audioStream.getAudioTracks().forEach((track) => {
+        combinedStream.addTrack(track);
+      });
+
+      // Use the combined stream
+      stream = combinedStream;
+    }
+
+    // Get the preferred MIME type
     const mimeType = getPreferredMimeType(supportedMimeTypes);
     console.log(`Using MIME type: ${mimeType}`);
 
-    // Create recorder
-    const recorder = new MediaRecorder(stream, {
+    // Setup recorder
+    const options = {
       mimeType,
-      videoBitsPerSecond: 8000000, // 8 Mbps for high quality
-    });
+      videoBitsPerSecond: 5000000, // 5 Mbps
+      audioBitsPerSecond: 128000, // 128 kbps
+    };
+
+    const recorder = new MediaRecorder(stream, options);
 
     // Set up data handling
     const chunks = [];
