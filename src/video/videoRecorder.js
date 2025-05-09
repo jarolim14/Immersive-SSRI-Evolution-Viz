@@ -489,11 +489,11 @@ class VideoRecorder {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // 1. Start with an initial orbit around the network
+    // 1. Prepare clean state by closing modals and resetting controls
     sequencer.addAction(
-      "orbiting_network_1",
+      "prepare_clean_state",
       async () => {
-        console.log("Action: Starting with initial orbit around the network");
+        console.log("Action: Preparing clean state for video");
 
         // First ensure any existing modals are closed
         const modals = document.querySelectorAll(
@@ -525,7 +525,14 @@ class VideoRecorder {
         // Reset controls for clean state
         this.controls.reset();
         await new Promise((resolve) => setTimeout(resolve, 300));
+      },
+      1000
+    );
 
+    // 2. Orbit around the network to showcase its structure
+    sequencer.addAction(
+      "orbiting_network",
+      async () => {
         console.log("Action: Camera orbital movement around network center");
         showOverlay("Orbital Network Perspective");
 
@@ -586,13 +593,11 @@ class VideoRecorder {
 
         // Longer pause at final position to appreciate the full circular journey
         await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        // Note: Additional camera movements would continue from here
       },
       1500
     );
 
-    // 2. Open the instructions modal
+    // 3. Open the instructions modal
     sequencer.addAction(
       "instructions_modal_1",
       async () => {
@@ -606,7 +611,7 @@ class VideoRecorder {
       },
       300
     );
-    // 3. Scroll down in instructions modal
+    // 4. Scroll down in instructions modal
     sequencer.addAction(
       "instructions_modal_2",
       async () => {
@@ -624,7 +629,7 @@ class VideoRecorder {
       1000
     );
 
-    // 3. Click on "View Topic Hierarchy" button
+    // 5. Click on "View Topic Hierarchy" button
     sequencer.addAction(
       "topic_hierarchy_1",
       async () => {
@@ -642,7 +647,7 @@ class VideoRecorder {
       800
     );
 
-    // 4. Scroll down in topic hierarchy
+    // 6. Scroll down in topic hierarchy
     sequencer.addAction(
       "topic_hierarchy_2",
       async () => {
@@ -700,7 +705,7 @@ class VideoRecorder {
       800
     );
 
-    // 5. Change dropdown from "Overview" to "Safety"
+    // 7. Change dropdown from "Overview" to "Safety"
     sequencer.addAction(
       "topic_hierarchy_3",
       async () => {
@@ -727,7 +732,7 @@ class VideoRecorder {
       800
     );
 
-    // 6. Scroll down in the updated topic hierarchy
+    // 8. Scroll down in the updated topic hierarchy
     sequencer.addAction(
       "topic_hierarchy_4",
       async () => {
@@ -787,7 +792,7 @@ class VideoRecorder {
       600
     );
 
-    // 7. Close the topic hierarchy modal
+    // 9. Close the topic hierarchy modal
     sequencer.addAction(
       "topic_hierarchy_5",
       async () => {
@@ -1282,7 +1287,8 @@ class VideoRecorder {
 
     // Define execution order (if different from addition order)
     sequencer.setExecutionOrder([
-      "orbiting_network_1",
+      "prepare_clean_state",
+      "orbiting_network",
       "instructions_modal_1",
       "instructions_modal_2",
       "topic_hierarchy_1",
@@ -1305,18 +1311,63 @@ class VideoRecorder {
       "closing_1",
     ]);
 
+    sequencer.addNarrationForAction("orbiting_network", "intro_orbit_audio");
+
     // Add long narration spanning multiple actions
     sequencer.addLongNarration(
-      "intro_audio", // Narration ID
-      "orbiting_network_1", // Start action
+      "instructions_scroll_audio", // Narration ID
+      "instructions_modal_1", // Start action
+      "instructions_modal_2", // End action (wait for completion)
+      { volume: 0.8 } // Optional parameters
+    );
+
+    // Add long narration spanning multiple actions
+    sequencer.addLongNarration(
+      "view_topic_hierarchy_audio", // Narration ID
+      "topic_hierarchy_1", // Start action
       "topic_hierarchy_5", // End action (wait for completion)
       { volume: 0.8 } // Optional parameters
     );
 
-    // Add narrations for individual actions
-    sequencer.addNarrationForAction("legend_safety_1", "safetyCluster_audio");
-    // Add narrations for individual actions
-    sequencer.addNarrationForAction("time_travel_1", "intro_audio");
+    // Add long narration spanning multiple actions
+    sequencer.addLongNarration(
+      "legend_panel_interaction_audio", // Narration ID
+      "legend_safety_1", // Start action
+      "camera_focus_safety_1", // End action (wait for completion)
+      { volume: 0.8 } // Optional parameters
+    );
+
+    // single_node_selection_audio
+    sequencer.addLongNarration(
+      "single_node_selection_audio", // Narration ID
+      "single_node_selection_1", // Start action
+      "single_node_selection_3", // End action (wait for completion)
+      { volume: 0.8 } // Optional parameters
+    );
+
+    sequencer.addNarrationForAction(
+      "single_node_selection_4",
+      "year_slider_adjusted_audio"
+    );
+
+    // year_slider_adjusted_audio
+    sequencer.addLongNarration(
+      "time_travel_animation_audio", // Narration ID
+      "time_travel_1", // Start action
+      "time_travel_2", // End action (wait for completion)
+      { volume: 0.8 } // Optional parameters
+    );
+
+    // reset_button_clicked_audio
+    sequencer.addNarrationForAction("search_1", "typing_in_search_bar_audio");
+
+    // year_slider_adjusted_audio
+    sequencer.addLongNarration(
+      "reset_button_clicked_audio", // Narration ID
+      "search_2", // Start action
+      "closing_1", // End action (wait for completion)
+      { volume: 0.8 } // Optional parameters
+    );
 
     return sequencer;
   }
