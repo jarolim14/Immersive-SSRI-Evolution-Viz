@@ -145,10 +145,12 @@ class VideoRecorder {
       // Wait 2 seconds before starting to avoid initial camera jumps
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // Start recording
+      // Start recording - MOVED to orbiting_network action
       this.isRecording = true;
-      this.recorder.start();
-      console.log("Recording started...");
+      // this.recorder.start(); // Recording will start in the orbiting_network action
+      console.log(
+        "Sequence started, recording will begin after preparation..."
+      );
 
       // Wait a bit more for stability before starting the sequence
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -533,6 +535,12 @@ class VideoRecorder {
     sequencer.addAction(
       "orbiting_network",
       async () => {
+        // Start the actual recording here
+        if (this.recorder && this.recorder.state !== "recording") {
+          console.log("Starting video recording now");
+          this.recorder.start();
+        }
+
         console.log("Action: Camera orbital movement around network center");
         showOverlay("Orbital Network Perspective");
 
