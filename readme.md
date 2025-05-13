@@ -1,44 +1,54 @@
-# 2D SSR Network Visualization
+# Immersive 3D SSRI Evolution
 
 A Three.js-based interactive network visualization tool for academic papers that allows users to explore and analyze citation networks in 3D space. This project provides a modern, responsive interface for visualizing large-scale academic networks with features like time-based filtering, cluster analysis, and interactive exploration.
 
 ## Features
 
 - Interactive 3D network visualization using Three.js
-- Large-scale data handling (~35,000 nodes, ~100,000 edges)
+- Large-scale data handling with optimized performance
 - Time-based filtering with year range slider
 - Cluster-based node grouping and filtering
 - Time travel functionality to visualize cluster evolution
 - Real-time search for papers by title or DOI
 - Custom node textures and styling
-- Optimized edge bundling with 1.5 million segments
+- Optimized edge bundling
 - Legend system for data interpretation
 - Responsive design with modern UI
-- Performance optimizations for large datasets
-- Custom shader effects for enhanced visualization
+- Level of Detail (LOD) system for performance optimization
+- Spatial partitioning for efficient node management
+- Topic tree visualization
+- Interactive instructions and credits modal
 
 ## Project Structure
 
 ```
 src/
-├── config.js           # Configuration settings
-├── dataUtils.js        # Data processing utilities
-├── edgeCreation.js     # Edge rendering logic
-├── edgesLoader.js      # Edge data loading
-├── eventListeners.js   # Event handling
-├── legend.js          # Legend component
-├── main.js            # Main application entry
-├── nodeCreation.js    # Node rendering logic
-├── nodesLoader.js     # Node data loading
-├── orbitControls.js   # Camera controls
-├── renderer.js        # Three.js renderer setup
-├── sceneCreation.js   # Scene initialization
-├── shaders.js         # Custom shaders
-├── singleNodeSelection.js  # Node selection logic
-├── timeTravel.js      # Time evolution functionality
-├── searchFunctionality.js  # Search implementation
-├── visibilityManager.js    # Visibility control
-└── updateNodeVisibility.js # Node visibility management
+├── config.js               # Configuration settings
+├── config.production.js    # Production configuration
+├── dataUtils.js           # Data processing utilities
+├── edgeCreation.js        # Edge rendering logic
+├── edgesLoader.js         # Edge data loading
+├── eventListeners.js      # Event handling
+├── legend.js             # Legend component
+├── lodSystem.js          # Level of Detail system
+├── main.js               # Main application entry
+├── nodesCreation.js      # Node rendering logic
+├── nodesLoader.js        # Node data loading
+├── orbitControls.js      # Camera controls
+├── renderer.js           # Three.js renderer setup
+├── sceneCreation.js      # Scene initialization
+├── searchFunctionality.js # Search implementation
+├── shaders.js            # Custom shaders
+├── singleNodeSelection.js # Node selection logic
+├── spatialPartitioning.js # Spatial optimization
+├── timeTravel.js         # Time evolution functionality
+├── topicTree.js          # Topic tree visualization
+├── visibilityManager.js   # Visibility control
+├── yearSlider.js         # Year range slider
+├── instructionsModal.js   # User instructions
+├── creditsModal.js       # Credits information
+├── style.css             # Styling
+└── index.html            # Main HTML file
 ```
 
 ## Data Structure
@@ -47,14 +57,12 @@ The project uses a comprehensive data structure stored in the `src/data` directo
 
 ```
 src/data/
-├── nodes_2025-04-22-15-55-44scale2.json      # Node data (papers)
-├── smaller_edges_2025-04-22-15-55-44scale2.json  # Edge data (citations)
-├── cluster_color_map_2025.json               # Cluster color mappings
-├── cluster_label_map_2025.json               # Cluster label mappings
-├── cluster_label_tag_map_2025.json           # Cluster tag mappings
-├── legend_2025.json                          # Legend configuration
-├── topicTree/                                # Topic tree visualization data
-└── ParamsExploring/                          # Parameter exploration data
+├── nodes_[timestamp].json      # Node data (papers)
+├── edges_[timestamp].json      # Edge data (citations)
+├── cluster_color_map.json      # Cluster color mappings
+├── cluster_label_map.json      # Cluster label mappings
+├── cluster_label_tag_map.json  # Cluster tag mappings
+└── legend.json                 # Legend configuration
 ```
 
 ### Data Files Description:
@@ -109,16 +117,22 @@ To create a production build:
 npm run build
 ```
 
+For development build:
+```bash
+npm run build:dev
+```
+
 The built files will be available in the `dist/` directory.
 
 ## Key Technical Features
 
 ### Performance Optimizations
-- WebGL2 optimized rendering with instanced arrays
+- WebGL2 optimized rendering
+- Level of Detail (LOD) system
+- Spatial partitioning for efficient node management
+- Optimized edge bundling
 - Efficient buffer geometry management
 - Batch processing for large datasets
-- Level of Detail (LOD) system
-- Optimized edge bundling
 
 ### Visualization Features
 - Custom shader effects for nodes and edges
@@ -126,6 +140,8 @@ The built files will be available in the `dist/` directory.
 - Cluster-based color mapping
 - Fog effects for depth perception
 - Interactive node selection and highlighting
+- Topic tree visualization
+- Year-based filtering with slider
 
 ### Data Management
 - Efficient node and edge data loading
@@ -133,13 +149,16 @@ The built files will be available in the `dist/` directory.
 - Time-based filtering
 - Cluster-based filtering
 - Real-time search functionality
+- Spatial optimization
 
 ## Dependencies
 
 - Three.js (^0.158.0) - 3D graphics library
 - Vite (^5.3.5) - Build tool and development server
 - noUiSlider (^15.8.1) - Range slider component
+- D3 (^7.9.0) - Data visualization library
 - csv-parser (^3.0.0) - CSV file parsing
+- dotenv (^16.5.0) - Environment variable management
 
 ## Development
 
