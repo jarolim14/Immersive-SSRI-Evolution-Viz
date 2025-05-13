@@ -145,11 +145,10 @@ class VideoRecorder {
       // Wait 2 seconds before starting to avoid initial camera jumps
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // Start recording - MOVED to orbiting_network action
+      // Set recording state flag
       this.isRecording = true;
-      // this.recorder.start(); // Recording will start in the orbiting_network action
       console.log(
-        "Sequence started, recording will begin after preparation..."
+        "Sequence started, recording will begin as specified in sequence..."
       );
 
       // Wait a bit more for stability before starting the sequence
@@ -531,16 +530,33 @@ class VideoRecorder {
       1000
     );
 
-    // 2. Orbit around the network to showcase its structure
+    // 2. Start the video recording after preparation but before orbiting
     sequencer.addAction(
-      "orbiting_network",
+      "start_recording",
       async () => {
-        // Start the actual recording here
+        console.log("Action: Starting the video recording");
+
+        // Show an overlay to indicate recording is starting
+        showOverlay("Starting Recording");
+
+        // Start the actual recording
         if (this.recorder && this.recorder.state !== "recording") {
           console.log("Starting video recording now");
           this.recorder.start();
-        }
 
+          // Short pause to ensure recording has started
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        } else {
+          console.log("Recording already started or not available");
+        }
+      },
+      800
+    );
+
+    // 3. Orbit around the network to showcase its structure
+    sequencer.addAction(
+      "orbiting_network",
+      async () => {
         console.log("Action: Camera orbital movement around network center");
         showOverlay("Orbital Network Perspective");
 
@@ -605,7 +621,7 @@ class VideoRecorder {
       1500
     );
 
-    // 3. Open the instructions modal
+    // 4. Open the instructions modal
     sequencer.addAction(
       "instructions_modal_1",
       async () => {
@@ -619,7 +635,7 @@ class VideoRecorder {
       },
       300
     );
-    // 4. Scroll down in instructions modal
+    // 5. Scroll down in instructions modal
     sequencer.addAction(
       "instructions_modal_2",
       async () => {
@@ -637,7 +653,7 @@ class VideoRecorder {
       1000
     );
 
-    // 5. Click on "View Topic Hierarchy" button
+    // 6. Click on "View Topic Hierarchy" button
     sequencer.addAction(
       "topic_hierarchy_1",
       async () => {
@@ -655,7 +671,7 @@ class VideoRecorder {
       800
     );
 
-    // 6. Scroll down in topic hierarchy
+    // 7. Scroll down in topic hierarchy
     sequencer.addAction(
       "topic_hierarchy_2",
       async () => {
@@ -713,7 +729,7 @@ class VideoRecorder {
       800
     );
 
-    // 7. Change dropdown from "Overview" to "Safety"
+    // 8. Change dropdown from "Overview" to "Safety"
     sequencer.addAction(
       "topic_hierarchy_3",
       async () => {
@@ -740,7 +756,7 @@ class VideoRecorder {
       800
     );
 
-    // 8. Scroll down in the updated topic hierarchy
+    // 9. Scroll down in the updated topic hierarchy
     sequencer.addAction(
       "topic_hierarchy_4",
       async () => {
@@ -800,7 +816,7 @@ class VideoRecorder {
       600
     );
 
-    // 9. Close the topic hierarchy modal
+    // 10. Close the topic hierarchy modal
     sequencer.addAction(
       "topic_hierarchy_5",
       async () => {
@@ -1296,6 +1312,7 @@ class VideoRecorder {
     // Define execution order (if different from addition order)
     sequencer.setExecutionOrder([
       "prepare_clean_state",
+      "start_recording",
       "orbiting_network",
       "instructions_modal_1",
       "instructions_modal_2",

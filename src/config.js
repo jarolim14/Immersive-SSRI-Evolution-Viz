@@ -17,9 +17,9 @@ export const CONFIG = {
       showButton: true, // Whether to show the recording button
       defaultDuration: 30000, // Default recording duration in milliseconds (30 seconds)
       defaultFps: 60, // Default frames per second for recording
-      preferredFormat: "mp4", // Preferred video format: 'webm' or 'mp4'
+      preferredFormat: "webm", // Preferred video format: 'webm' or 'mp4'
       showAllUI: true, // Whether to show ALL video recording related UI elements
-      showCameraTools: true, // Whether to show camera position logging tools
+      showCameraTools: false, // Whether to show camera position logging tools
       // Audio narration settings
       narration: {
         enabled: true, // Master toggle for narration
