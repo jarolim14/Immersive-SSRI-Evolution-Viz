@@ -17,7 +17,7 @@ import {
   createDevTools,
 } from "./cameraUtils.js"; // Adjust the path as needed
 import {
-  showOverlay,
+  showOverlay as showOverlayBase,
   showRecordingIndicator,
   showRecordingSuccessMessage,
   showRecordingErrorMessage,
@@ -31,6 +31,13 @@ import {
   setupRecorder,
   downloadVideo,
 } from "./recordingSetup.js";
+
+// Create a wrapper function that checks the config before showing overlay
+const showOverlay = (text) => {
+  if (CONFIG.development?.videoRecording?.showOverlayText) {
+    showOverlayBase(text);
+  }
+};
 
 class VideoRecorder {
   constructor(canvas, scene, camera, controls) {
@@ -1654,7 +1661,7 @@ class InteractionSequencer {
     this.narrations.set(actionId, {
       type: "single",
       narrationId,
-      waitForCompletion: options.waitForCompletion || false,
+      waitForCompletion: options.waitForCompletion || true,
       ...options,
     });
 

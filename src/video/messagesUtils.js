@@ -2,10 +2,20 @@ import { CONFIG } from "../config.js";
 import { logCameraPosition } from "./cameraUtils.js";
 
 /**
- * Show a text overlay during the video
+ * Show a text overlay during the video if enabled in settings
  * @param {string} text - Text to display
+ * @param {object} CONFIG - Optional CONFIGuration object
+ * @param {number} duration - Optional duration in milliseconds (defaults to 5000)
  */
-export function showOverlay(text) {
+export function showOverlay(text, CONFIG = null, duration = 5000) {
+  // Get current CONFIG if not provided
+  const currentConfig = CONFIG || window.appConfig?.videoRecording || {};
+
+  // Check if overlay text is enabled in settings
+  if (currentConfig.showOverlayText === false) {
+    return; // Exit early if overlay is disabled
+  }
+
   // Remove any existing overlay
   const existingOverlay = document.getElementById("video-text-overlay");
   if (existingOverlay) {
@@ -30,12 +40,12 @@ export function showOverlay(text) {
 
   document.body.appendChild(overlay);
 
-  // Auto-remove after 5 seconds
+  // Auto-remove after specified duration
   setTimeout(() => {
     if (overlay.parentNode) {
       overlay.remove();
     }
-  }, 5000);
+  }, duration);
 }
 
 /**

@@ -37,16 +37,10 @@ class AudioNarration {
 
       // Try multiple potential paths to increase chance of finding the file
       const possiblePaths = [
-        // Primary path from config
+        // Primary path from config, this works!
         `${basePath}${audioPath}`,
         // Absolute path from document root
         `/assets/audio/${audioPath}`,
-        // Relative paths
-        `assets/audio/${audioPath}`,
-        `./assets/audio/${audioPath}`,
-        `../assets/audio/${audioPath}`,
-        `../../assets/audio/${audioPath}`,
-        `../../../public/assets/audio/${audioPath}`,
         // Just the filename in case it's in the same directory
         audioPath,
       ];

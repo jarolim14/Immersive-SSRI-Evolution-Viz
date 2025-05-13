@@ -20,6 +20,7 @@ export const CONFIG = {
       preferredFormat: "webm", // Preferred video format: 'webm' or 'mp4'
       showAllUI: true, // Whether to show ALL video recording related UI elements
       showCameraTools: false, // Whether to show camera position logging tools
+      showOverlayText: false, // Whether to show overlay text during recording
       // Audio narration settings
       narration: {
         enabled: true, // Master toggle for narration
