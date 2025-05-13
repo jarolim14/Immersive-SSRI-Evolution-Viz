@@ -1,8 +1,23 @@
 {
-  "name": "threejs-journey-exercise",
+  "name": "immersive-3d-ssri-evolution",
+  "description": "Interactive 3D visualization tool for exploring SSRI-related academic paper networks",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jarolim14/Immersive-SSRI-Evolution-Viz.git"
+  },
+  "keywords": [
+    "three.js",
+    "3d-visualization",
+    "network-graph",
+    "academic-papers",
+    "ssri",
+    "data-visualization"
+  ],
+  "author": "jarolim14",
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "vite build --mode production",
@@ -22,5 +37,9 @@
     "nouislider": "^15.8.1",
     "path": "^0.12.7",
     "three": "^0.158.0"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
   }
 }
