@@ -225,7 +225,7 @@ export function updateNodeInfo(intersection, nodesMap, positions, scene) {
   if (!intersection || !nodesMap) {
     console.log("No intersection or missing data, hiding node info");
     nodeInfoDiv.style.display = "none";
-    document.body.classList.remove('node-selected');
+    document.body.classList.remove("node-selected");
     brightnessAttribute.array.fill(0.0);
     brightnessAttribute.needsUpdate = true;
     hideVisualSelection();
@@ -268,15 +268,18 @@ export function updateNodeInfo(intersection, nodesMap, positions, scene) {
   nodeInfoDiv.textContent = `
     Cluster Label: ${selectedNode.clusterLabel}
     Title: ${selectedNode.title}
+    Author: ${selectedNode.authors}
     Year: ${selectedNode.year}
-    ${selectedNode.doi ? `DOI: ${selectedNode.doi}` : ''}
-    Cluster: ${selectedNode.cluster}
-    Centrality: ${selectedNode.centrality}
-    Node ID: ${selectedNodeId}
+    DOI: ${selectedNode.doi}
   `;
+  // i could all these for more information
+  // Cluster: ${selectedNode.cluster}
+  // Centrality: ${selectedNode.centrality}
+  // Node ID: ${selectedNodeId}
+
   nodeInfoDiv.style.whiteSpace = "pre-line";
   nodeInfoDiv.style.display = "block";
-  document.body.classList.add('node-selected');
+  document.body.classList.add("node-selected");
 
   // Update last selected node index
   lastSelectedNodeIndex = intersection.index;

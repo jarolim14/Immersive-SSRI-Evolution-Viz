@@ -60,28 +60,25 @@ function initializeBufferGeometry(nodeCount) {
   // Create buffer attributes with optimized settings
   nodesGeometry.setAttribute(
     "position",
-    new THREE.BufferAttribute(positions, 3)
-      .setUsage(THREE.DynamicDrawUsage)
+    new THREE.BufferAttribute(positions, 3).setUsage(THREE.DynamicDrawUsage)
   );
   nodesGeometry.setAttribute(
     "color",
-    new THREE.BufferAttribute(colors, 3)
-      .setUsage(THREE.DynamicDrawUsage)
+    new THREE.BufferAttribute(colors, 3).setUsage(THREE.DynamicDrawUsage)
   );
   nodesGeometry.setAttribute(
     "size",
-    new THREE.BufferAttribute(sizes, 1)
-      .setUsage(THREE.DynamicDrawUsage)
+    new THREE.BufferAttribute(sizes, 1).setUsage(THREE.DynamicDrawUsage)
   );
   nodesGeometry.setAttribute(
     "visible",
-    new THREE.BufferAttribute(visible, 1)
-      .setUsage(THREE.DynamicDrawUsage)
+    new THREE.BufferAttribute(visible, 1).setUsage(THREE.DynamicDrawUsage)
   );
   nodesGeometry.setAttribute(
     "singleNodeSelectionBrightness",
-    new THREE.BufferAttribute(singleNodeSelectionBrightness, 1)
-      .setUsage(THREE.DynamicDrawUsage)
+    new THREE.BufferAttribute(singleNodeSelectionBrightness, 1).setUsage(
+      THREE.DynamicDrawUsage
+    )
   );
 
   nodesGeometry.name = "nodesGeometry";
@@ -128,8 +125,10 @@ function calculateNodeSize(normalizedCentrality) {
 function getNodeColor(node, clusterColorMap) {
   const clusterColor = clusterColorMap[node.cluster];
   if (!clusterColor) {
-    console.warn(`No color found for cluster ${node.cluster}, using default color`);
-    return new THREE.Color(0xCCCCCC); // Default color
+    console.warn(
+      `No color found for cluster ${node.cluster}, using default color`
+    );
+    return new THREE.Color(0xcccccc); // Default color
   }
   return clusterColor;
 }
@@ -154,7 +153,10 @@ function updateNodeData(index, position, color, size) {
 
 // Batch update visibility using spatial partitioning
 export function updateNodesVisibility(yearRange, selectedClusters) {
-  const visibleNodes = spatialPartitioning.updateVisibility(yearRange, selectedClusters);
+  const visibleNodes = spatialPartitioning.updateVisibility(
+    yearRange,
+    selectedClusters
+  );
   const visible = nodesGeometry.attributes.visible.array;
 
   // Reset all nodes to invisible
@@ -170,7 +172,8 @@ export function updateNodesVisibility(yearRange, selectedClusters) {
 
 // Batch update selection brightness
 export function updateNodesSelectionBrightness(selectedIndices, brightness) {
-  const selectionBrightness = nodesGeometry.attributes.singleNodeSelectionBrightness.array;
+  const selectionBrightness =
+    nodesGeometry.attributes.singleNodeSelectionBrightness.array;
   for (const index of selectedIndices) {
     selectionBrightness[index] = brightness;
   }
@@ -186,7 +189,10 @@ function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
   initializeBufferGeometry(nodesToLoad);
   console.log("BufferGeometry initialized");
 
-  const { maxCentrality, minCentrality } = normalizeCentrality(data, nodesToLoad);
+  const { maxCentrality, minCentrality } = normalizeCentrality(
+    data,
+    nodesToLoad
+  );
 
   // Pre-allocate arrays for batch processing
   const positions = new Float32Array(nodesToLoad * 3);
@@ -198,13 +204,17 @@ function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
   let loadedNodes = 0;
   for (let i = 0; i < nodesToLoad; i++) {
     const node = data[i];
-    if (CONFIG.loadClusterSubset && !CONFIG.clustersToLoad.includes(node.cluster)) {
+    if (
+      CONFIG.loadClusterSubset &&
+      !CONFIG.clustersToLoad.includes(node.cluster)
+    ) {
       continue;
     }
 
     const nodeId = node.node_index;
     const centrality = parseFloat(node.centrality.toFixed(5));
-    const normalizedCentrality = (centrality - minCentrality) / (maxCentrality - minCentrality);
+    const normalizedCentrality =
+      (centrality - minCentrality) / (maxCentrality - minCentrality);
     const position = calculatePosition(node);
     const size = calculateNodeSize(normalizedCentrality);
     const color = getNodeColor(node, clusterColorMap);
@@ -217,10 +227,11 @@ function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
       year: node.year,
       title: node.title,
       doi: node.doi || "",
+      authors: node.authors || "",
       centrality,
       color,
       position: position.clone(), // Store position for spatial queries
-      index: loadedNodes // Store buffer index for updates
+      index: loadedNodes, // Store buffer index for updates
     };
 
     // Store node metadata
@@ -248,7 +259,8 @@ function parseNodesData(data, percentage, clusterLabelMap, clusterColorMap) {
   nodesGeometry.attributes.color.array = colors;
   nodesGeometry.attributes.size.array = sizes;
   nodesGeometry.attributes.visible.array = visible;
-  nodesGeometry.attributes.singleNodeSelectionBrightness.array = singleNodeSelectionBrightness;
+  nodesGeometry.attributes.singleNodeSelectionBrightness.array =
+    singleNodeSelectionBrightness;
 
   // Mark attributes as updated
   nodesGeometry.attributes.position.needsUpdate = true;
