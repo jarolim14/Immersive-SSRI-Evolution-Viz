@@ -43,6 +43,14 @@ export const CONFIG = {
     showDevTools: true, // Enable camera position tools in the UI
     savePositionHistory: true, // Save previously used camera positions
   },
+  // Screenshot functionality
+  screenshot: {
+    enabled: true, // Master toggle for screenshot feature
+    showButton: true, // Whether to show the screenshot button in the UI
+    format: "png", // Format of the screenshot (png or jpeg)
+    quality: 0.95, // Image quality (0-1) for jpeg format
+    filename: "network-screenshot", // Default filename for the screenshot (without extension)
+  },
   // Renderer Configuration
   rendererAntialias: true, // Set to true for production Antialiasing is a technique used to reduce the appearance of jagged edges (aliasing) in digital images. These jagged edges are often referred to as "jaggies" and are especially noticeable on diagonal lines or curves. By smoothing these edges, antialiasing improves the visual quality of the rendered image.
   rendererAutoClearColor: true,

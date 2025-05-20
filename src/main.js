@@ -8,7 +8,11 @@ import {
 import { loadNodeData } from "./nodesLoader.js";
 import { createNodes } from "./nodesCreation.js";
 import { loadEdgeData, updateEdgeVisibility } from "./edgesLoader.js";
-import { createEdges, showEdgesByYear, setEdgeVisibility } from "./edgeCreation.js";
+import {
+  createEdges,
+  showEdgesByYear,
+  setEdgeVisibility,
+} from "./edgeCreation.js";
 import { createScene } from "./sceneCreation.js";
 import {
   raycaster,
@@ -25,8 +29,9 @@ import { creditsModal } from "./creditsModal.js";
 import { initializeSearch } from "./searchFunctionality.js";
 import { timeTravelController } from "./timeTravel.js";
 import { LODSystem } from "./lodSystem.js";
-import { TopicTree } from './topicTree.js';
-import { videoUI } from './video/index.js';
+import { TopicTree } from "./topicTree.js";
+import { videoUI } from "./video/index.js";
+import { screenshotController } from "./screenshot.js";
 
 const canvas = document.querySelector("canvas.webgl");
 
@@ -53,7 +58,7 @@ async function loadAndCreateNodes(parent, clusterLabelMap, clusterColorMap) {
   }
   const { points } = createNodes(nodesGeometry);
   parent.add(points);
-  console.log('get node 8214')
+  console.log("get node 8214");
   console.log(nodesMap.get(8214).position);
   return { nodesMap, points };
 }
@@ -70,7 +75,12 @@ async function loadAndCreateEdges(parent, clusterColorMap, nodesMap) {
   }
 
   // Create edges with our optimized approach, passing edgeIndices
-  const edgeObject = createEdges(edgesGeometry, edgesMap, nodesMap, edgeIndices);
+  const edgeObject = createEdges(
+    edgesGeometry,
+    edgesMap,
+    nodesMap,
+    edgeIndices
+  );
 
   if (!edgeObject) {
     throw new Error("Failed to create edges");
@@ -92,6 +102,9 @@ async function initializeScene() {
   try {
     const { scene, camera, renderer, controls, parent } = createScene(canvas);
     camera.isPerspectiveCamera = true;
+
+    // Initialize screenshot functionality
+    screenshotController.initialize(renderer, scene, camera, canvas);
 
     // Initialize LOD system
     const lodSystem = new LODSystem(camera, scene);
@@ -140,7 +153,7 @@ async function initializeScene() {
 
     // Initialize search functionality with access to edge control
     initializeSearch(nodesMap, camera, controls, scene, {
-      setEdgeVisibility: setEdgeVisibility  // Pass the new edge visibility function
+      setEdgeVisibility: setEdgeVisibility, // Pass the new edge visibility function
     });
     console.log("Search functionality initialized");
 
@@ -148,15 +161,15 @@ async function initializeScene() {
     timeTravelController.initialize(camera, controls, scene, {
       edgeVisibility: {
         showEdgesByYear,
-        setEdgeVisibility
-      }
+        setEdgeVisibility,
+      },
     });
     console.log("Time travel functionality initialized");
 
     // Initialize visibility manager with new edge control functions
     visibilityManager.init({
       showEdgesByYear,
-      setEdgeVisibility
+      setEdgeVisibility,
     });
 
     // Add listeners with access to the edge control functions
@@ -174,8 +187,8 @@ async function initializeScene() {
         edges: {
           object: edgeObject,
           map: edgesMap,
-          setVisibility: setEdgeVisibility
-        }
+          setVisibility: setEdgeVisibility,
+        },
       }
     );
 
@@ -183,7 +196,10 @@ async function initializeScene() {
     const topicTree = new TopicTree();
 
     // Initialize video UI and recorder if enabled
-    if (CONFIG.development.enabled && CONFIG.development.videoRecording.enabled) {
+    if (
+      CONFIG.development.enabled &&
+      CONFIG.development.videoRecording.enabled
+    ) {
       videoUI.initialize(canvas, scene, camera, controls);
     }
 
