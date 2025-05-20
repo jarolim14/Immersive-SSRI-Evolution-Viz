@@ -1053,8 +1053,8 @@ body.node-selected #search-container:hover {
   flex: 1;
   background-color: #1a1a1a;
   border-radius: 4px;
-  overflow: visible;
-  min-width: 900px;
+  overflow: auto;
+  width: 100%;
   min-height: 700px;
 }
 
@@ -1217,5 +1217,63 @@ body.node-selected #search-container:hover {
 @media (max-width: 768px) {
   .compatibility-items {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Add responsive styles for topic tree modal */
+@media (max-width: 1200px) {
+  #topicTreeModal .modal-content {
+    width: 95%;
+    padding: 15px;
+  }
+  
+  #topicTreeSvg {
+    min-width: auto;
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  #topicTreeModal .modal-content {
+    width: 95%;
+    max-height: 90vh;
+    padding: 10px;
+  }
+  
+  .topic-tree-container {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  #topicTreeSvg {
+    overflow-x: auto;
+    overflow-y: auto;
+    min-height: 500px;
+  }
+  
+  .topic-select {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  .topic-tree-controls {
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  
+  /* Ensure the close button is always accessible */
+  #topicTreeModal .modal-footer {
+    position: sticky;
+    bottom: 0;
+    background-color: var(--modal-bg);
+    padding: 10px 0;
+    margin-top: 10px;
+    z-index: 10;
+  }
+  
+  #topicTreeModal .close-btn {
+    min-width: 100px;
+    padding: 10px;
+    font-size: 16px;
   }
 }
