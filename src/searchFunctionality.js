@@ -41,18 +41,23 @@ export function initializeSearch(nodes, cam, orbitControls, sceneObj) {
  */
 function createSearchUI() {
   // Create search container
-  searchContainer = document.createElement('div');
-  searchContainer.id = 'search-container';
+  searchContainer = document.createElement("div");
+  searchContainer.id = "search-container";
 
   // Create search input
-  searchInput = document.createElement('input');
-  searchInput.type = 'text';
-  searchInput.id = 'search-input';
-  searchInput.placeholder = 'Search by title or DOI...';
+  searchInput = document.createElement("input");
+  searchInput.type = "text";
+  searchInput.id = "search-input";
+
+  // Set appropriate placeholder text based on screen size
+  updateSearchPlaceholder();
+
+  // Handle window resize to update placeholder text
+  window.addEventListener("resize", updateSearchPlaceholder);
 
   // Create search results container
-  searchResults = document.createElement('div');
-  searchResults.id = 'search-results';
+  searchResults = document.createElement("div");
+  searchResults.id = "search-results";
 
   // Append elements
   searchContainer.appendChild(searchInput);
@@ -61,10 +66,26 @@ function createSearchUI() {
 }
 
 /**
+ * Update the search input placeholder based on screen size
+ */
+function updateSearchPlaceholder() {
+  const isMobile = window.innerWidth <= 768;
+  const isSmallMobile = window.innerWidth <= 480;
+
+  if (isSmallMobile) {
+    searchInput.placeholder = "Search...";
+  } else if (isMobile) {
+    searchInput.placeholder = "Search papers...";
+  } else {
+    searchInput.placeholder = "Search by title or DOI...";
+  }
+}
+
+/**
  * Add event listeners for search functionality
  */
 function addEventListeners() {
-  searchInput.addEventListener('input', (e) => {
+  searchInput.addEventListener("input", (e) => {
     const query = e.target.value.trim();
 
     // Clear previous timer
@@ -73,9 +94,9 @@ function addEventListeners() {
     }
 
     // Clear results if query is empty
-    if (query === '') {
-      searchResults.innerHTML = '';
-      searchResults.style.display = 'none';
+    if (query === "") {
+      searchResults.innerHTML = "";
+      searchResults.style.display = "none";
       return;
     }
 
@@ -86,9 +107,9 @@ function addEventListeners() {
   });
 
   // Close search results when clicking elsewhere
-  document.addEventListener('click', (e) => {
+  document.addEventListener("click", (e) => {
     if (!searchContainer.contains(e.target)) {
-      searchResults.style.display = 'none';
+      searchResults.style.display = "none";
     }
   });
 }
@@ -105,8 +126,8 @@ function performSearch(query) {
 
   // Search through all nodes
   nodesMap.forEach((node, index) => {
-    const title = node.title ? node.title.toLowerCase() : '';
-    const doi = node.doi ? node.doi.toLowerCase() : '';
+    const title = node.title ? node.title.toLowerCase() : "";
+    const doi = node.doi ? node.doi.toLowerCase() : "";
 
     // Check for matches
     const titleMatch = title.includes(query);
@@ -134,7 +155,7 @@ function performSearch(query) {
         node,
         score,
         titleMatch,
-        doiMatch
+        doiMatch,
       });
     }
   });
@@ -152,31 +173,31 @@ function performSearch(query) {
  */
 function displaySearchResults(results) {
   // Clear previous results
-  searchResults.innerHTML = '';
+  searchResults.innerHTML = "";
 
   if (results.length === 0) {
-    const noResults = document.createElement('div');
-    noResults.className = 'search-no-results';
-    noResults.textContent = 'No matching results found';
+    const noResults = document.createElement("div");
+    noResults.className = "search-no-results";
+    noResults.textContent = "No matching results found";
     searchResults.appendChild(noResults);
   } else {
     // Create result items
-    results.forEach(result => {
-      const resultItem = document.createElement('div');
-      resultItem.className = 'search-result-item';
+    results.forEach((result) => {
+      const resultItem = document.createElement("div");
+      resultItem.className = "search-result-item";
 
       // Highlight if both title and DOI match
       if (result.titleMatch && result.doiMatch) {
-        resultItem.classList.add('double-match');
+        resultItem.classList.add("double-match");
       }
 
       // Create result content
-      const title = document.createElement('div');
-      title.className = 'result-title';
-      title.textContent = result.node.title || 'Untitled';
+      const title = document.createElement("div");
+      title.className = "result-title";
+      title.textContent = result.node.title || "Untitled";
 
-      const metadata = document.createElement('div');
-      metadata.className = 'result-metadata';
+      const metadata = document.createElement("div");
+      metadata.className = "result-metadata";
 
       // Add year if available
       if (result.node.year) {
@@ -185,8 +206,8 @@ function displaySearchResults(results) {
 
       // Add DOI if available
       if (result.node.doi) {
-        const doiSpan = document.createElement('span');
-        doiSpan.className = 'result-doi';
+        const doiSpan = document.createElement("span");
+        doiSpan.className = "result-doi";
         doiSpan.textContent = result.node.doi;
         metadata.appendChild(doiSpan);
       }
@@ -196,8 +217,8 @@ function displaySearchResults(results) {
       resultItem.appendChild(metadata);
 
       // Add click handler to navigate to node
-      resultItem.addEventListener('click', (e) => {
-        console.log('Search result clicked:', result.index, result.node.title);
+      resultItem.addEventListener("click", (e) => {
+        console.log("Search result clicked:", result.index, result.node.title);
         e.stopPropagation(); // Prevent event bubbling
         navigateToNode(result.index, result.node);
       });
@@ -207,7 +228,7 @@ function displaySearchResults(results) {
   }
 
   // Show results
-  searchResults.style.display = 'block';
+  searchResults.style.display = "block";
 }
 
 /**
@@ -236,11 +257,11 @@ function navigateToNode(index, node) {
   const targetPosition = {
     x: positionAttribute.array[i3],
     y: positionAttribute.array[i3 + 1],
-    z: positionAttribute.array[i3 + 2]
+    z: positionAttribute.array[i3 + 2],
   };
 
   // Import singleNodeSelection for node highlighting
-  import('./singleNodeSelection.js').then(selectionModule => {
+  import("./singleNodeSelection.js").then((selectionModule) => {
     // Important: Account for the same coordinate transformations as in the nodes
     // The scene uses a coordinate system that's rotated around the X-axis by 90 degrees
 
@@ -260,17 +281,24 @@ function navigateToNode(index, node) {
 
     // Calculate view distance using config parameters
     const baseDistance = CONFIG.search.camera.baseDistance;
-    const centralityMultiplier = CONFIG.search.camera.centralityDistanceMultiplier;
-    const distance = node.centrality ? baseDistance + node.centrality * centralityMultiplier : baseDistance + 30;
+    const centralityMultiplier =
+      CONFIG.search.camera.centralityDistanceMultiplier;
+    const distance = node.centrality
+      ? baseDistance + node.centrality * centralityMultiplier
+      : baseDistance + 30;
 
     // Find direction from target to center
-    const toCenter = new THREE.Vector3().subVectors(centerPoint, targetVector).normalize();
+    const toCenter = new THREE.Vector3()
+      .subVectors(centerPoint, targetVector)
+      .normalize();
 
     // Create a view direction that looks both toward center and from above using config parameters
     const viewDirection = new THREE.Vector3()
       .copy(toCenter)
       .multiplyScalar(CONFIG.search.camera.viewOffsetCenter) // Center direction component from config
-      .add(worldUp.clone().multiplyScalar(CONFIG.search.camera.viewOffsetUpward)); // Upward component from config
+      .add(
+        worldUp.clone().multiplyScalar(CONFIG.search.camera.viewOffsetUpward)
+      ); // Upward component from config
 
     viewDirection.normalize();
 
@@ -289,8 +317,8 @@ function navigateToNode(index, node) {
     animateCameraMove(cameraPosition, targetVector);
 
     // Hide search results
-    searchResults.style.display = 'none';
-    searchInput.value = '';
+    searchResults.style.display = "none";
+    searchInput.value = "";
 
     // Use the existing selection mechanism to highlight the node
     const intersectionMock = { index };
@@ -326,7 +354,7 @@ function animateCameraMove(newPosition, lookTarget) {
         // Final update to ensure proper orientation
         camera.lookAt(lookTarget.x, lookTarget.y, lookTarget.z);
         controls.update();
-      }
+      },
     });
   } else {
     // Simple animation without GSAP
@@ -337,13 +365,17 @@ function animateCameraMove(newPosition, lookTarget) {
       const elapsed = Date.now() - startTime;
       const progress = Math.min(elapsed / duration, 1);
       // Use cubic ease-in-out for smoother motion
-      const easeProgress = progress < 0.5
-        ? 4 * progress * progress * progress
-        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+      const easeProgress =
+        progress < 0.5
+          ? 4 * progress * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
-      camera.position.x = startPos.x + (newPosition.x - startPos.x) * easeProgress;
-      camera.position.y = startPos.y + (newPosition.y - startPos.y) * easeProgress;
-      camera.position.z = startPos.z + (newPosition.z - startPos.z) * easeProgress;
+      camera.position.x =
+        startPos.x + (newPosition.x - startPos.x) * easeProgress;
+      camera.position.y =
+        startPos.y + (newPosition.y - startPos.y) * easeProgress;
+      camera.position.z =
+        startPos.z + (newPosition.z - startPos.z) * easeProgress;
 
       camera.lookAt(lookTarget.x, lookTarget.y, lookTarget.z);
       controls.update();

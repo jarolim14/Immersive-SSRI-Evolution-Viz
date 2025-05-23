@@ -265,12 +265,17 @@ export function updateNodeInfo(intersection, nodesMap, positions, scene) {
   brightnessAttribute.needsUpdate = true;
 
   // Update node info display
-  nodeInfoDiv.textContent = `
+  const doiDisplay =
+    selectedNode.doi && selectedNode.doi !== "No DOI available"
+      ? `DOI: <a href="https://doi.org/${selectedNode.doi}" target="_blank" style="color: #87CEEB;">${selectedNode.doi}</a>`
+      : `DOI: ${selectedNode.doi}`;
+
+  nodeInfoDiv.innerHTML = `
     Cluster Label: ${selectedNode.clusterLabel}
     Title: ${selectedNode.title}
     Author: ${selectedNode.authors}
     Year: ${selectedNode.year}
-    DOI: ${selectedNode.doi}
+    ${doiDisplay}
   `;
   // i could all these for more information
   // Cluster: ${selectedNode.cluster}

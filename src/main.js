@@ -32,6 +32,7 @@ import { LODSystem } from "./lodSystem.js";
 import { TopicTree } from "./topicTree.js";
 import { videoUI } from "./video/index.js";
 import { screenshotController } from "./screenshot.js";
+import { initializeMobileLegends } from "./mobileLegends.js";
 
 const canvas = document.querySelector("canvas.webgl");
 
@@ -98,6 +99,9 @@ async function initializeScene() {
 
   instructionsModal.initialize();
   creditsModal.initialize();
+
+  // Initialize mobile-specific legend features
+  initializeMobileLegends();
 
   try {
     const { scene, camera, renderer, controls, parent } = createScene(canvas);
@@ -218,6 +222,9 @@ async function initializeScene() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Fix for mobile viewport issues
+  ensureProperViewport();
+
   // Initialize modals
   instructionsModal.initialize();
   creditsModal.initialize();
@@ -229,3 +236,25 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   });
 });
+
+// Ensure the viewport is properly set for mobile devices
+function ensureProperViewport() {
+  // Check if viewport meta tag exists
+  let viewport = document.querySelector('meta[name="viewport"]');
+
+  if (!viewport) {
+    // Create viewport meta if it doesn't exist
+    viewport = document.createElement("meta");
+    viewport.name = "viewport";
+    document.head.appendChild(viewport);
+  }
+
+  // Set the viewport properties
+  viewport.content =
+    "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover";
+
+  // Set body dimensions explicitly
+  document.body.style.width = "100vw";
+  document.body.style.height = "100vh";
+  document.body.style.overflow = "hidden";
+}

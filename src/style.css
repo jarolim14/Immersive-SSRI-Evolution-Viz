@@ -45,6 +45,9 @@ html {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  position: fixed; /* Prevent body from scrolling */
+  top: 0;
+  left: 0;
 }
 
 .webgl {
@@ -52,6 +55,9 @@ html {
   top: 0;
   left: 0;
   outline: none;
+  width: 100vw; /* Use viewport units */
+  height: 100vh;
+  display: block; /* Ensure block display */
 }
 
 /* -- node info styles -- node info styles --node info styles --node info styles --node info styles -- */
@@ -95,6 +101,53 @@ html {
   .range_container {
     width: 90%;
     margin: 90vh auto;
+  }
+}
+
+/* Mobile year slider positioning at top of screen */
+@media (max-width: 768px) {
+  .range_container {
+    width: calc(100% - 420px); /* Avoid legends on left and right */
+    margin: 10px auto;
+    position: fixed;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 999;
+  }
+  
+  /* Adjust slider for very small screens */
+  @media (max-width: 600px) {
+    .range_container {
+      width: calc(100% - 300px);
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .range_container {
+      width: calc(100% - 230px);
+      top: 2px;
+    }
+    
+    /* Make slider controls smaller */
+    .range_container .sliders_control {
+      min-height: 30px;
+    }
+    
+    .range_container input[type="range"]::-webkit-slider-thumb {
+      width: 18px;
+      height: 18px;
+    }
+    
+    .range_container input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+    }
+    
+    .range_container #fromValue,
+    .range_container #toValue {
+      font-size: 11px;
+    }
   }
 }
 
@@ -734,6 +787,41 @@ input[type="range"]::-webkit-slider-thumb:active {
   transform: scale(0.95);
 }
 
+/* Mobile styles for help/credit buttons */
+@media (max-width: 768px) {
+  .help-button {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    bottom: 15px;
+    right: 15px;
+  }
+  
+  .credits-button {
+    right: 55px;
+  }
+}
+
+@media (max-width: 480px) {
+  .help-button {
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+    bottom: 10px;
+    right: 10px;
+  }
+  
+  .credits-button {
+    right: 44px;
+  }
+  
+  /* Adjust search container to avoid overlap with buttons */
+  #search-container {
+    width: calc(100% - 100px);
+    max-width: none;
+  }
+}
+
 /* Credits Modal Styles */
 .credits-container {
   margin: 20px 0;
@@ -902,6 +990,13 @@ body.node-selected #search-container:hover {
   #search-container {
     width: 85%;
     bottom: 20px;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 6px;
+    border-radius: 20px;
+  }
+  
+  #search-input {
+    box-shadow: 0 0 8px rgba(100, 219, 255, 0.2);
   }
 
   .result-title {
@@ -1282,7 +1377,7 @@ body.node-selected #search-container:hover {
 .screenshot-button {
   position: fixed;
   bottom: 20px;
-  right: 80px; /* Position to the left of the help button if it exists */
+  right: 120px; /* Position to the left of the help/credits buttons */
   width: 40px;
   height: 40px;
   background-color: rgba(30, 30, 40, 0.85);
@@ -1308,4 +1403,248 @@ body.node-selected #search-container:hover {
 .screenshot-button:active {
   transform: scale(0.95);
   background-color: rgba(60, 60, 100, 0.95);
+}
+
+@media (max-width: 768px) {
+  .screenshot-button {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    bottom: 15px;
+    right: 95px;
+  }
+}
+
+@media (max-width: 480px) {
+  .screenshot-button {
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
+    bottom: 10px;
+    right: 78px;
+  }
+}
+
+/* Mobile-specific legend styles */
+@media (max-width: 768px) {
+  #legendDiv {
+    max-height: 50vh;
+    min-width: 150px;
+    max-width: 200px;
+    padding: var(--spacing-xs);
+    font-size: 12px;
+    top: var(--spacing-xs);
+    left: var(--spacing-xs);
+  }
+  
+  #legendDiv .legend-item {
+    margin: 2px 0;
+  }
+  
+  #legendDiv .legend-subtree {
+    margin-left: 10px;
+  }
+  
+  #legendDiv .update-button,
+  #legendDiv .reset-button {
+    padding: 4px 8px;
+    font-size: 10px;
+    height: 24px;
+    min-width: auto;
+  }
+  
+  .time-travel-section {
+    margin-top: 10px;
+    padding: 4px 6px;
+  }
+  
+  .time-travel-section .legend-section-title {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  
+  .time-travel-section .time-travel-button {
+    padding: 2px 8px;
+    font-size: 10px;
+    min-width: 30px;
+    height: 22px;
+  }
+  
+  /* Make checkboxes smaller on mobile */
+  #legendDiv input[type="checkbox"] {
+    transform: scale(0.8);
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  #legendDiv {
+    max-height: 40vh;
+    min-width: 120px;
+    max-width: 150px;
+    font-size: 10px;
+    opacity: 0.8;
+  }
+  
+  #legendDiv:hover {
+    opacity: 1;
+  }
+  
+  #legendDiv .update-button,
+  #legendDiv .reset-button {
+    padding: 2px 6px;
+    font-size: 9px;
+    height: 20px;
+  }
+  
+  #legendDiv .fold-indicator,
+  #legendDiv .legend-toggle {
+    font-size: 10px;
+  }
+  
+  #legendDiv input[type="checkbox"] {
+    transform: scale(0.7);
+  }
+  
+  .time-travel-section .time-travel-button {
+    height: 18px;
+    font-size: 9px;
+  }
+}
+
+/* Mobile styles for color legend */
+@media (max-width: 768px) {
+  #colorLegendDiv {
+    top: var(--spacing-xs);
+    right: var(--spacing-xs);
+    padding: 6px;
+    gap: 2px;
+    font-size: 10px;
+  }
+  
+  #colorLegendDiv .legend-item {
+    padding: 2px;
+    gap: 4px;
+  }
+  
+  #colorLegendDiv .color-box {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+}
+
+/* Extra small screens - color legend */
+@media (max-width: 480px) {
+  #colorLegendDiv {
+    padding: 4px;
+    gap: 1px;
+    font-size: 9px;
+    opacity: 0.8;
+  }
+  
+  #colorLegendDiv:hover {
+    opacity: 1;
+  }
+  
+  #colorLegendDiv .legend-item {
+    padding: 1px;
+    gap: 3px;
+  }
+  
+  #colorLegendDiv .color-box {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+  }
+}
+
+/* Legend toggle button styles for mobile */
+.legend-toggle-button {
+  width: 100%;
+  padding: 4px;
+  margin-bottom: 6px;
+  background-color: rgba(225, 200, 116, 0.3);
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 11px;
+  text-align: center;
+  transition: background-color 0.2s;
+  font-family: var(--body-font);
+}
+
+.legend-toggle-button:hover {
+  background-color: rgba(225, 200, 116, 0.5);
+}
+
+/* Only show legend toggle buttons on mobile */
+@media (min-width: 769px) {
+  .legend-toggle-button {
+    display: none;
+  }
+}
+
+/* Enhance search UI for better mobile experience */
+@media (max-width: 480px) {
+  #search-container {
+    width: calc(100% - 120px); /* Avoid overlapping with buttons */
+    max-width: none;
+    bottom: 15px;
+  }
+  
+  #search-input {
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 20px;
+  }
+  
+  #search-results {
+    max-height: 300px;
+  }
+  
+  .search-result-item {
+    padding: 8px 12px;
+  }
+}
+
+/* Extra small screens - make search even smaller */
+@media (max-width: 380px) {
+  #search-container {
+    width: calc(100% - 150px);
+    bottom: 10px;
+    padding: 4px;
+    border-radius: 18px;
+  }
+  
+  #search-input {
+    padding: 6px 10px;
+    font-size: 12px;
+    border-radius: 16px;
+    height: 28px;
+    border-width: 1px;
+  }
+  
+  #search-results {
+    max-height: 250px;
+    margin-bottom: 6px;
+  }
+  
+  .search-result-item {
+    padding: 6px 8px;
+  }
+  
+  .result-title {
+    font-size: 11px;
+    margin-bottom: 3px;
+  }
+  
+  .result-metadata {
+    font-size: 9px;
+  }
+  
+  .result-doi {
+    font-size: 8px;
+  }
 }

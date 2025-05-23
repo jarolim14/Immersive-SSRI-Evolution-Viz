@@ -10,7 +10,7 @@ export const CONFIG = {
   // These features are only for development and should be disabled in production
   development: {
     // Enable/disable features used only during development
-    enabled: true,
+    enabled: false,
     // Video recording functionality for creating demo videos
     videoRecording: {
       enabled: true, // Master toggle for video recording feature

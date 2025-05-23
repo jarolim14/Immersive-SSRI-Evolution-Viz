@@ -19,13 +19,16 @@
   "author": "jarolim14",
   "license": "MIT",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build --mode production",
     "build:dev": "vite build --mode development",
     "build:prod": "vite build --mode production",
-    "generate-narration": "cd src/video/sound && npm run generate"
+    "generate-narration": "cd src/video/sound && npm run generate",
+    "share": "npx lt --port 5174",
+    "dev:share": "concurrently \"npm run dev\" \"npm run share\""
   },
   "devDependencies": {
+    "concurrently": "^8.2.2",
     "vite": "^5.3.5"
   },
   "dependencies": {

@@ -56,18 +56,36 @@ function createCamera() {
     CONFIG.cameraNearPlane,
     CONFIG.cameraFarPlane
   );
-  camera.position.set(CONFIG.cameraPosition.x, CONFIG.cameraPosition.y, CONFIG.cameraPosition.z);
-  camera.lookAt(CONFIG.cameraTarget.x, CONFIG.cameraTarget.y, CONFIG.cameraTarget.z);
+  camera.position.set(
+    CONFIG.cameraPosition.x,
+    CONFIG.cameraPosition.y,
+    CONFIG.cameraPosition.z
+  );
+  camera.lookAt(
+    CONFIG.cameraTarget.x,
+    CONFIG.cameraTarget.y,
+    CONFIG.cameraTarget.z
+  );
   return camera;
 }
 
 function createRenderer(canvas) {
+  // Get accurate viewport dimensions
+  const width = document.documentElement.clientWidth || window.innerWidth;
+  const height = document.documentElement.clientHeight || window.innerHeight;
+
+  // Update config with accurate dimensions
+  CONFIG.windowSizes.width = width;
+  CONFIG.windowSizes.height = height;
+
   const renderer = new THREE.WebGLRenderer({
     canvas,
     antialias: CONFIG.rendererAntialias,
+    powerPreference: "high-performance",
   });
-  renderer.setSize(CONFIG.windowSizes.width, CONFIG.windowSizes.height);
-  renderer.setPixelRatio(CONFIG.devicePixelRatio);
+
+  renderer.setSize(width, height, false); // false = don't update CSS
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.autoClearColor = CONFIG.rendererAutoClearColor;
   return renderer;
 }
@@ -103,9 +121,19 @@ function addHelpers(scene) {
 }
 
 export function handleResize(camera, renderer) {
-  CONFIG.windowSizes.width = window.innerWidth;
-  CONFIG.windowSizes.height = window.innerHeight;
-  camera.aspect = CONFIG.windowSizes.width / CONFIG.windowSizes.height;
+  // Get the actual client viewport dimensions
+  const width = document.documentElement.clientWidth || window.innerWidth;
+  const height = document.documentElement.clientHeight || window.innerHeight;
+
+  // Update the config
+  CONFIG.windowSizes.width = width;
+  CONFIG.windowSizes.height = height;
+
+  // Update camera
+  camera.aspect = width / height;
   camera.updateProjectionMatrix();
-  renderer.setSize(CONFIG.windowSizes.width, CONFIG.windowSizes.height);
+
+  // Update renderer
+  renderer.setSize(width, height, false); // false = don't update CSS
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 }
