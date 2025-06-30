@@ -118,8 +118,8 @@ export const CONFIG = {
   maxZoom: 50000,
 
   // File Paths and URLs
-  nodeDataUrl: "/data/nodes_2025-05-13-13-44-03scale2.json",
-  edgeDataUrl: "/data/smaller_edges_2025-05-13-13-44-03scale2.json",
+  nodeDataUrl: "data/nodes_2025-05-13-13-44-03scale2.json",
+  edgeDataUrl: "data/smaller_edges_2025-05-13-13-44-03scale2.json",
   clusterColorMapUrl: "data/cluster_color_map_2025.json",
   clusterLabelMapUrl: "data/cluster_label_map_2025.json",
   legendDataUrl: "data/legend_2025.json",

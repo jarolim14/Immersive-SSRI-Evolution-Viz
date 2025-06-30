@@ -23,6 +23,7 @@
     "build": "vite build --mode production",
     "build:dev": "vite build --mode development",
     "build:prod": "vite build --mode production",
+    "preview": "vite preview",
     "generate-narration": "cd src/video/sound && npm run generate",
     "share": "npx lt --port 5174",
     "dev:share": "concurrently \"npm run dev\" \"npm run share\""

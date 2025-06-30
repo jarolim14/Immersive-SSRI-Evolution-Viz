@@ -9,6 +9,12 @@ cemetry/
 # node_modules folder
 node_modules/
 
+static/
+# any build folder
+build/
+# any dist folder
+dist/
+
 # Video files
 *.mp4
 *.webm
