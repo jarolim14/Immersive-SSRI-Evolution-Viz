@@ -10,10 +10,10 @@ export const CONFIG = {
   // These features are only for development and should be disabled in production
   development: {
     // Enable/disable features used only during development
-    enabled: true,
+    enabled: false,
     // Video recording functionality for creating demo videos
     videoRecording: {
-      enabled: true, // Master toggle for video recording feature
+      enabled: false, // Master toggle for video recording feature
       showButton: true, // Whether to show the recording button
       defaultDuration: 30000, // Default recording duration in milliseconds (30 seconds)
       defaultFps: 60, // Default frames per second for recording
