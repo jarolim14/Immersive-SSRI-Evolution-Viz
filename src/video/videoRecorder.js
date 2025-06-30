@@ -140,11 +140,11 @@ class VideoRecorder {
       this.recorder = recorder;
 
       // Show recording UI and store the returned UI elements
-      this.recordingUI = showRecordingIndicator(
-        this.camera,
-        this.controls,
-        showOverlay
-      );
+      //this.recordingUI = showRecordingIndicator(
+      //  this.camera,
+      //  this.controls,
+      //  showOverlay
+      //);
 
       // Create demo sequence
       const sequencer = this.createDemoSequence();
@@ -1488,11 +1488,11 @@ class VideoRecorder {
         this.recorder = recorder;
 
         // Show recording UI and store the returned UI elements
-        this.recordingUI = showRecordingIndicator(
-          this.camera,
-          this.controls,
-          showOverlay
-        );
+        //this.recordingUI = showRecordingIndicator(
+        //  this.camera,
+        //  this.controls,
+        //  showOverlay
+        //);
 
         // Create demo sequence
         const sequencer = this.createDemoSequence();

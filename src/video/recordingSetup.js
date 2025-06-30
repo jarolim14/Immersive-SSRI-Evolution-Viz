@@ -86,9 +86,9 @@ export async function setupRecorder(canvas, duration = 60000, fps = 30) {
 
     // Create debug element to track capture type
     let captureTypeIndicator = null;
-    if (CONFIG.development.videoRecording.showAllUI) {
-      captureTypeIndicator = createCaptureTypeIndicator("Initializing...");
-    }
+    //if (CONFIG.development.videoRecording.showAllUI) {
+    //  captureTypeIndicator = createCaptureTypeIndicator("Initializing...");
+    //}
 
     // Check if we're running on localhost/127.0.0.1, which counts as secure
     const isLocalhost =
@@ -614,20 +614,9 @@ function createCaptureTypeIndicator(initialText) {
  * @param {string} text - New text to display
  */
 function updateCaptureTypeIndicator(indicator, text) {
-  if (indicator) {
-    indicator.textContent = text;
-
-    // Set color based on capture type
-    if (text.includes("screen capture")) {
-      indicator.style.backgroundColor = "rgba(37, 218, 165, 0.8)";
-    } else if (text.includes("canvas capture")) {
-      indicator.style.backgroundColor = "rgba(255, 61, 90, 0.8)";
-    } else if (text.includes("Error")) {
-      indicator.style.backgroundColor = "rgba(255, 0, 0, 0.8)";
-    }
-  } else {
-    return createCaptureTypeIndicator(text);
-  }
+  // Only log to console, do not update any UI
+  console.log(`[CaptureTypeIndicator] ${text}`);
+  return null;
 }
 
 /**
@@ -676,7 +665,7 @@ function showScreenSelectionGuide() {
       <strong>To capture UI elements like modals, please select "This Tab" in the dialog that appears.</strong>
     </p>
     <div style="margin: 15px 0; text-align: center;">
-      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0zIDEzQzMgMTAuNzkwOSA0Ljc5MDg2IDkgNyA5SDEyVjZMMyA2QzEuMzQzMTUgNiAwIDcuMzQzMTUgMCA5VjE1QzAgMTYuNjU2OSAxLjM0MzE1IDE4IDMgMThIMTJWMTVIN0M0Ljc5MDg2IDE1IDMgMTMuMjA5MSAzIDEzWiIgZmlsbD0iI2ZmM2Q1YSIvPjxwYXRoIGQ9Ik0yMSAxMUMyMSAxMy4yMDkxIDE5LjIwOTEgMTUgMTcgMTVIMTJWMThIMjFDMjIuNjU2OSAxOCAyNCAxNi42NTY5IDI0IDE1VjlDMjQgNy4zNDMxNSAyMi42NTY5IDYgMjEgNkgxMlY5SDE3QzE5LjIwOTEgOSAyMSAxMC43OTA5IDIxIDExWiIgZmlsbD0iI2ZmM2Q1YSIvPjwvc3ZnPg=="
+      <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0zIDEzQzMgMTAuNzkwOSA0Ljc5MDg2IDkgNyA9SDEyVjZMMyA2QzEuMzQzMTUgNiAwIDcuMzQzMTUgMCA5VjE1QzAgMTYuNjU2OSAxLjM0MzE1IDE4IDMgMThIMTJWMTVIN0M0Ljc5MDg2IDE1IDMgMTMuMjA5MSAzIDEzWiIgZmlsbD0iI2ZmM2Q1YSIvPjxwYXRoIGQ9Ik0yMSAxMUMyMSAxMy4yMDkxIDE5LjIwOTEgMTUgMTcgMTVIMTJWMThIMjFDMjIuNjU2OSAxOCAyNCAxNi42NTY5IDI0IDE1VjlDMjQgNy4zNDMxNSAyMi42NTY5IDYgMjEgNkgxMlY5SDE3QzE5LjIwOTEgOSAyMSAxMC43OTA5IDIxIDExWiIgZmlsbD0iI2ZmM2Q1YSIvPjwvc3ZnPg=="
            alt="Tab Icon"
            style="width: 50px; height: 50px;">
     </div>
