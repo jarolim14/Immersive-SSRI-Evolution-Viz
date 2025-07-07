@@ -2,6 +2,13 @@
 
 A Three.js-based interactive network visualization tool for academic papers that allows users to explore and analyze citation networks in 3D space. This project provides a modern, responsive interface for visualizing large-scale academic networks with features like time-based filtering, cluster analysis, and interactive exploration.
 
+This repository contains the code for the data visualization of the manuscript:
+
+**_The Evolution of SSRI Research: Trajectories of Knowledge Domains Across Four Decades_**
+
+> The visualization is based on the data analysis that can be found here: [SSRI-Evolution Analysis Repo]([https://github.com/jarolim14/Immersive-SSRI-Evolution-Viz](https://github.com/jarolim14/SSRI-Evolution))
+
+
 ## Features
 
 - Interactive 3D network visualization using Three.js
