@@ -6,7 +6,7 @@ This repository contains the code for the data visualization of the manuscript:
 
 **_The Evolution of SSRI Research: Trajectories of Knowledge Domains Across Four Decades_**
 
-> The visualization is based on the data analysis that can be found here: [SSRI-Evolution Analysis Repo]([https://github.com/jarolim14/Immersive-SSRI-Evolution-Viz](https://github.com/jarolim14/SSRI-Evolution))
+> The visualization is based on the data analysis that can be found here: [SSRI-Evolution Analysis Repo](https://github.com/jarolim14/SSRI-Evolution)
 
 
 ## Features
