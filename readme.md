@@ -1,4 +1,4 @@
-# Immersive 3D SSRI Evolution
+# Immersive SSRI Evolution in 3D
 
 A Three.js-based interactive network visualization tool for academic papers that allows users to explore and analyze citation networks in 3D space. This project provides a modern, responsive interface for visualizing large-scale academic networks with features like time-based filtering, cluster analysis, and interactive exploration.
 
