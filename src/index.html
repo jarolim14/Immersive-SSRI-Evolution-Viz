@@ -72,11 +72,11 @@
         border-color: #ff3d5a;
       }
       /* Reopen button bottom-right */
-      /* Reopen button position tweaks to avoid overlap */
+      /* Reopen button positioned to the left of credits button */
       .reopen-button {
         position: fixed;
-        bottom: 92px; /* lift above bottom UI to avoid overlap */
-        right: 16px;
+        bottom: 20px;
+        right: 60px; /* positioned to the left of credits button */
         z-index: 1001;
       }
     </style>
@@ -365,63 +365,85 @@
       ▶
     </button>
 
-    <script>
-      // Minimal controller for intro video behavior
-      (function () {
-        const overlay = document.getElementById("introVideoOverlay");
-        const video = document.getElementById("demoVideo");
-        const skipBtn = document.getElementById("skipVideoBtn");
-        // removed unmute button; use native controls or a click to enable sound
-        const reopenBtn = document.getElementById("reopenVideoBtn");
+    <script type="module">
+      // Intro video controller module
+      class IntroVideoController {
+        constructor() {
+          this.overlay = document.getElementById("introVideoOverlay");
+          this.video = document.getElementById("demoVideo");
+          this.skipBtn = document.getElementById("skipVideoBtn");
+          this.reopenBtn = document.getElementById("reopenVideoBtn");
+          this.isPlaying = false;
 
-        // Ensure autoplay works (muted) while app loads behind
-        function tryAutoplayMuted() {
+          this.init();
+        }
+
+        init() {
+          this.bindEvents();
+          this.tryAutoplayMuted();
+        }
+
+        bindEvents() {
+          this.skipBtn.addEventListener("click", () => this.hideOverlay());
+          this.reopenBtn.addEventListener("click", () =>
+            this.showOverlayAndReplay()
+          );
+
+          this.video.addEventListener("click", () => this.handleVideoClick());
+          this.video.addEventListener("ended", () => this.hideOverlay());
+          this.video.addEventListener("play", () => {
+            this.isPlaying = true;
+          });
+          this.video.addEventListener("pause", () => {
+            this.isPlaying = false;
+          });
+        }
+
+        tryAutoplayMuted() {
           try {
-            video.muted = true;
-            const playPromise = video.play();
+            this.video.muted = true;
+            const playPromise = this.video.play();
             if (playPromise && typeof playPromise.then === "function") {
               playPromise.catch(() => {
-                // Ignore; user can press Unmute or controls to start
+                // Ignore; user can press controls to start
               });
             }
           } catch (_) {}
         }
 
-        // Unmute requires user interaction in most browsers
-        function hideOverlay() {
-          overlay.classList.remove("show");
-        }
-
-        function showOverlayAndReplay() {
-          overlay.classList.add("show");
-          // Start muted to allow autoplay; user can unmute
-          video.currentTime = 0;
-          tryAutoplayMuted();
-        }
-
-        // Wire up buttons
-        skipBtn.addEventListener("click", hideOverlay);
-        reopenBtn.addEventListener("click", showOverlayAndReplay);
-
-        // Also allow clicking video to unmute if desired
-        video.addEventListener("click", function () {
-          if (video.muted) {
-            video.muted = false;
-            video.volume = 1.0;
-            video.play().catch(() => {});
+        handleVideoClick() {
+          if (this.video.muted) {
+            this.video.muted = false;
+            this.video.volume = 1.0;
+            this.video.play().catch(() => {});
           }
-        });
-
-        // When video ends, hide overlay but keep reopen button available
-        video.addEventListener("ended", hideOverlay);
-
-        // Kick off autoplay muted on load
-        if (document.readyState === "loading") {
-          document.addEventListener("DOMContentLoaded", tryAutoplayMuted);
-        } else {
-          tryAutoplayMuted();
         }
-      })();
+
+        hideOverlay() {
+          this.overlay.classList.remove("show");
+          // Pause video when overlay is hidden
+          if (this.isPlaying) {
+            this.video.pause();
+            this.isPlaying = false;
+          }
+        }
+
+        showOverlayAndReplay() {
+          this.overlay.classList.add("show");
+          this.video.currentTime = 0;
+          this.tryAutoplayMuted();
+        }
+      }
+
+      // Initialize when DOM is ready
+      if (document.readyState === "loading") {
+        document.addEventListener(
+          "DOMContentLoaded",
+          () => new IntroVideoController()
+        );
+      } else {
+        new IntroVideoController();
+      }
     </script>
   </body>
 </html>
