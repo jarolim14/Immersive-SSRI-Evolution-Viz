@@ -1,5 +1,9 @@
 # any data folder
 data/
+# Build artifacts
+build/
+dist/
+setup_tips.txt
 # any log folder
 log/
 # any temp folder
@@ -10,22 +14,13 @@ cemetry/
 node_modules/
 
 # static/ - commented out to allow data and video files for Netlify
-# static/
-# any build folder
-build/
-# any dist folder
-dist/
 
 # Video files
-*.mp4
-*.webm
-!*.webm.zip
-!*.mp4.zip
-
-# Build artifacts
-build/
-dist/
-setup_tips.txt
+# Allow video assets in static/video despite global ignores
+!static/video/*.webm
+!static/video/**/*.webm
+!static/video/*.mp4
+!static/video/**/*.mp4
 
 # Environment variables
 *.env
