@@ -367,13 +367,23 @@
           this.skipBtn = document.getElementById("skipVideoBtn");
           this.reopenBtn = document.getElementById("reopenVideoBtn");
           this.isPlaying = false;
+          this.container = this.overlay
+            ? this.overlay.querySelector(".video-container")
+            : null;
+          this.isMobile = this.detectMobile();
 
           this.init();
         }
 
         init() {
           this.bindEvents();
-          this.tryAutoplayMuted();
+          // On mobile, do not autoplay; require explicit play with sound
+          if (!this.isMobile) {
+            this.tryAutoplayMuted();
+          } else {
+            this.video.muted = false;
+            this.video.controls = true;
+          }
         }
 
         bindEvents() {
@@ -390,6 +400,16 @@
           this.video.addEventListener("pause", () => {
             this.isPlaying = false;
           });
+
+          // Close overlay when clicking outside the video container
+          if (this.overlay) {
+            this.overlay.addEventListener("click", (e) => {
+              if (!this.container) return;
+              if (!this.container.contains(e.target)) {
+                this.hideOverlay();
+              }
+            });
+          }
         }
 
         tryAutoplayMuted() {
@@ -405,6 +425,7 @@
         }
 
         handleVideoClick() {
+          if (this.isMobile) return; // rely on native controls on mobile
           if (this.video.muted) {
             this.video.muted = false;
             this.video.volume = 1.0;
@@ -424,7 +445,18 @@
         showOverlayAndReplay() {
           this.overlay.classList.add("show");
           this.video.currentTime = 0;
-          this.tryAutoplayMuted();
+          if (!this.isMobile) {
+            this.tryAutoplayMuted();
+          } else {
+            this.video.muted = false;
+          }
+        }
+
+        detectMobile() {
+          const ua = navigator.userAgent || navigator.vendor || window.opera;
+          const isTouch =
+            window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+          return /android|iphone|ipad|ipod/i.test(ua) || isTouch;
         }
       }
 
