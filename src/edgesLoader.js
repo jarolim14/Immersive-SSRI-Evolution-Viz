@@ -22,7 +22,10 @@ function initializeBufferGeometry(totalPoints) {
   const indices = []; // Line indices array
 
   // Create attributes
-  edgesGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  edgesGeometry.setAttribute(
+    "position",
+    new THREE.BufferAttribute(positions, 3)
+  );
   edgesGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
   edgesGeometry.setAttribute("visible", new THREE.BufferAttribute(visible, 1));
   edgesGeometry.setAttribute("year", new THREE.BufferAttribute(years, 1));
@@ -150,7 +153,15 @@ function parseEdgesData(data, clusterColorMap) {
     }
 
     // Store edge metadata
-    storeEdgeMetadata(id, source, target, weight, startVertexIndex, vertexIndex - 1, year);
+    storeEdgeMetadata(
+      id,
+      source,
+      target,
+      weight,
+      startVertexIndex,
+      vertexIndex - 1,
+      year
+    );
   });
 
   // Set the indices for the line segments
@@ -203,7 +214,7 @@ export function updateVisibilityByYear(minYear, maxYear) {
 
   for (let i = 0; i < visibilityArray.length; i++) {
     const year = yearsArray[i];
-    visibilityArray[i] = (year >= minYear && year <= maxYear) ? 1 : 0;
+    visibilityArray[i] = year >= minYear && year <= maxYear ? 1 : 0;
   }
 
   edgesGeometry.attributes.visible.needsUpdate = true;
