@@ -26,11 +26,14 @@
     "preview": "vite preview",
     "generate-narration": "cd src/video/sound && npm run generate",
     "share": "npx lt --port 5174",
-    "dev:share": "concurrently \"npm run dev\" \"npm run share\""
+    "dev:share": "concurrently \"npm run dev\" \"npm run share\"",
+    "deploy:cf": "npm run build && wrangler pages deploy dist",
+    "deploy:cf:preview": "npm run build && wrangler pages deploy dist --compatibility-date=2024-01-01"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "vite": "^5.3.5"
+    "vite": "^5.3.5",
+    "wrangler": "^3.0.0"
   },
   "dependencies": {
     "csv-parser": "^3.0.0",

@@ -17,12 +17,30 @@ export default defineConfig(({ command, mode }) => {
     build: {
       outDir: "../dist", // Output in the dist/ folder
       emptyOutDir: true, // Empty the folder first
-      sourcemap: true, // Add sourcemap
+      sourcemap: isProduction ? false : true, // Disable sourcemaps in production for security
       rollupOptions: {
         input: {
           main: resolve(__dirname, "src/index.html"),
         },
+        output: {
+          // Optimize chunk splitting for better caching
+          manualChunks: {
+            three: ["three"],
+            d3: ["d3"],
+            nouislider: ["nouislider"],
+          },
+        },
       },
+      // Optimize build for production
+      minify: isProduction ? "terser" : false,
+      terserOptions: isProduction
+        ? {
+            compress: {
+              drop_console: true, // Remove console.log in production
+              drop_debugger: true,
+            },
+          }
+        : undefined,
     },
     resolve: {
       alias: {

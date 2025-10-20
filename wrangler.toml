@@ -1,0 +1,18 @@
+# Cloudflare Pages Configuration
+# This file is used for Cloudflare Pages deployment
+
+name = "immersive-ssri-evolution-viz"
+compatibility_date = "2024-01-01"
+
+[env.production]
+# Production environment settings
+name = "immersive-ssri-evolution-viz"
+
+# Build configuration
+[build]
+command = "npm run build"
+publish = "dist"
+
+# Environment variables (if needed)
+# [env.production.vars]
+# NODE_ENV = "production"
