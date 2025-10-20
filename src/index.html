@@ -43,9 +43,18 @@
               <h3>What You're Looking At</h3>
               <ul>
                 <li>📄 Each node represents a scientific paper</li>
-                <li>🔗 A line between nodes represents a citation or high semantic similarity</li>
-                <li>🎨 Color represents the paper's overall category (see legend and topic hierarchy)</li>
-                <li>🌈 Shades within each color indicate clusters within that category</li>
+                <li>
+                  🔗 A line between nodes represents a citation or high semantic
+                  similarity
+                </li>
+                <li>
+                  🎨 Color represents the paper's overall category (see legend
+                  and topic hierarchy)
+                </li>
+                <li>
+                  🌈 Shades within each color indicate clusters within that
+                  category
+                </li>
                 <li>📍 Similar papers are positioned closer together</li>
               </ul>
             </div>
@@ -61,10 +70,19 @@
               <h3>Interactive Features</h3>
               <ul>
                 <li>🖱️ Click on a node to select it and view paper details</li>
-                <li>📅 Use the year slider to filter papers by publication date</li>
+                <li>
+                  📅 Use the year slider to filter papers by publication date
+                </li>
                 <li>🏷️ Toggle node visibility using the legend</li>
-                <li>⏳ Use <strong>Time Evolution</strong> to watch how clusters developed over time. Select clusters from the legend, adjust the year sliders, and click Play</li>
-                <li>🔍 Search for papers by title or DOI using the search box at the bottom</li>
+                <li>
+                  ⏳ Use <strong>Time Evolution</strong> to watch how clusters
+                  developed over time. Select clusters from the legend, adjust
+                  the year sliders, and click Play
+                </li>
+                <li>
+                  🔍 Search for papers by title or DOI using the search box at
+                  the bottom
+                </li>
               </ul>
             </div>
           </div>
@@ -79,7 +97,9 @@
         <div class="modal-footer">
           <div class="button-group">
             <button id="instructionsCloseBtn" class="close-btn">Got it!</button>
-            <button id="viewTopicHierarchyBtn" class="view-hierarchy-btn">View Topic Hierarchy</button>
+            <button id="viewTopicHierarchyBtn" class="view-hierarchy-btn">
+              View Topic Hierarchy
+            </button>
           </div>
         </div>
       </div>
@@ -95,7 +115,9 @@
             <div class="compatibility-items">
               <div class="compatibility-item">
                 <span class="label">MediaRecorder API:</span>
-                <span id="mediaRecorderSupport" class="status">Checking...</span>
+                <span id="mediaRecorderSupport" class="status"
+                  >Checking...</span
+                >
               </div>
               <div class="compatibility-item">
                 <span class="label">WebM/VP9 Codec:</span>
@@ -114,7 +136,10 @@
 
           <div class="video-info">
             <h3>About Video Recording</h3>
-            <p>This feature allows you to create a demonstration video of the visualization with programmed interactions. The video will show:</p>
+            <p>
+              This feature allows you to create a demonstration video of the
+              visualization with programmed interactions. The video will show:
+            </p>
             <ul>
               <li>Overview of the network</li>
               <li>Year-based filtering</li>
@@ -122,7 +147,12 @@
               <li>Paper search</li>
               <li>Time evolution</li>
             </ul>
-            <p><strong>Note:</strong> If your browser doesn't fully support video recording, a fallback method will be used to capture individual frames as images. These can be converted to video using external tools like FFmpeg.</p>
+            <p>
+              <strong>Note:</strong> If your browser doesn't fully support video
+              recording, a fallback method will be used to capture individual
+              frames as images. These can be converted to video using external
+              tools like FFmpeg.
+            </p>
           </div>
         </div>
         <div class="modal-footer">
@@ -211,7 +241,6 @@
             <ul>
               <li>Lukas Westphal</li>
               <li>Débora Gräf</li>
-
             </ul>
           </div>
           <div class="credits-section">
@@ -253,5 +282,23 @@
     </div>
 
     <script type="module" src="main.js"></script>
+    <video
+      id="demoVideo"
+      src="video/network-visualization-demo20250630.webm"
+      autoplay
+      muted
+      playsinline
+      preload="auto"
+      style="
+        position: fixed;
+        bottom: 16px;
+        left: 16px;
+        width: 360px;
+        max-width: 40vw;
+        border-radius: 8px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+        z-index: 1001;
+      "
+    ></video>
   </body>
 </html>

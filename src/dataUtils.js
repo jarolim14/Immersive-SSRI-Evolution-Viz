@@ -16,7 +16,32 @@ export async function loadJSONData(url) {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return await response.json();
+
+    const contentEncoding = response.headers.get("content-encoding") || "";
+    const isGzip =
+      url.endsWith(".gz") || contentEncoding.toLowerCase().includes("gzip");
+
+    if (!isGzip) {
+      return await response.json();
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+
+    // Prefer native DecompressionStream if available
+    if (typeof DecompressionStream !== "undefined") {
+      const ds = new DecompressionStream("gzip");
+      const decompressedStream = new Response(
+        new Blob([arrayBuffer]).stream().pipeThrough(ds)
+      );
+      const text = await decompressedStream.text();
+      return JSON.parse(text);
+    }
+
+    // Fallback to pako (dynamically imported to avoid bundle weight when not needed)
+    const { ungzip } = await import("pako");
+    const textDecoder = new TextDecoder();
+    const text = textDecoder.decode(ungzip(new Uint8Array(arrayBuffer)));
+    return JSON.parse(text);
   } catch (error) {
     console.error(`Error fetching data from ${url}:`, error);
     throw error;
@@ -34,7 +59,7 @@ export async function loadClusterColorMap(url) {
     clusterColorMap = Object.fromEntries(
       Object.entries(data).map(([key, value]) => [
         key,
-        new THREE.Color(value.rgb[0], value.rgb[1], value.rgb[2])
+        new THREE.Color(value.rgb[0], value.rgb[1], value.rgb[2]),
       ])
     );
     console.log("Cluster Color Map Successfully Loaded");

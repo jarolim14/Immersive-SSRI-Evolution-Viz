@@ -40,7 +40,8 @@
     "microsoft-cognitiveservices-speech-sdk": "^1.43.1",
     "nouislider": "^15.8.1",
     "path": "^0.12.7",
-    "three": "^0.158.0"
+    "three": "^0.158.0",
+    "pako": "^2.1.0"
   },
   "engines": {
     "node": ">=14.0.0",

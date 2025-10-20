@@ -9,7 +9,8 @@ cemetry/
 # node_modules folder
 node_modules/
 
-static/
+# static/ - commented out to allow data and video files for Netlify
+# static/
 # any build folder
 build/
 # any dist folder
