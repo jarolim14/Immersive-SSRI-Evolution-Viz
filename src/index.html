@@ -46,9 +46,10 @@
         align-items: center;
       }
       #demoVideo {
-        width: min(80vw, 1280px);
+        width: auto; /* use intrinsic width for best quality */
+        max-width: 90vw;
         height: auto;
-        max-height: 75vh;
+        max-height: 80vh;
         border-radius: 12px;
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
         background: #000;
@@ -71,22 +72,12 @@
         border-color: #ff3d5a;
       }
       /* Reopen button bottom-right */
-      #reopenVideoBtn {
+      /* Reopen button position tweaks to avoid overlap */
+      .reopen-button {
         position: fixed;
-        bottom: 16px;
+        bottom: 92px; /* lift above bottom UI to avoid overlap */
         right: 16px;
         z-index: 1001;
-        background: rgba(0, 0, 0, 0.6);
-        color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 50%;
-        width: 44px;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        backdrop-filter: blur(4px);
       }
     </style>
   </head>
@@ -360,14 +351,19 @@
           controls
         ></video>
         <div class="video-controls">
-          <button id="unmuteBtn" class="video-btn primary">Unmute</button>
           <button id="skipVideoBtn" class="video-btn">Skip</button>
         </div>
       </div>
     </div>
 
     <!-- Reopen video button -->
-    <button id="reopenVideoBtn" title="Replay intro video">▶</button>
+    <button
+      id="reopenVideoBtn"
+      class="help-button reopen-button"
+      title="Replay intro video"
+    >
+      ▶
+    </button>
 
     <script>
       // Minimal controller for intro video behavior
@@ -375,7 +371,7 @@
         const overlay = document.getElementById("introVideoOverlay");
         const video = document.getElementById("demoVideo");
         const skipBtn = document.getElementById("skipVideoBtn");
-        const unmuteBtn = document.getElementById("unmuteBtn");
+        // removed unmute button; use native controls or a click to enable sound
         const reopenBtn = document.getElementById("reopenVideoBtn");
 
         // Ensure autoplay works (muted) while app loads behind
@@ -392,14 +388,6 @@
         }
 
         // Unmute requires user interaction in most browsers
-        function handleUnmute() {
-          video.muted = false;
-          video.volume = 1.0;
-          video.play().catch(() => {
-            // If blocked, user can press native play
-          });
-        }
-
         function hideOverlay() {
           overlay.classList.remove("show");
         }
@@ -413,12 +401,15 @@
 
         // Wire up buttons
         skipBtn.addEventListener("click", hideOverlay);
-        unmuteBtn.addEventListener("click", handleUnmute);
         reopenBtn.addEventListener("click", showOverlayAndReplay);
 
         // Also allow clicking video to unmute if desired
         video.addEventListener("click", function () {
-          if (video.muted) handleUnmute();
+          if (video.muted) {
+            video.muted = false;
+            video.volume = 1.0;
+            video.play().catch(() => {});
+          }
         });
 
         // When video ends, hide overlay but keep reopen button available
