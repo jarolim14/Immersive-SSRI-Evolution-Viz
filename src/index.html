@@ -28,11 +28,12 @@
       .video-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.9);
+        background: rgba(0, 0, 0, 0.6);
         display: none;
         align-items: center;
         justify-content: center;
         z-index: 3000;
+        backdrop-filter: blur(2px);
       }
       .video-overlay.show {
         display: flex;
@@ -53,6 +54,23 @@
         border-radius: 12px;
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
         background: #000;
+        display: block;
+      }
+
+      /* Mobile video improvements */
+      @media (max-width: 768px) {
+        #demoVideo {
+          width: 100%;
+          max-width: 95vw;
+          max-height: 70vh;
+          border-radius: 8px;
+        }
+
+        .video-container {
+          max-width: 95vw;
+          max-height: 80vh;
+          padding: 10px;
+        }
       }
       .video-controls {
         display: flex;
@@ -383,6 +401,36 @@
           } else {
             this.video.muted = false;
             this.video.controls = true;
+            // Ensure video is visible on mobile
+            this.video.style.display = "block";
+            this.video.style.width = "100%";
+            this.video.style.height = "auto";
+
+            // Add loading event listeners
+            this.video.addEventListener("loadstart", () => {
+              console.log("Video loading started");
+            });
+
+            this.video.addEventListener("canplay", () => {
+              console.log("Video can start playing");
+            });
+
+            // Add a fallback if video doesn't load
+            this.video.addEventListener("error", () => {
+              console.log("Video failed to load, showing skip option");
+              this.showSkipOption();
+            });
+
+            // Add timeout fallback for mobile
+            setTimeout(() => {
+              if (this.video.readyState < 2) {
+                // HAVE_CURRENT_DATA
+                console.log(
+                  "Video taking too long to load, showing skip option"
+                );
+                this.showSkipOption();
+              }
+            }, 5000);
           }
         }
 
@@ -449,6 +497,16 @@
             this.tryAutoplayMuted();
           } else {
             this.video.muted = false;
+          }
+        }
+
+        showSkipOption() {
+          // Make skip button more prominent on mobile if video fails
+          if (this.skipBtn) {
+            this.skipBtn.style.background = "#ff3d5a";
+            this.skipBtn.style.fontSize = "18px";
+            this.skipBtn.style.padding = "12px 20px";
+            this.skipBtn.textContent = "Continue to App";
           }
         }
 
