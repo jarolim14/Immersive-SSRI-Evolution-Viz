@@ -118,20 +118,14 @@ export const CONFIG = {
   maxZoom: 50000,
 
   // File Paths and URLs
-  // Large files hosted on Cloudflare R2 (exceed 25MB Pages limit)
-  nodeDataUrl:
-    "https://pub-c6626fc9fb2d4524ac3d54f3fd3a939a.r2.dev/nodes_2025-05-13-13-44-03scale2.json",
-  edgeDataUrl:
-    "https://pub-c6626fc9fb2d4524ac3d54f3fd3a939a.r2.dev/smaller_edges_2025-05-13-13-44-03scale2.json.gz",
-  // Small files remain on Cloudflare Pages
+  nodeDataUrl: "data/nodes_2025-05-13-13-44-03scale2.json",
+  edgeDataUrl: "data/smaller_edges_2025-05-13-13-44-03scale2.json.gz",
   clusterColorMapUrl: "data/cluster_color_map_2025.json",
   clusterLabelMapUrl: "data/cluster_label_map_2025.json",
   legendDataUrl: "data/legend_2025.json",
   nodeTextureUrl: "textures/nodeTexture.png",
   spotlightTextureUrl: "textures/spotlightTexture.png",
-  // Video file hosted on Cloudflare R2
-  videoUrl:
-    "https://pub-c6626fc9fb2d4524ac3d54f3fd3a939a.r2.dev/network-visualization-demo20250630.webm",
+  videoUrl: "video/network-visualization-demo20250630.webm",
 
   // Search Functionality Configuration
   search: {

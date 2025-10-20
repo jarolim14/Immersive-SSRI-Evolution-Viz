@@ -1,45 +1,40 @@
-# Cloudflare Pages + R2 Deployment Guide
+# Netlify Deployment Guide
 
-This guide will help you deploy your ThreeJS Academic Network Visualization using Cloudflare Pages for the application and Cloudflare R2 for large data files.
+This guide will help you deploy your ThreeJS Academic Network Visualization to Netlify, which supports files up to 100MB.
 
 ## Architecture Overview
 
-This project uses a hybrid deployment approach:
-- **Cloudflare Pages**: Hosts the application code (HTML, JS, CSS, small assets) - **6.5MB total**
-- **Cloudflare R2**: Hosts large data files (97MB total) that exceed Pages' 25MB limit
+This project is deployed entirely on Netlify:
+- **Total size**: 103MB (within Netlify's 100MB limit per file)
+- **All files hosted together**: Application code + data files + video
   - `nodes_2025-05-13-13-44-03scale2.json` (12MB)
   - `smaller_edges_2025-05-13-13-44-03scale2.json.gz` (38MB) 
   - `network-visualization-demo20250630.webm` (47MB)
+  - Application files (6MB)
 
 ## Prerequisites
 
-1. **Cloudflare Account**: Sign up at [cloudflare.com](https://cloudflare.com) if you don't have one
+1. **Netlify Account**: Sign up at [netlify.com](https://netlify.com) if you don't have one
 2. **Node.js**: Ensure you have Node.js v14+ installed
 3. **Git Repository**: Your code should be in a Git repository (GitHub, GitLab, or Bitbucket)
-4. **Cloudflare R2 Bucket**: Set up for large file storage (see R2 Setup section)
 
-## R2 Setup (Required)
+## Netlify Deployment
 
-### Step 1: Create R2 Bucket
-1. Go to Cloudflare Dashboard → R2 Object Storage
-2. Click "Create bucket"
-3. Name: `immersive-ssri-data` (or your preferred name)
-4. Make it **public** (for web access)
+### Step 1: Connect to Git Repository
+1. Go to [netlify.com](https://netlify.com) and sign in
+2. Click "New site from Git"
+3. Choose your Git provider (GitHub, GitLab, or Bitbucket)
+4. Select your repository
 
-### Step 2: Upload Large Files
-Upload these files to your R2 bucket:
-- `nodes_2025-05-13-13-44-03scale2.json` (12MB)
-- `smaller_edges_2025-05-13-13-44-03scale2.json.gz` (38MB)
-- `network-visualization-demo20250630.webm` (47MB)
+### Step 2: Configure Build Settings
+- **Build command**: `npm run build`
+- **Publish directory**: `dist`
+- **Node version**: 18 (or latest)
 
-### Step 3: Get Public URLs
-1. For each file, click "..." → "Copy URL"
-2. Update the URLs in `src/config.production.js`:
-   ```javascript
-   nodeDataUrl: "https://your-bucket.your-account.r2.dev/nodes_2025-05-13-13-44-03scale2.json",
-   edgeDataUrl: "https://your-bucket.your-account.r2.dev/smaller_edges_2025-05-13-13-44-03scale2.json.gz",
-   videoUrl: "https://your-bucket.your-account.r2.dev/network-visualization-demo20250630.webm"
-   ```
+### Step 3: Deploy
+1. Click "Deploy site"
+2. Netlify will automatically build and deploy your site
+3. Your app will be available at `https://your-site-name.netlify.app`
 
 ## Deployment Methods
 
