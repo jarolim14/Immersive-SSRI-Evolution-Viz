@@ -1,0 +1,578 @@
+{
+  "overview": {
+    "name": "Topic Overview",
+    "children": [
+      {
+        "name": "Pharmacology",
+        "children": [
+          {
+            "name": "Pharmacodynamics",
+            "children": [
+              {
+                "name": "Mechanism of action"
+              },
+              {
+                "name": "Animal Models of Disorders"
+              },
+              {
+                "name": "Other"
+              }
+            ]
+          },
+          {
+            "name": "Pharmacokinetics"
+          },
+          {
+            "name": "Pharmacogenetics"
+          },
+          {
+            "name": "Analytical Methods"
+          },
+          {
+            "name": "Other Pharmacology"
+          }
+        ]
+      },
+      {
+        "name": "Indications",
+        "children": [
+          {
+            "name": "Depressive Disorders"
+          },
+          {
+            "name": "Anxiety"
+          },
+          {
+            "name": "OCD"
+          },
+          {
+            "name": "Weight and Eating Disorders"
+          },
+          {
+            "name": "Substance Abuse/Addictions"
+          },
+          {
+            "name": "Other"
+          }
+        ]
+      },
+      {
+        "name": "Safety",
+        "children": [
+          {
+            "name": "Special Populations",
+            "children": [
+              {
+                "name": "Pediatrics"
+              },
+              {
+                "name": "Geriatrics"
+              },
+              {
+                "name": "Other"
+              }
+            ]
+          },
+          {
+            "name": "Perinatal Exposure"
+          },
+          {
+            "name": "Other"
+          }
+        ]
+      },
+      {
+        "name": "Other",
+        "children": [
+          {
+            "name": "Ecotoxicology"
+          },
+          {
+            "name": "Other"
+          }
+        ]
+      }
+    ]
+  },
+  "pharmacology": {
+    "name": "Pharmacology",
+    "children": [
+      {
+        "name": "Pharmacodynamics",
+        "children": [
+          {
+            "name": "Mechanism of action",
+            "children": [
+              {
+                "name": "Serotonin Receptor Modulation in SSRI Treatment"
+              },
+              {
+                "name": "Impact of SSRIs on Neurogenesis"
+              },
+              {
+                "name": "SSRIs Effect on Neural Processing of Emotional Cues"
+              },
+              {
+                "name": "Neuroimaging of Serotonin Transporters"
+              },
+              {
+                "name": "SSRIs Effects on Ion Channels"
+              },
+              {
+                "name": "Methylenedioxymethamphetamine (MDMA) Induced Neurotoxicity"
+              },
+              {
+                "name": "SSRIs Effect on Pulmonary Hypertension"
+              },
+              {
+                "name": "Non-SERT Transporters in Antidepressant Action"
+              },
+              {
+                "name": "SERT Binding Mechanisms"
+              },
+              {
+                "name": "Astrocyte Receptors as a Target for SSRIs"
+              },
+              {
+                "name": "SSRIs Effect on Dopamine Receptors"
+              },
+              {
+                "name": "SSRIs Effects on Antimicrobials and Gut Microbiome"
+              },
+              {
+                "name": "Neurometabolite Changes with Antidepressants"
+              },
+              {
+                "name": "Galanin System in Antidepressant Action"
+              },
+              {
+                "name": "SSRIs Effect on Brain-derived Neurotrophic Factor (BDNF) Levels in Depressive Patients"
+              }
+            ]
+          },
+          {
+            "name": "Animal Models of Disorders",
+            "children": [
+              {
+                "name": "The Chronic Unpredictable Mild Stress Model of Depression"
+              },
+              {
+                "name": "SSRIs in Forced Swimming Test"
+              },
+              {
+                "name": "SSRIs Effect on Fear"
+              },
+              {
+                "name": "Serotonergic Modulation of Cocaine Effects"
+              }
+            ]
+          },
+          {
+            "name": "Other",
+            "children": [
+              {
+                "name": "Risk of Prenatal Exposure (Rodents)"
+              },
+              {
+                "name": "SSRIs in Model Organisms ( C. Elegans and Drosophilia)"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Pharmacokinetics",
+        "children": [
+          {
+            "name": "SSRIs and the Cytochrome P450 System"
+          }
+        ]
+      },
+      {
+        "name": "Pharmacogenetics",
+        "children": [
+          {
+            "name": "Serotonin Transporter Gene and Antidepressant Response"
+          },
+          {
+            "name": "Pharmacogenetics in SSRI Treatment"
+          }
+        ]
+      },
+      {
+        "name": "Analytical Methods",
+        "children": [
+          {
+            "name": "Analytical Methods for SSRI Detection and Quantification"
+          },
+          {
+            "name": "Paroxetine Binding to Serotonin Transporter"
+          },
+          {
+            "name": "Synthetic Chemistry of Paroxetine"
+          },
+          {
+            "name": "Laboratory Techniques for drug analysis"
+          },
+          {
+            "name": "SSRI Crystal Structure and Complexation"
+          }
+        ]
+      },
+      {
+        "name": "Other Pharmacology",
+        "children": [
+          {
+            "name": "Inflammatory Biomarkers"
+          },
+          {
+            "name": "Pharmacological Reviews"
+          },
+          {
+            "name": "Antidepressant Drug Design"
+          }
+        ]
+      }
+    ]
+  },
+  "indications": {
+    "name": "Indications",
+    "children": [
+      {
+        "name": "Depressive Disorders",
+        "children": [
+          {
+            "name": "SSRIs for Pediatric Depression"
+          },
+          {
+            "name": "SSRIs Effect on Neural Processing of Emotional Cues"
+          },
+          {
+            "name": "SSRIs in Forced Swimming Test"
+          },
+          {
+            "name": "Fluvoxamine for Depression"
+          },
+          {
+            "name": "Escitalopram for Depression"
+          },
+          {
+            "name": "Treatment Strategies and Outcomes in Depression"
+          },
+          {
+            "name": "SSRIs for Depression in Patients with Cardiovascular Disease"
+          },
+          {
+            "name": "SSRIs for Bipolar Depression"
+          },
+          {
+            "name": "Venlafaxine vs SSRIs for Depression"
+          },
+          {
+            "name": "SSRIs for Depression in Diabetes Patients"
+          },
+          {
+            "name": "SSRIs for Depression with Cognitive Impairment"
+          },
+          {
+            "name": "SSRIs for Depression in Parkinsons Patients"
+          },
+          {
+            "name": "SSRIs for Depression in in Epileptic Patients"
+          },
+          {
+            "name": "SSRIs and Augmentation for Treatment Resistant Depression"
+          },
+          {
+            "name": "SSRIs for Depression, Comparative Effectiveness"
+          },
+          {
+            "name": "SSRIs for Geriatric Depression"
+          },
+          {
+            "name": "Agomelatin for Depression"
+          },
+          {
+            "name": "Depression Treatment Guidelines"
+          },
+          {
+            "name": "Sertraline for Depression"
+          },
+          {
+            "name": "SSRIs for Depression after Traumatic Brain Injury"
+          },
+          {
+            "name": "SSRIs Effect on Brain-derived Neurotrophic Factor (BDNF) Levels in Depressive Patients"
+          },
+          {
+            "name": "SSRIs for Depression in Cancer Patients"
+          },
+          {
+            "name": "SSRIs for Postpartum Depression"
+          },
+          {
+            "name": "SSRIs Long-term Efficacy and Recurrent Depression"
+          }
+        ]
+      },
+      {
+        "name": "Anxiety",
+        "children": [
+          {
+            "name": "SSRIs Effect on Fear"
+          },
+          {
+            "name": "SSRIs for Generalized Anxiety Disorder"
+          },
+          {
+            "name": "SSRIs for Panic Disorder"
+          },
+          {
+            "name": "SSRIs for Social Anxiety Disorder"
+          }
+        ]
+      },
+      {
+        "name": "OCD",
+        "children": [
+          {
+            "name": "SSRIs for OCD"
+          },
+          {
+            "name": "SSRIs for Body Dysmorphic Disorder (BDD)"
+          }
+        ]
+      },
+      {
+        "name": "Weight and Eating Disorders",
+        "children": [
+          {
+            "name": "SSRIs for Weight Management"
+          },
+          {
+            "name": "SSRIs for Eating Disorders"
+          }
+        ]
+      },
+      {
+        "name": "Substance Abuse/Addictions",
+        "children": [
+          {
+            "name": "SSRIs for Alcohol Dependence"
+          },
+          {
+            "name": "Serotonergic Modulation of Cocaine Effects"
+          }
+        ]
+      },
+      {
+        "name": "Other",
+        "children": [
+          {
+            "name": "SSRIs for PTSD"
+          },
+          {
+            "name": "SSRIs for Pain"
+          },
+          {
+            "name": "Fluvoxamine for Covid 19"
+          },
+          {
+            "name": "SSRIs Effect on Sleep"
+          },
+          {
+            "name": "SSRIs for Menopausal Vasomotor Symptoms (Hot flashes)"
+          },
+          {
+            "name": "Premature Ejaculation"
+          },
+          {
+            "name": "SSRIs for Irritable Bowel Syndrome"
+          },
+          {
+            "name": "SSRIs for Premenstrual Dysphoric Disorder (PMDD)"
+          },
+          {
+            "name": "SSRIs for (Psycho)dermatological Diseases"
+          },
+          {
+            "name": "SSRIs for Autism Spectrum Disorders"
+          },
+          {
+            "name": "SSRIs (Fluvoxamine) for Schizophrenia"
+          },
+          {
+            "name": "SSRIs Effect on Pulmonary Hypertension"
+          },
+          {
+            "name": "SSRIs for Borderline Personality Disorder"
+          },
+          {
+            "name": "Antifungal Activity of Sertraline"
+          },
+          {
+            "name": "SSRIs for Fibromyalgia"
+          }
+        ]
+      }
+    ]
+  },
+  "safety": {
+    "name": "Safety",
+    "children": [
+      {
+        "name": "Special Populations",
+        "children": [
+          {
+            "name": "Pediatrics",
+            "children": [
+              {
+                "name": "SSRIs for Pediatric Depression"
+              },
+              {
+                "name": "Suicice Risk"
+              }
+            ]
+          },
+          {
+            "name": "Geriatrics",
+            "children": [
+              {
+                "name": "Post-Stroke SSRI Use"
+              },
+              {
+                "name": "SSRIs for Depression in Patients with Cardiovascular Disease"
+              },
+              {
+                "name": "SSRIs in Dementias"
+              },
+              {
+                "name": "SSRIs for Depression with Cognitive Impairment"
+              },
+              {
+                "name": "SSRIs for Depression in Parkinsons Patients"
+              },
+              {
+                "name": "SSRIs for Geriatric Depression"
+              }
+            ]
+          },
+          {
+            "name": "Other",
+            "children": [
+              {
+                "name": "SSRIs for Depression in Diabetes Patients"
+              },
+              {
+                "name": "SSRIs for Depression in in Epileptic Patients"
+              },
+              {
+                "name": "SSRIs for Depression after Traumatic Brain Injury"
+              },
+              {
+                "name": "SSRIs for Depression in Cancer Patients"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Perinatal Exposure",
+        "children": [
+          {
+            "name": "Risk of Prenatal Exposure"
+          },
+          {
+            "name": "Risk of Prenatal Exposure (Rodents)"
+          },
+          {
+            "name": "SSRI Effects on Lactation"
+          },
+          {
+            "name": "SSRIs for Postpartum Depression"
+          }
+        ]
+      },
+      {
+        "name": "Other",
+        "children": [
+          {
+            "name": "Sexual Dysfunction"
+          },
+          {
+            "name": "Serotonin Syndrome"
+          },
+          {
+            "name": "Bleeding Risk"
+          },
+          {
+            "name": "Oncopreventive and Oncolytic Properties of SSRIs"
+          },
+          {
+            "name": "Suicice Risk"
+          },
+          {
+            "name": "Fracture Risk"
+          },
+          {
+            "name": "Hepatotoxic Risk"
+          },
+          {
+            "name": "Pharmacovigilance of SSRIs"
+          },
+          {
+            "name": "QTC Prolongation"
+          },
+          {
+            "name": "Extrapyramidal Reactions Risk"
+          },
+          {
+            "name": "Forensic Toxicology of Fatal Overdoses"
+          },
+          {
+            "name": "Withdrawal Symptoms"
+          },
+          {
+            "name": "Hyponatremia Risk"
+          },
+          {
+            "name": "SRRIs and Ocular Safety"
+          }
+        ]
+      }
+    ]
+  },
+  "other": {
+    "name": "Other",
+    "children": [
+      {
+        "name": "Ecotoxicology",
+        "children": [
+          {
+            "name": "Aquatic Ecotoxicology"
+          },
+          {
+            "name": "Environmental Degradation of Antidepressants"
+          }
+        ]
+      },
+      {
+        "name": "Other",
+        "children": [
+          {
+            "name": "SSRI Utilization Patterns"
+          },
+          {
+            "name": "Antidepressant-like Effects of Herbal Extracts in Animal Models"
+          },
+          {
+            "name": "Pharmacoeconomics of SSRIs for Depression"
+          },
+          {
+            "name": "Canine Behavioral Disorders"
+          }
+        ]
+      }
+    ]
+  }
+}
