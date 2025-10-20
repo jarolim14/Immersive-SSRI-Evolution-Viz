@@ -776,6 +776,10 @@ input[type="range"]::-webkit-slider-thumb:active {
   right: 70px;
 }
 
+.video-button {
+  right: 120px;
+}
+
 .help-button:hover {
   transform: scale(1.1);
   background-color: var(--button-success);
@@ -800,6 +804,10 @@ input[type="range"]::-webkit-slider-thumb:active {
   .credits-button {
     right: 55px;
   }
+  
+  .video-button {
+    right: 95px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -813,6 +821,10 @@ input[type="range"]::-webkit-slider-thumb:active {
   
   .credits-button {
     right: 44px;
+  }
+  
+  .video-button {
+    right: 78px;
   }
   
   /* Adjust search container to avoid overlap with buttons */
