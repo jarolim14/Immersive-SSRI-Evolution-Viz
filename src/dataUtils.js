@@ -17,11 +17,14 @@ export async function loadJSONData(url) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const contentEncoding = response.headers.get("content-encoding") || "";
-    const isGzip =
-      url.endsWith(".gz") || contentEncoding.toLowerCase().includes("gzip");
+    const contentEncoding = (
+      response.headers.get("content-encoding") || ""
+    ).toLowerCase();
+    const isGzipUrl = url.endsWith(".gz");
+    const alreadyDecodedByBrowser = contentEncoding.includes("gzip");
 
-    if (!isGzip) {
+    // If not a .gz URL or if the browser already decompressed due to Content-Encoding, parse as JSON directly
+    if (!isGzipUrl || alreadyDecodedByBrowser) {
       return await response.json();
     }
 
