@@ -16,7 +16,11 @@ node_modules/
 # static/ - commented out to allow data and video files for Netlify
 
 # Video files
-# Allow video assets in static/video despite global ignores
+# Ignore globally, but allow video assets in static/video
+*.mp4
+*.webm
+!*.webm.zip
+!*.mp4.zip
 !static/video/*.webm
 !static/video/**/*.webm
 !static/video/*.mp4

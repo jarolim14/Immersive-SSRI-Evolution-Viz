@@ -37,8 +37,11 @@ export async function loadJSONData(url) {
       return JSON.parse(text);
     }
 
-    // Fallback to pako (dynamically imported to avoid bundle weight when not needed)
-    const { ungzip } = await import("pako");
+    // Fallback to pako via CDN to avoid bundling/resolution issues
+    const { ungzip } = await import(
+      /* @vite-ignore */
+      "https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.esm.mjs"
+    );
     const textDecoder = new TextDecoder();
     const text = textDecoder.decode(ungzip(new Uint8Array(arrayBuffer)));
     return JSON.parse(text);
