@@ -100,9 +100,6 @@ async function initializeScene() {
   instructionsModal.initialize();
   creditsModal.initialize();
 
-  // Initialize mobile-specific legend features
-  initializeMobileLegends();
-
   try {
     const { scene, camera, renderer, controls, parent } = createScene(canvas);
     camera.isPerspectiveCamera = true;
@@ -140,6 +137,9 @@ async function initializeScene() {
 
     initializeSelectionMesh(scene);
     await initializeLegend(CONFIG.legendDataUrl);
+
+    // Initialize mobile-specific legend features AFTER main legend is created
+    initializeMobileLegends();
 
     const sliderContainer = document.createElement("div");
     sliderContainer.id = "year-slider-container";

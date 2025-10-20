@@ -23,8 +23,8 @@ function setupCollapsibleLegend(legendId, title) {
   const legendDiv = document.getElementById(legendId);
   if (!legendDiv) return;
 
-  // Save original content
-  const originalContent = legendDiv.innerHTML;
+  // Check if already has mobile wrapper
+  if (legendDiv.querySelector(".legend-toggle-button")) return;
 
   // Create toggle button
   const toggleButton = document.createElement("button");
@@ -41,13 +41,16 @@ function setupCollapsibleLegend(legendId, title) {
   toggleButton.style.fontSize = "11px";
   toggleButton.style.textAlign = "center";
 
-  // Create content container
+  // Wrap existing content in a container
   const contentContainer = document.createElement("div");
   contentContainer.className = "legend-content";
-  contentContainer.innerHTML = originalContent;
 
-  // Clear legend and add new elements
-  legendDiv.innerHTML = "";
+  // Move all existing children to the content container
+  while (legendDiv.firstChild) {
+    contentContainer.appendChild(legendDiv.firstChild);
+  }
+
+  // Add toggle button and content container to the legend div
   legendDiv.appendChild(toggleButton);
   legendDiv.appendChild(contentContainer);
 
@@ -84,8 +87,33 @@ function handleResize() {
   // If we're now on desktop but have toggle buttons
   else {
     if (legendDiv && legendDiv.querySelector(".legend-toggle-button")) {
-      // Restore original content from local storage or reload page
-      window.location.reload();
+      // Restore original content by removing mobile wrapper
+      const contentContainer = legendDiv.querySelector(".legend-content");
+      if (contentContainer) {
+        // Move all content back to the main div
+        while (contentContainer.firstChild) {
+          legendDiv.appendChild(contentContainer.firstChild);
+        }
+        // Remove the mobile wrapper elements
+        legendDiv.querySelector(".legend-toggle-button").remove();
+        contentContainer.remove();
+      }
+    }
+    if (
+      colorLegendDiv &&
+      colorLegendDiv.querySelector(".legend-toggle-button")
+    ) {
+      // Restore original content by removing mobile wrapper
+      const contentContainer = colorLegendDiv.querySelector(".legend-content");
+      if (contentContainer) {
+        // Move all content back to the main div
+        while (contentContainer.firstChild) {
+          colorLegendDiv.appendChild(contentContainer.firstChild);
+        }
+        // Remove the mobile wrapper elements
+        colorLegendDiv.querySelector(".legend-toggle-button").remove();
+        contentContainer.remove();
+      }
     }
   }
 }
