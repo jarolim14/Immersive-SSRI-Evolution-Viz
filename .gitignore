@@ -1,5 +1,5 @@
 # any data folder
-data/
+
 # Build artifacts
 build/
 dist/
@@ -12,6 +12,9 @@ temp/
 cemetry/
 # node_modules folder
 node_modules/
+
+archive/
+
 
 # static/ - commented out to allow data and video files for Netlify
 
