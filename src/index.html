@@ -23,6 +23,72 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.6.3/nouislider.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <link rel="stylesheet" href="./style.css" />
+    <style>
+      /* Intro video overlay */
+      .video-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 3000;
+      }
+      .video-overlay.show {
+        display: flex;
+      }
+      .video-container {
+        max-width: 90vw;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+      }
+      #demoVideo {
+        width: min(80vw, 1280px);
+        height: auto;
+        max-height: 75vh;
+        border-radius: 12px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        background: #000;
+      }
+      .video-controls {
+        display: flex;
+        gap: 10px;
+      }
+      .video-btn {
+        background: #111;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      .video-btn.primary {
+        background: #ff3d5a;
+        border-color: #ff3d5a;
+      }
+      /* Reopen button bottom-right */
+      #reopenVideoBtn {
+        position: fixed;
+        bottom: 16px;
+        right: 16px;
+        z-index: 1001;
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        backdrop-filter: blur(4px);
+      }
+    </style>
   </head>
   <body>
     <!-- Instructions Modal -->
@@ -282,23 +348,89 @@
     </div>
 
     <script type="module" src="main.js"></script>
-    <video
-      id="demoVideo"
-      src="video/network-visualization-demo20250630.webm"
-      autoplay
-      muted
-      playsinline
-      preload="auto"
-      style="
-        position: fixed;
-        bottom: 16px;
-        left: 16px;
-        width: 360px;
-        max-width: 40vw;
-        border-radius: 8px;
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-        z-index: 1001;
-      "
-    ></video>
+
+    <!-- Centered intro video overlay -->
+    <div id="introVideoOverlay" class="video-overlay show">
+      <div class="video-container">
+        <video
+          id="demoVideo"
+          src="video/network-visualization-demo20250630.webm"
+          playsinline
+          preload="auto"
+          controls
+        ></video>
+        <div class="video-controls">
+          <button id="unmuteBtn" class="video-btn primary">Unmute</button>
+          <button id="skipVideoBtn" class="video-btn">Skip</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reopen video button -->
+    <button id="reopenVideoBtn" title="Replay intro video">▶</button>
+
+    <script>
+      // Minimal controller for intro video behavior
+      (function () {
+        const overlay = document.getElementById("introVideoOverlay");
+        const video = document.getElementById("demoVideo");
+        const skipBtn = document.getElementById("skipVideoBtn");
+        const unmuteBtn = document.getElementById("unmuteBtn");
+        const reopenBtn = document.getElementById("reopenVideoBtn");
+
+        // Ensure autoplay works (muted) while app loads behind
+        function tryAutoplayMuted() {
+          try {
+            video.muted = true;
+            const playPromise = video.play();
+            if (playPromise && typeof playPromise.then === "function") {
+              playPromise.catch(() => {
+                // Ignore; user can press Unmute or controls to start
+              });
+            }
+          } catch (_) {}
+        }
+
+        // Unmute requires user interaction in most browsers
+        function handleUnmute() {
+          video.muted = false;
+          video.volume = 1.0;
+          video.play().catch(() => {
+            // If blocked, user can press native play
+          });
+        }
+
+        function hideOverlay() {
+          overlay.classList.remove("show");
+        }
+
+        function showOverlayAndReplay() {
+          overlay.classList.add("show");
+          // Start muted to allow autoplay; user can unmute
+          video.currentTime = 0;
+          tryAutoplayMuted();
+        }
+
+        // Wire up buttons
+        skipBtn.addEventListener("click", hideOverlay);
+        unmuteBtn.addEventListener("click", handleUnmute);
+        reopenBtn.addEventListener("click", showOverlayAndReplay);
+
+        // Also allow clicking video to unmute if desired
+        video.addEventListener("click", function () {
+          if (video.muted) handleUnmute();
+        });
+
+        // When video ends, hide overlay but keep reopen button available
+        video.addEventListener("ended", hideOverlay);
+
+        // Kick off autoplay muted on load
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", tryAutoplayMuted);
+        } else {
+          tryAutoplayMuted();
+        }
+      })();
+    </script>
   </body>
 </html>
