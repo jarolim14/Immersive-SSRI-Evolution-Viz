@@ -131,6 +131,30 @@ npm run build:dev
 
 The built files will be available in the `dist/` directory.
 
+## Deployment
+
+This project is deployed on **Surge.sh** - a free static hosting service with no file size limits.
+
+### Quick Deploy
+
+```bash
+# Build and deploy in one command
+npm run deploy
+```
+
+### Manual Deploy
+
+```bash
+# Build the project
+npm run build
+
+# Navigate to dist folder and deploy
+cd dist
+npx surge
+```
+
+For detailed deployment instructions, see [SURGE_DEPLOYMENT.md](./SURGE_DEPLOYMENT.md).
+
 ## Key Technical Features
 
 ### Performance Optimizations

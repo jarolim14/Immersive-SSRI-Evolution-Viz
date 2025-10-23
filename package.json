@@ -27,13 +27,12 @@
     "generate-narration": "cd src/video/sound && npm run generate",
     "share": "npx lt --port 5174",
     "dev:share": "concurrently \"npm run dev\" \"npm run share\"",
-    "deploy:cf": "npm run build && wrangler pages deploy dist",
-    "deploy:cf:preview": "npm run build && wrangler pages deploy dist --compatibility-date=2024-01-01"
+    "deploy": "npm run build && cd dist && npx surge",
+    "deploy:surge": "npm run build && cd dist && npx surge"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "vite": "^5.3.5",
-    "wrangler": "^3.0.0"
+    "vite": "^5.3.5"
   },
   "dependencies": {
     "csv-parser": "^3.0.0",
@@ -42,9 +41,9 @@
     "fs": "^0.0.1-security",
     "microsoft-cognitiveservices-speech-sdk": "^1.43.1",
     "nouislider": "^15.8.1",
+    "pako": "^2.1.0",
     "path": "^0.12.7",
-    "three": "^0.158.0",
-    "pako": "^2.1.0"
+    "three": "^0.158.0"
   },
   "engines": {
     "node": ">=14.0.0",
