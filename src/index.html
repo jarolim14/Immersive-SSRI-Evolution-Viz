@@ -43,8 +43,31 @@
         max-height: 90vh;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 16px;
         align-items: center;
+      }
+      .video-intro-note {
+        background: rgba(0, 0, 0, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        max-width: 500px;
+        backdrop-filter: blur(10px);
+      }
+      .video-intro-note h3 {
+        color: #fff;
+        margin: 0 0 12px 0;
+        font-size: 1.4em;
+        font-weight: 600;
+        font-family: "Exo 2", sans-serif;
+      }
+      .video-intro-note p {
+        color: #ccc;
+        margin: 0;
+        font-size: 1em;
+        line-height: 1.5;
+        font-family: "Exo 2", sans-serif;
       }
       #demoVideo {
         width: auto; /* use intrinsic width for best quality */
@@ -70,6 +93,21 @@
           max-width: 95vw;
           max-height: 80vh;
           padding: 10px;
+          gap: 12px;
+        }
+        .video-intro-note {
+          padding: 15px;
+          max-width: 90vw;
+        }
+        .video-intro-note h3 {
+          font-size: 1.2em;
+        }
+        .video-intro-note p {
+          font-size: 0.9em;
+        }
+        .video-btn {
+          padding: 10px 20px;
+          font-size: 1em;
         }
       }
       .video-controls {
@@ -80,14 +118,31 @@
         background: #111;
         color: #fff;
         border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 6px;
-        padding: 8px 12px;
+        border-radius: 8px;
+        padding: 12px 24px;
         cursor: pointer;
-        font-family: inherit;
+        font-family: "Exo 2", sans-serif;
+        font-size: 1.1em;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .video-btn:hover {
+        background: #333;
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       }
       .video-btn.primary {
-        background: #ff3d5a;
+        background: linear-gradient(135deg, #ff3d5a, #ff6b7a);
         border-color: #ff3d5a;
+        box-shadow: 0 4px 15px rgba(255, 61, 90, 0.3);
+      }
+      .video-btn.primary:hover {
+        background: linear-gradient(135deg, #ff2d4a, #ff5a6b);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 61, 90, 0.4);
       }
       /* Reopen button bottom-right */
     </style>
@@ -152,6 +207,33 @@
                   the bottom
                 </li>
               </ul>
+            </div>
+
+            <div class="instruction-item">
+              <h3>📊 Data Analysis</h3>
+              <p>
+                This visualization is based on comprehensive bibliometric
+                analysis of SSRI-related research. For detailed information
+                about the data collection, processing, and analysis methodology,
+                visit the
+                <a
+                  href="https://github.com/jarolim14/SSRI-Evolution"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style="
+                    color: #4caf50;
+                    text-decoration: none;
+                    font-weight: 600;
+                  "
+                >
+                  SSRI-Evolution Analysis Repository </a
+                >.
+              </p>
+              <p style="font-size: 0.9em; color: #666; margin-top: 8px">
+                The repository contains the complete data analysis pipeline,
+                including Scopus API integration, network analysis, community
+                detection, and data preprocessing scripts.
+              </p>
             </div>
           </div>
         </div>
@@ -296,9 +378,9 @@
       <div class="modal-content">
         <h2>Credits</h2>
         <div class="credits-container">
-          <h3>Data Analysis</h3>
-          <ul>
-            <li>
+          <div class="credits-section">
+            <h3>Data Analysis</h3>
+            <p>
               Lukas Westphal
               <a
                 href="https://orcid.org/0000-0003-1452-609X"
@@ -312,8 +394,8 @@
                   style="width: 16px; height: 16px; vertical-align: middle"
                 />
               </a>
-            </li>
-          </ul>
+            </p>
+          </div>
 
           <div class="credits-section">
             <h3>Visualization</h3>
@@ -338,53 +420,79 @@
 
           <div class="credits-section">
             <h3>Conceptualization</h3>
-            <ul>
-              <li>
-                Lukas Westphal
-                <a
-                  href="https://orcid.org/0000-0003-1452-609X"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style="margin-left: 0.5em"
-                >
-                  <img
-                    src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png"
-                    alt="ORCID iD icon"
-                    style="width: 16px; height: 16px; vertical-align: middle"
-                  />
-                </a>
-              </li>
-              <li>
-                Débora Gräf
-                <a
-                  href="https://orcid.org/0000-0002-5900-540X"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style="margin-left: 0.5em"
-                >
-                  <img
-                    src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png"
-                    alt="ORCID iD icon"
-                    style="width: 16px; height: 16px; vertical-align: middle"
-                  />
-                </a>
-              </li>
-              <li>
-                Christine Hallgreen
-                <a
-                  href="https://orcid.org/0000-0002-7916-3915"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style="margin-left: 0.5em"
-                >
-                  <img
-                    src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png"
-                    alt="ORCID iD icon"
-                    style="width: 16px; height: 16px; vertical-align: middle"
-                  />
-                </a>
-              </li>
-            </ul>
+            <p>
+              Lukas Westphal
+              <a
+                href="https://orcid.org/0000-0003-1452-609X"
+                target="_blank"
+                rel="noopener noreferrer"
+                style="margin-left: 0.5em"
+              >
+                <img
+                  src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png"
+                  alt="ORCID iD icon"
+                  style="width: 16px; height: 16px; vertical-align: middle"
+                />
+              </a>
+            </p>
+            <p>
+              Débora Gräf
+              <a
+                href="https://orcid.org/0000-0002-5900-540X"
+                target="_blank"
+                rel="noopener noreferrer"
+                style="margin-left: 0.5em"
+              >
+                <img
+                  src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png"
+                  alt="ORCID iD icon"
+                  style="width: 16px; height: 16px; vertical-align: middle"
+                />
+              </a>
+            </p>
+            <p>
+              Christine Hallgreen
+              <a
+                href="https://orcid.org/0000-0002-7916-3915"
+                target="_blank"
+                rel="noopener noreferrer"
+                style="margin-left: 0.5em"
+              >
+                <img
+                  src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png"
+                  alt="ORCID iD icon"
+                  style="width: 16px; height: 16px; vertical-align: middle"
+                />
+              </a>
+            </p>
+          </div>
+
+          <div class="credits-section">
+            <h3>Data Analysis Repository</h3>
+            <p>
+              The data analysis code and methodology for this visualization can
+              be found in the accompanying repository:
+            </p>
+            <p>
+              <a
+                href="https://github.com/jarolim14/SSRI-Evolution"
+                target="_blank"
+                rel="noopener noreferrer"
+                style="
+                  color: #4caf50;
+                  text-decoration: none;
+                  font-weight: 600;
+                  font-size: 1.1em;
+                "
+              >
+                📊 SSRI-Evolution Analysis Repository
+              </a>
+            </p>
+            <p style="font-size: 0.9em; color: #888; margin-top: 10px">
+              This repository contains the complete data analysis pipeline,
+              including Scopus API integration, network analysis, community
+              detection, and data preprocessing scripts.
+            </p>
           </div>
         </div>
         <div class="modal-footer">
@@ -421,6 +529,13 @@
     <!-- Centered intro video overlay -->
     <div id="introVideoOverlay" class="video-overlay show">
       <div class="video-container">
+        <div class="video-intro-note">
+          <h3>🎬 Introduction Video</h3>
+          <p>
+            This is an introduction video showing the key features of the
+            visualization. You can skip it using the button below.
+          </p>
+        </div>
         <video
           id="demoVideo"
           src="video/network-visualization-demo20250630.webm"
@@ -429,7 +544,9 @@
           controls
         ></video>
         <div class="video-controls">
-          <button id="skipVideoBtn" class="video-btn">Skip</button>
+          <button id="skipVideoBtn" class="video-btn primary">
+            Skip Introduction
+          </button>
         </div>
       </div>
     </div>

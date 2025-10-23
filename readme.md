@@ -8,6 +8,17 @@ This repository contains the code for the data visualization of the manuscript:
 
 > The visualization is based on the data analysis that can be found here: [SSRI-Evolution Analysis Repo](https://github.com/jarolim14/SSRI-Evolution)
 
+## 🚀 Current Status
+
+**✅ LIVE AND DEPLOYED** - The interactive visualization is currently hosted and accessible worldwide.
+
+### Recent Updates
+- 🎬 **Introduction video** with skip functionality and user guidance
+- 🔗 **Analysis repository links** in both credits and instructions
+- 🎨 **Improved UI/UX** with consistent styling and professional design
+- 📱 **Mobile responsive** design for all devices
+- 🌐 **Global hosting** on Surge.sh with no file size limitations
+
 
 ## Features
 
@@ -25,6 +36,9 @@ This repository contains the code for the data visualization of the manuscript:
 - Spatial partitioning for efficient node management
 - Topic tree visualization
 - Interactive instructions and credits modal
+- Introduction video with skip functionality
+- Links to data analysis repository
+- Clean, professional UI design
 
 ## Project Structure
 
@@ -133,17 +147,28 @@ The built files will be available in the `dist/` directory.
 
 ## Deployment
 
-This project is deployed on **Surge.sh** - a free static hosting service with no file size limits.
+This project is **live and deployed** on **Surge.sh** - a free static hosting service with no file size limits.
 
-### Quick Deploy
+### 🌐 Live Application
 
+The interactive visualization is currently hosted and accessible worldwide via Surge.sh's global CDN.
+
+### Development & Updates
+
+#### Local Development
 ```bash
-# Build and deploy in one command
+# Start development server for testing
+npm run dev
+# App will be available at http://localhost:5173/
+```
+
+#### Deploy Updates
+```bash
+# Build and deploy updates in one command
 npm run deploy
 ```
 
-### Manual Deploy
-
+#### Manual Deploy
 ```bash
 # Build the project
 npm run build
@@ -152,6 +177,13 @@ npm run build
 cd dist
 npx surge
 ```
+
+### Deployment Features
+- ✅ **No file size limits** (handles 103MB+ project)
+- ✅ **Global CDN** for fast loading worldwide
+- ✅ **Automatic HTTPS** and security features
+- ✅ **Custom domain support**
+- ✅ **Instant deployment** updates
 
 For detailed deployment instructions, see [SURGE_DEPLOYMENT.md](./SURGE_DEPLOYMENT.md).
 
