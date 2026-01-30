@@ -10,7 +10,7 @@ This repository contains the code for the data visualization of the manuscript:
 
 ## 🚀 Current Status
 
-**✅ LIVE AND DEPLOYED** - The interactive visualization is currently hosted and accessible worldwide.
+**✅ LIVE AND DEPLOYED** - The interactive visualization is accesible [here](https://immersive-ssri-evolution.surge.sh/).
 
 ### Recent Updates
 - 🎬 **Introduction video** with skip functionality and user guidance
