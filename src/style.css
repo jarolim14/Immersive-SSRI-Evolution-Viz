@@ -1660,3 +1660,169 @@ body.node-selected #search-container:hover {
     font-size: 8px;
   }
 }
+
+/* ============================================
+   Video Introduction Overlay Styles
+   ============================================ */
+
+/* Video overlay background */
+.video-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  backdrop-filter: blur(2px);
+}
+
+.video-overlay.show {
+  display: flex;
+}
+
+/* Unified video frame container */
+.video-frame {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(26, 26, 26, 0.95);
+  border: 2px solid rgba(225, 200, 116, 0.5);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 0 20px rgba(225, 200, 116, 0.2), 0 12px 40px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  gap: 16px;
+  align-items: center;
+}
+
+/* Video frame header */
+.video-frame-header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.video-frame-header h3 {
+  color: var(--slider-color);
+  margin: 0 0 8px 0;
+  font-size: 1.4em;
+  font-weight: 600;
+  font-family: var(--header-font);
+}
+
+.video-frame-header p {
+  color: var(--text-light);
+  margin: 0;
+  font-size: 1em;
+  line-height: 1.5;
+  font-family: var(--main-font);
+  opacity: 0.9;
+}
+
+/* Video element */
+#demoVideo {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 70vh;
+  border-radius: 8px;
+  background: #000;
+  display: block;
+}
+
+/* Skip/Close button in top-right corner */
+.video-frame-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff3d5a, #ff6b7a);
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(255, 61, 90, 0.3);
+  transition: all 0.3s ease;
+  z-index: 10;
+  font-family: var(--main-font);
+  line-height: 1;
+  padding: 0;
+}
+
+.video-frame-close:hover {
+  background: linear-gradient(135deg, #ff2d4a, #ff5a6b);
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(255, 61, 90, 0.5);
+}
+
+.video-frame-close:active {
+  transform: scale(0.95);
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .video-frame {
+    max-width: 95vw;
+    max-height: 90vh;
+    padding: 15px;
+    gap: 12px;
+  }
+
+  .video-frame-header h3 {
+    font-size: 1.2em;
+  }
+
+  .video-frame-header p {
+    font-size: 0.9em;
+  }
+
+  #demoVideo {
+    max-width: 100%;
+    max-height: 60vh;
+    border-radius: 6px;
+  }
+
+  .video-frame-close {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    top: 12px;
+    right: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .video-frame {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .video-frame-header h3 {
+    font-size: 1.1em;
+  }
+
+  .video-frame-header p {
+    font-size: 0.85em;
+  }
+
+  #demoVideo {
+    max-height: 50vh;
+  }
+
+  .video-frame-close {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    top: 10px;
+    right: 10px;
+  }
+}

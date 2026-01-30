@@ -10,7 +10,7 @@ export const CONFIG = {
   // These features are only for development and should be disabled in production
   development: {
     // Enable/disable features used only during development
-    enabled: false,
+    enabled: true,
     // Video recording functionality for creating demo videos
     videoRecording: {
       enabled: false, // Master toggle for video recording feature
@@ -45,10 +45,10 @@ export const CONFIG = {
   },
   // Screenshot functionality
   screenshot: {
-    enabled: false, // Master toggle for screenshot feature
-    showButton: false, // Whether to show the screenshot button in the UI
+    enabled: true, // Master toggle for screenshot feature
+    showButton: true, // Whether to show the screenshot button in the UI
     format: "png", // Format of the screenshot (png or jpeg)
-    quality: 0.95, // Image quality (0-1) for jpeg format
+    quality: 0.99, // Image quality (0-1) for jpeg format
     filename: "network-screenshot", // Default filename for the screenshot (without extension)
   },
   // Renderer Configuration

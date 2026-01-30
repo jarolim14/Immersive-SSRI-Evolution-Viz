@@ -1,716 +1,455 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pharmaceuticals and Publications</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.6.3/nouislider.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <link rel="stylesheet" href="./style.css" />
-    <style>
-      /* Intro video overlay */
-      .video-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.6);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 3000;
-        backdrop-filter: blur(2px);
-      }
-      .video-overlay.show {
-        display: flex;
-      }
-      .video-container {
-        max-width: 90vw;
-        max-height: 90vh;
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        align-items: center;
-      }
-      .video-intro-note {
-        background: rgba(0, 0, 0, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        padding: 20px;
-        text-align: center;
-        max-width: 500px;
-        backdrop-filter: blur(10px);
-      }
-      .video-intro-note h3 {
-        color: #fff;
-        margin: 0 0 12px 0;
-        font-size: 1.4em;
-        font-weight: 600;
-        font-family: "Exo 2", sans-serif;
-      }
-      .video-intro-note p {
-        color: #ccc;
-        margin: 0;
-        font-size: 1em;
-        line-height: 1.5;
-        font-family: "Exo 2", sans-serif;
-      }
-      #demoVideo {
-        width: auto; /* use intrinsic width for best quality */
-        max-width: 90vw;
-        height: auto;
-        max-height: 80vh;
-        border-radius: 12px;
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-        background: #000;
-        display: block;
-      }
 
-      /* Mobile video improvements */
-      @media (max-width: 768px) {
-        #demoVideo {
-          width: 100%;
-          max-width: 95vw;
-          max-height: 70vh;
-          border-radius: 8px;
-        }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pharmaceuticals and Publications</title>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/14.6.3/nouislider.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <link rel="stylesheet" href="./style.css" />
+</head>
 
-        .video-container {
-          max-width: 95vw;
-          max-height: 80vh;
-          padding: 10px;
-          gap: 12px;
-        }
-        .video-intro-note {
-          padding: 15px;
-          max-width: 90vw;
-        }
-        .video-intro-note h3 {
-          font-size: 1.2em;
-        }
-        .video-intro-note p {
-          font-size: 0.9em;
-        }
-        .video-btn {
-          padding: 10px 20px;
-          font-size: 1em;
-        }
-      }
-      .video-controls {
-        display: flex;
-        gap: 10px;
-      }
-      .video-btn {
-        background: #111;
-        color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        padding: 12px 24px;
-        cursor: pointer;
-        font-family: "Exo 2", sans-serif;
-        font-size: 1.1em;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-      .video-btn:hover {
-        background: #333;
-        border-color: rgba(255, 255, 255, 0.4);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      }
-      .video-btn.primary {
-        background: linear-gradient(135deg, #ff3d5a, #ff6b7a);
-        border-color: #ff3d5a;
-        box-shadow: 0 4px 15px rgba(255, 61, 90, 0.3);
-      }
-      .video-btn.primary:hover {
-        background: linear-gradient(135deg, #ff2d4a, #ff5a6b);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(255, 61, 90, 0.4);
-      }
-      /* Reopen button bottom-right */
-    </style>
-  </head>
-  <body>
-    <!-- Instructions Modal -->
-    <div id="instructionsModal" class="modal">
-      <div class="modal-content">
-        <!-- Loading Section -->
-        <div id="loadingContent" class="modal-section">
-          <h2>Loading Data</h2>
-          <div class="loading-spinner"></div>
-          <p id="loadingStatus">Loading visualization data...</p>
-        </div>
-
-        <!-- Instructions Section -->
-        <div id="instructionsContent" class="modal-section">
-          <h2>Network Visualization Guide</h2>
-          <div class="instructions-container">
-            <div class="instruction-item">
-              <h3>What You're Looking At</h3>
-              <ul>
-                <li>📄 Each node represents a scientific paper</li>
-                <li>
-                  🔗 A line between nodes represents a citation or high semantic
-                  similarity
-                </li>
-                <li>
-                  🎨 Color represents the paper's overall category (see legend
-                  and topic hierarchy)
-                </li>
-                <li>
-                  🌈 Shades within each color indicate clusters within that
-                  category
-                </li>
-                <li>📍 Similar papers are positioned closer together</li>
-              </ul>
-            </div>
-            <div class="instruction-item">
-              <h3>Basic Controls</h3>
-              <ul>
-                <li>🖱️ Left Mouse Button: Rotate the view</li>
-                <li>🖱️ Right Mouse Button: Pan the view</li>
-                <li>🖱️ Mouse Wheel: Zoom in/out</li>
-              </ul>
-            </div>
-            <div class="instruction-item">
-              <h3>Interactive Features</h3>
-              <ul>
-                <li>🖱️ Click on a node to select it and view paper details</li>
-                <li>
-                  📅 Use the year slider to filter papers by publication date
-                </li>
-                <li>🏷️ Toggle node visibility using the legend</li>
-                <li>
-                  ⏳ Use <strong>Time Evolution</strong> to watch how clusters
-                  developed over time. Select clusters from the legend, adjust
-                  the year sliders, and click Play
-                </li>
-                <li>
-                  🔍 Search for papers by title or DOI using the search box at
-                  the bottom
-                </li>
-              </ul>
-            </div>
-
-            <div class="instruction-item">
-              <h3>📊 Data Analysis</h3>
-              <p>
-                This visualization is based on comprehensive bibliometric
-                analysis of SSRI-related research. For detailed information
-                about the data collection, processing, and analysis methodology,
-                visit the
-                <a
-                  href="https://github.com/jarolim14/SSRI-Evolution"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style="
-                    color: #4caf50;
-                    text-decoration: none;
-                    font-weight: 600;
-                  "
-                >
-                  SSRI-Evolution Analysis Repository </a
-                >.
-              </p>
-              <p style="font-size: 0.9em; color: #666; margin-top: 8px">
-                The repository contains the complete data analysis pipeline,
-                including Scopus API integration, network analysis, community
-                detection, and data preprocessing scripts.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Error Section -->
-        <div id="errorContent" class="modal-section">
-          <h2>Error</h2>
-          <p id="errorMessage"></p>
-        </div>
-
-        <div class="modal-footer">
-          <div class="button-group">
-            <button id="instructionsCloseBtn" class="close-btn">Got it!</button>
-            <button id="viewTopicHierarchyBtn" class="view-hierarchy-btn">
-              View Topic Hierarchy
-            </button>
-          </div>
-        </div>
+<body>
+  <!-- Instructions Modal -->
+  <div id="instructionsModal" class="modal">
+    <div class="modal-content">
+      <!-- Loading Section -->
+      <div id="loadingContent" class="modal-section">
+        <h2>Loading Data</h2>
+        <div class="loading-spinner"></div>
+        <p id="loadingStatus">Loading visualization data...</p>
       </div>
-    </div>
 
-    <!-- Video Recording Modal -->
-    <div id="videoRecordingModal" class="modal">
-      <div class="modal-content">
-        <h2>Video Recording</h2>
-        <div class="video-recording-container">
-          <div id="videoCompatibilityStatus" class="compatibility-status">
-            <h3>Browser Compatibility Check</h3>
-            <div class="compatibility-items">
-              <div class="compatibility-item">
-                <span class="label">MediaRecorder API:</span>
-                <span id="mediaRecorderSupport" class="status"
-                  >Checking...</span
-                >
-              </div>
-              <div class="compatibility-item">
-                <span class="label">WebM/VP9 Codec:</span>
-                <span id="webmVp9Support" class="status">Checking...</span>
-              </div>
-              <div class="compatibility-item">
-                <span class="label">WebM/VP8 Codec:</span>
-                <span id="webmVp8Support" class="status">Checking...</span>
-              </div>
-              <div class="compatibility-item">
-                <span class="label">MP4 Codec:</span>
-                <span id="mp4Support" class="status">Checking...</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="video-info">
-            <h3>About Video Recording</h3>
-            <p>
-              This feature allows you to create a demonstration video of the
-              visualization with programmed interactions. The video will show:
-            </p>
+      <!-- Instructions Section -->
+      <div id="instructionsContent" class="modal-section">
+        <h2>Network Visualization Guide</h2>
+        <div class="instructions-container">
+          <div class="instruction-item">
+            <h3>What You're Looking At</h3>
             <ul>
-              <li>Overview of the network</li>
-              <li>Year-based filtering</li>
-              <li>Cluster selection</li>
-              <li>Paper search</li>
-              <li>Time evolution</li>
-            </ul>
-            <p>
-              <strong>Note:</strong> If your browser doesn't fully support video
-              recording, a fallback method will be used to capture individual
-              frames as images. These can be converted to video using external
-              tools like FFmpeg.
-            </p>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button id="videoRecordingCloseBtn" class="close-btn">Close</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Help Button -->
-    <button id="helpButton" class="help-button">?</button>
-    <!-- Credits Button -->
-    <button id="creditsButton" class="help-button credits-button">©</button>
-
-    <!-- Canvas for WebGL rendering -->
-    <canvas class="webgl"></canvas>
-    <!-- Add the node id div element -->
-    <div id="nodeInfoDiv">Selected Node:</div>
-    <!-- Add legend to top right corner -->
-    <div id="legendDiv">
-      <button id="updateVisibility" class="update-button">
-        Update Selection
-      </button>
-      <button id="resetLegend" class="reset-button">Reset All</button>
-    </div>
-    <!-- Year slider -->
-    <div id="year-slider-container">
-      <div class="range_container">
-        <div class="sliders_control">
-          <input
-            id="fromSlider"
-            type="range"
-            value="1982"
-            min="1982"
-            max="2025"
-          />
-          <input
-            id="toSlider"
-            type="range"
-            value="2025"
-            min="1982"
-            max="2025"
-          />
-        </div>
-        <div class="form_control">
-          <span id="fromValue">1982</span>
-          <span id="toValue">2025</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Color legend -->
-    <div id="colorLegendDiv">
-      <div class="legend-item">
-        <div class="color-box pharmacology"></div>
-        <span>Pharmacology</span>
-      </div>
-      <div class="legend-item">
-        <div class="color-box indications"></div>
-        <span>Indications</span>
-      </div>
-      <div class="legend-item">
-        <div class="color-box safety"></div>
-        <span>Safety</span>
-      </div>
-      <div class="legend-item">
-        <div class="color-box other"></div>
-        <span>Other</span>
-      </div>
-    </div>
-
-    <!-- Credits Modal -->
-    <div id="creditsModal" class="modal">
-      <div class="modal-content">
-        <h2>Credits</h2>
-        <div class="credits-container">
-          <div class="credits-section">
-            <h3>Data Analysis</h3>
-            <p>
-              Lukas Westphal
-              <a
-                href="https://orcid.org/0000-0003-1452-609X"
-                target="_blank"
-                rel="noopener noreferrer"
-                style="margin-left: 0.5em"
-              >
-                <img
-                  src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png"
-                  alt="ORCID iD icon"
-                  style="width: 16px; height: 16px; vertical-align: middle"
-                />
-              </a>
-            </p>
-          </div>
-
-          <div class="credits-section">
-            <h3>Visualization</h3>
-            <ul>
+              <li>📄 Each node represents a scientific paper</li>
               <li>
-                Lukas Westphal
-                <a
-                  href="https://orcid.org/0000-0003-1452-609X"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style="margin-left: 0.5em"
-                >
-                  <img
-                    src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png"
-                    alt="ORCID iD icon"
-                    style="width: 16px; height: 16px; vertical-align: middle"
-                  />
-                </a>
+                🔗 A line between nodes represents a citation or high semantic
+                similarity
+              </li>
+              <li>
+                🎨 Color represents the paper's overall category (see legend
+                and topic hierarchy)
+              </li>
+              <li>
+                🌈 Shades within each color indicate clusters within that
+                category
+              </li>
+              <li>📍 Similar papers are positioned closer together</li>
+            </ul>
+          </div>
+          <div class="instruction-item">
+            <h3>Basic Controls</h3>
+            <ul>
+              <li>🖱️ Left Mouse Button: Rotate the view</li>
+              <li>🖱️ Right Mouse Button: Pan the view</li>
+              <li>🖱️ Mouse Wheel: Zoom in/out</li>
+            </ul>
+          </div>
+          <div class="instruction-item">
+            <h3>Interactive Features</h3>
+            <ul>
+              <li>🖱️ Click on a node to select it and view paper details</li>
+              <li>
+                📅 Use the year slider to filter papers by publication date
+              </li>
+              <li>🏷️ Toggle node visibility using the legend</li>
+              <li>
+                ⏳ Use <strong>Time Evolution</strong> to watch how clusters
+                developed over time. Select clusters from the legend, adjust
+                the year sliders, and click Play
+              </li>
+              <li>
+                🔍 Search for papers by title or DOI using the search box at
+                the bottom
               </li>
             </ul>
           </div>
 
-          <div class="credits-section">
-            <h3>Conceptualization</h3>
+          <div class="instruction-item">
+            <h3>📊 Data Analysis</h3>
             <p>
-              Lukas Westphal
-              <a
-                href="https://orcid.org/0000-0003-1452-609X"
-                target="_blank"
-                rel="noopener noreferrer"
-                style="margin-left: 0.5em"
-              >
-                <img
-                  src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png"
-                  alt="ORCID iD icon"
-                  style="width: 16px; height: 16px; vertical-align: middle"
-                />
-              </a>
-            </p>
-            <p>
-              Débora Gräf
-              <a
-                href="https://orcid.org/0000-0002-5900-540X"
-                target="_blank"
-                rel="noopener noreferrer"
-                style="margin-left: 0.5em"
-              >
-                <img
-                  src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png"
-                  alt="ORCID iD icon"
-                  style="width: 16px; height: 16px; vertical-align: middle"
-                />
-              </a>
-            </p>
-            <p>
-              Christine Hallgreen
-              <a
-                href="https://orcid.org/0000-0002-7916-3915"
-                target="_blank"
-                rel="noopener noreferrer"
-                style="margin-left: 0.5em"
-              >
-                <img
-                  src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png"
-                  alt="ORCID iD icon"
-                  style="width: 16px; height: 16px; vertical-align: middle"
-                />
-              </a>
+              This visualization is based on comprehensive bibliometric
+              analysis of SSRI-related research. For detailed information
+              about the data collection, processing, and analysis,
+              visit the
+              <a href="https://github.com/jarolim14/SSRI-Evolution" target="_blank" rel="noopener noreferrer" style="
+                    color: #4caf50;
+                    text-decoration: none;
+                    font-weight: 600;
+                  ">
+                SSRI-Evolution Analysis Repository </a>.
             </p>
           </div>
-
-          <div class="credits-section">
-            <h3>Data Analysis Repository</h3>
-            <p>
-              The data analysis code and methodology for this visualization can
-              be found in the accompanying repository:
-            </p>
-            <p>
-              <a
-                href="https://github.com/jarolim14/SSRI-Evolution"
-                target="_blank"
-                rel="noopener noreferrer"
-                style="
-                  color: #4caf50;
-                  text-decoration: none;
-                  font-weight: 600;
-                  font-size: 1.1em;
-                "
-              >
-                📊 SSRI-Evolution Analysis Repository
-              </a>
-            </p>
-            <p style="font-size: 0.9em; color: #888; margin-top: 10px">
-              This repository contains the complete data analysis pipeline,
-              including Scopus API integration, network analysis, community
-              detection, and data preprocessing scripts.
-            </p>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button id="creditsCloseBtn" class="close-btn">Close</button>
         </div>
       </div>
-    </div>
 
-    <!-- Topic Tree Modal -->
-    <div id="topicTreeModal" class="modal">
-      <div class="modal-content">
-        <h2>Topic Hierarchy</h2>
-        <div class="topic-tree-container">
-          <select id="datasetSelect" class="topic-select">
-            <option value="overview" selected>Overview</option>
-            <option value="pharmacology">Pharmacology</option>
-            <option value="indications">Indications</option>
-            <option value="safety">Safety</option>
-            <option value="other">Other</option>
-          </select>
-          <div class="topic-tree-controls">
-            <button id="saveTreeButton" class="save-button">Save as SVG</button>
-          </div>
-          <div id="topicTreeSvg"></div>
-        </div>
-        <div class="modal-footer">
-          <button id="topicTreeCloseBtn" class="close-btn">Close</button>
-        </div>
+      <!-- Error Section -->
+      <div id="errorContent" class="modal-section">
+        <h2>Error</h2>
+        <p id="errorMessage"></p>
       </div>
-    </div>
 
-    <script type="module" src="main.js"></script>
-
-    <!-- Centered intro video overlay -->
-    <div id="introVideoOverlay" class="video-overlay show">
-      <div class="video-container">
-        <div class="video-intro-note">
-          <h3>🎬 Introduction Video</h3>
-          <p>
-            This is an introduction video showing the key features of the
-            visualization. You can skip it using the button below.
-          </p>
-        </div>
-        <video
-          id="demoVideo"
-          src="video/network-visualization-demo20250630.webm"
-          playsinline
-          preload="auto"
-          controls
-        ></video>
-        <div class="video-controls">
-          <button id="skipVideoBtn" class="video-btn primary">
-            Skip Introduction
+      <div class="modal-footer">
+        <div class="button-group">
+          <button id="instructionsCloseBtn" class="close-btn">Got it!</button>
+          <button id="viewTopicHierarchyBtn" class="view-hierarchy-btn">
+            View Topic Hierarchy
           </button>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Reopen video button -->
-    <button
-      id="reopenVideoBtn"
-      class="help-button video-button"
-      title="Replay intro video"
-    >
-      ▶
+  <!-- Video Recording Modal -->
+  <div id="videoRecordingModal" class="modal">
+    <div class="modal-content">
+      <h2>Video Recording</h2>
+      <div class="video-recording-container">
+        <div id="videoCompatibilityStatus" class="compatibility-status">
+          <h3>Browser Compatibility Check</h3>
+          <div class="compatibility-items">
+            <div class="compatibility-item">
+              <span class="label">MediaRecorder API:</span>
+              <span id="mediaRecorderSupport" class="status">Checking...</span>
+            </div>
+            <div class="compatibility-item">
+              <span class="label">WebM/VP9 Codec:</span>
+              <span id="webmVp9Support" class="status">Checking...</span>
+            </div>
+            <div class="compatibility-item">
+              <span class="label">WebM/VP8 Codec:</span>
+              <span id="webmVp8Support" class="status">Checking...</span>
+            </div>
+            <div class="compatibility-item">
+              <span class="label">MP4 Codec:</span>
+              <span id="mp4Support" class="status">Checking...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="video-info">
+          <h3>About Video Recording</h3>
+          <p>
+            This feature allows you to create a demonstration video of the
+            visualization with programmed interactions. The video will show:
+          </p>
+          <ul>
+            <li>Overview of the network</li>
+            <li>Year-based filtering</li>
+            <li>Cluster selection</li>
+            <li>Paper search</li>
+            <li>Time evolution</li>
+          </ul>
+          <p>
+            <strong>Note:</strong> If your browser doesn't fully support video
+            recording, a fallback method will be used to capture individual
+            frames as images. These can be converted to video using external
+            tools like FFmpeg.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="videoRecordingCloseBtn" class="close-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help Button -->
+  <button id="helpButton" class="help-button">?</button>
+  <!-- Credits Button -->
+  <button id="creditsButton" class="help-button credits-button">©</button>
+
+  <!-- Canvas for WebGL rendering -->
+  <canvas class="webgl"></canvas>
+  <!-- Add the node id div element -->
+  <div id="nodeInfoDiv">Selected Node:</div>
+  <!-- Add legend to top right corner -->
+  <div id="legendDiv">
+    <button id="updateVisibility" class="update-button">
+      Update Selection
     </button>
+    <button id="resetLegend" class="reset-button">Reset All</button>
+  </div>
+  <!-- Year slider -->
+  <div id="year-slider-container">
+    <div class="range_container">
+      <div class="sliders_control">
+        <input id="fromSlider" type="range" value="1982" min="1982" max="2025" />
+        <input id="toSlider" type="range" value="2025" min="1982" max="2025" />
+      </div>
+      <div class="form_control">
+        <span id="fromValue">1982</span>
+        <span id="toValue">2025</span>
+      </div>
+    </div>
+  </div>
 
-    <script type="module">
-      // Intro video controller module
-      class IntroVideoController {
-        constructor() {
-          this.overlay = document.getElementById("introVideoOverlay");
-          this.video = document.getElementById("demoVideo");
-          this.skipBtn = document.getElementById("skipVideoBtn");
-          this.reopenBtn = document.getElementById("reopenVideoBtn");
-          this.isPlaying = false;
-          this.container = this.overlay
-            ? this.overlay.querySelector(".video-container")
-            : null;
-          this.isMobile = this.detectMobile();
+  <!-- Color legend -->
+  <div id="colorLegendDiv">
+    <div class="legend-item">
+      <div class="color-box pharmacology"></div>
+      <span>Pharmacology</span>
+    </div>
+    <div class="legend-item">
+      <div class="color-box indications"></div>
+      <span>Indications</span>
+    </div>
+    <div class="legend-item">
+      <div class="color-box safety"></div>
+      <span>Safety</span>
+    </div>
+    <div class="legend-item">
+      <div class="color-box other"></div>
+      <span>Other</span>
+    </div>
+  </div>
 
-          this.init();
-        }
+  <!-- Credits Modal -->
+  <div id="creditsModal" class="modal">
+    <div class="modal-content">
+      <h2>Credits</h2>
+      <div class="credits-container">
+        <div class="credits-section">
+          <h3>Data Analysis</h3>
+          <p>
+            Lukas Westphal
+            <a href="https://orcid.org/0000-0003-1452-609X" target="_blank" rel="noopener noreferrer"
+              style="margin-left: 0.5em">
+              <img src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" alt="ORCID iD icon"
+                style="width: 16px; height: 16px; vertical-align: middle" />
+            </a>
+          </p>
+        </div>
 
-        init() {
-          this.bindEvents();
-          // On mobile, do not autoplay; require explicit play with sound
-          if (!this.isMobile) {
-            this.tryAutoplayMuted();
-          } else {
-            this.video.muted = false;
-            this.video.controls = true;
-            // Ensure video is visible on mobile
-            this.video.style.display = "block";
-            this.video.style.width = "100%";
-            this.video.style.height = "auto";
+        <div class="credits-section">
+          <h3>Visualization</h3>
+          <ul>
+            <li>
+              Lukas Westphal
+              <a href="https://orcid.org/0000-0003-1452-609X" target="_blank" rel="noopener noreferrer"
+                style="margin-left: 0.5em">
+                <img src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" alt="ORCID iD icon"
+                  style="width: 16px; height: 16px; vertical-align: middle" />
+              </a>
+            </li>
+          </ul>
+        </div>
 
-            // Add loading event listeners
-            this.video.addEventListener("loadstart", () => {
-              console.log("Video loading started");
-            });
+        <div class="credits-section">
+          <h3>Conceptualization</h3>
+          <p>
+            Lukas Westphal
+            <a href="https://orcid.org/0000-0003-1452-609X" target="_blank" rel="noopener noreferrer"
+              style="margin-left: 0.5em">
+              <img src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" alt="ORCID iD icon"
+                style="width: 16px; height: 16px; vertical-align: middle" />
+            </a>
+          </p>
+          <p>
+            Débora Gräf
+            <a href="https://orcid.org/0000-0002-5900-540X" target="_blank" rel="noopener noreferrer"
+              style="margin-left: 0.5em">
+              <img src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" alt="ORCID iD icon"
+                style="width: 16px; height: 16px; vertical-align: middle" />
+            </a>
+          </p>
+          <p>
+            Christine Hallgreen
+            <a href="https://orcid.org/0000-0002-7916-3915" target="_blank" rel="noopener noreferrer"
+              style="margin-left: 0.5em">
+              <img src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_16x16.png" alt="ORCID iD icon"
+                style="width: 16px; height: 16px; vertical-align: middle" />
+            </a>
+          </p>
+        </div>
 
-            this.video.addEventListener("canplay", () => {
-              console.log("Video can start playing");
-            });
+        <div class="credits-section">
+          <h3>Data Analysis Repository</h3>
+          <p>
+            The data analysis code and methodology for this visualization can
+            be found in the accompanying repository:
+          </p>
+          <p>
+            <a href="https://github.com/jarolim14/SSRI-Evolution" target="_blank" rel="noopener noreferrer" style="
+                  color: #4caf50;
+                  text-decoration: none;
+                  font-weight: 600;
+                  font-size: 1.1em;
+                ">
+              📊 SSRI-Evolution Analysis Repository
+            </a>
+          </p>
+          <p style="font-size: 0.9em; color: #888; margin-top: 10px">
+            This repository contains the complete data analysis pipeline,
+            including Scopus API integration, network analysis, community
+            detection, and data preprocessing scripts.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="creditsCloseBtn" class="close-btn">Close</button>
+      </div>
+    </div>
+  </div>
 
-            // Add a fallback if video doesn't load
-            this.video.addEventListener("error", () => {
-              console.log("Video failed to load, showing skip option");
-              this.showSkipOption();
-            });
+  <!-- Topic Tree Modal -->
+  <div id="topicTreeModal" class="modal">
+    <div class="modal-content">
+      <h2>Topic Hierarchy</h2>
+      <div class="topic-tree-container">
+        <select id="datasetSelect" class="topic-select">
+          <option value="overview" selected>Overview</option>
+          <option value="pharmacology">Pharmacology</option>
+          <option value="indications">Indications</option>
+          <option value="safety">Safety</option>
+          <option value="other">Other</option>
+        </select>
+        <div class="topic-tree-controls">
+          <button id="saveTreeButton" class="save-button">Save as SVG</button>
+        </div>
+        <div id="topicTreeSvg"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="topicTreeCloseBtn" class="close-btn">Close</button>
+      </div>
+    </div>
+  </div>
 
-            // Add timeout fallback for mobile
-            setTimeout(() => {
-              if (this.video.readyState < 2) {
-                // HAVE_CURRENT_DATA
-                console.log(
-                  "Video taking too long to load, showing skip option"
-                );
-                this.showSkipOption();
-              }
-            }, 5000);
-          }
-        }
+  <script type="module" src="main.js"></script>
 
-        bindEvents() {
-          this.skipBtn.addEventListener("click", () => this.hideOverlay());
-          this.reopenBtn.addEventListener("click", () =>
-            this.showOverlayAndReplay()
-          );
+  <!-- Centered intro video overlay -->
+  <div id="introVideoOverlay" class="video-overlay show">
+    <div class="video-frame">
+      <div class="video-frame-header">
+        <h3>🎬 Introduction Video</h3>
+        <p>
+          This is an introduction video showing the key features of the
+          visualization. You can skip it by clicking the close button in the top right corner.
+        </p>
+      </div>
+      <button class="video-frame-close" id="skipVideoBtn" title="Skip Introduction">×</button>
+      <video id="demoVideo" src="video/network-visualization-demo20250630.webm" playsinline preload="auto"
+        controls></video>
+    </div>
+  </div>
 
-          this.video.addEventListener("click", () => this.handleVideoClick());
-          this.video.addEventListener("ended", () => this.hideOverlay());
-          this.video.addEventListener("play", () => {
-            this.isPlaying = true;
-          });
-          this.video.addEventListener("pause", () => {
-            this.isPlaying = false;
-          });
+  <!-- Reopen video button -->
+  <button id="reopenVideoBtn" class="help-button video-button" title="Replay intro video">
+    ▶
+  </button>
 
-          // Close overlay when clicking outside the video container
-          if (this.overlay) {
-            this.overlay.addEventListener("click", (e) => {
-              if (!this.container) return;
-              if (!this.container.contains(e.target)) {
-                this.hideOverlay();
-              }
-            });
-          }
-        }
+  <script type="module">
+    // Intro video controller module
+    class IntroVideoController {
+      constructor() {
+        this.overlay = document.getElementById("introVideoOverlay");
+        this.video = document.getElementById("demoVideo");
+        this.skipBtn = document.getElementById("skipVideoBtn");
+        this.reopenBtn = document.getElementById("reopenVideoBtn");
+        this.isPlaying = false;
+        this.container = this.overlay
+          ? this.overlay.querySelector(".video-frame")
+          : null;
+        this.isMobile = this.detectMobile();
 
-        tryAutoplayMuted() {
-          try {
-            this.video.muted = true;
-            const playPromise = this.video.play();
-            if (playPromise && typeof playPromise.then === "function") {
-              playPromise.catch(() => {
-                // Ignore; user can press controls to start
-              });
-            }
-          } catch (_) {}
-        }
-
-        handleVideoClick() {
-          if (this.isMobile) return; // rely on native controls on mobile
-          if (this.video.muted) {
-            this.video.muted = false;
-            this.video.volume = 1.0;
-            this.video.play().catch(() => {});
-          }
-        }
-
-        hideOverlay() {
-          this.overlay.classList.remove("show");
-          // Pause video when overlay is hidden
-          if (this.isPlaying) {
-            this.video.pause();
-            this.isPlaying = false;
-          }
-        }
-
-        showOverlayAndReplay() {
-          this.overlay.classList.add("show");
-          this.video.currentTime = 0;
-          if (!this.isMobile) {
-            this.tryAutoplayMuted();
-          } else {
-            this.video.muted = false;
-          }
-        }
-
-        showSkipOption() {
-          // Make skip button more prominent on mobile if video fails
-          if (this.skipBtn) {
-            this.skipBtn.style.background = "#ff3d5a";
-            this.skipBtn.style.fontSize = "18px";
-            this.skipBtn.style.padding = "12px 20px";
-            this.skipBtn.textContent = "Continue to App";
-          }
-        }
-
-        detectMobile() {
-          const ua = navigator.userAgent || navigator.vendor || window.opera;
-          const isTouch =
-            window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
-          return /android|iphone|ipad|ipod/i.test(ua) || isTouch;
-        }
+        this.init();
       }
 
-      // Initialize when DOM is ready
-      if (document.readyState === "loading") {
-        document.addEventListener(
-          "DOMContentLoaded",
-          () => new IntroVideoController()
+      init() {
+        this.bindEvents();
+        // Video does not autoplay - user must click play
+        this.video.muted = false;
+        this.video.controls = true;
+
+        // Ensure video is visible
+        this.video.style.display = "block";
+        this.video.style.width = "100%";
+        this.video.style.height = "auto";
+
+        // Add loading event listeners
+        this.video.addEventListener("loadstart", () => {
+          console.log("Video loading started");
+        });
+
+        this.video.addEventListener("canplay", () => {
+          console.log("Video can start playing");
+        });
+
+        // Add a fallback if video doesn't load
+        this.video.addEventListener("error", () => {
+          console.log("Video failed to load");
+        });
+      }
+
+      bindEvents() {
+        this.skipBtn.addEventListener("click", () => this.hideOverlay());
+        this.reopenBtn.addEventListener("click", () =>
+          this.showOverlayAndReplay()
         );
-      } else {
-        new IntroVideoController();
+
+        this.video.addEventListener("ended", () => this.hideOverlay());
+        this.video.addEventListener("play", () => {
+          this.isPlaying = true;
+        });
+        this.video.addEventListener("pause", () => {
+          this.isPlaying = false;
+        });
+
+        // Close overlay when clicking outside the video frame
+        if (this.overlay) {
+          this.overlay.addEventListener("click", (e) => {
+            if (!this.container) return;
+            if (!this.container.contains(e.target)) {
+              this.hideOverlay();
+            }
+          });
+        }
       }
-    </script>
-  </body>
+
+      hideOverlay() {
+        this.overlay.classList.remove("show");
+        // Pause video when overlay is hidden
+        if (this.isPlaying) {
+          this.video.pause();
+          this.isPlaying = false;
+        }
+      }
+
+      showOverlayAndReplay() {
+        this.overlay.classList.add("show");
+        this.video.currentTime = 0;
+        this.video.muted = false;
+      }
+
+      detectMobile() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isTouch =
+          window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+        return /android|iphone|ipad|ipod/i.test(ua) || isTouch;
+      }
+    }
+
+    // Initialize when DOM is ready
+    if (document.readyState === "loading") {
+      document.addEventListener(
+        "DOMContentLoaded",
+        () => new IntroVideoController()
+      );
+    } else {
+      new IntroVideoController();
+    }
+  </script>
+</body>
+
 </html>
