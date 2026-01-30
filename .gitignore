@@ -54,3 +54,6 @@ yarn-error.log*
 
 # Miscellaneous
 .DS_Store
+
+# Deployment documentation (contains account info)
+SURGE_DEPLOYMENT.md
